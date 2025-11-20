@@ -160,7 +160,7 @@ const Login: React.FC = () => {
             maxWidth: '75vw',
           }}
           logo={<img alt="logo" src="/logo.svg" />}
-          title="AIHC管理平台"
+          title="机器学习平台"
           subTitle="使用Access Key和Secret Key登录"
           initialValues={{
             autoLogin: true,

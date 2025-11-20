@@ -4,6 +4,8 @@ import { IcafeController } from '@/controllers/icafe.controller';
 import { ConfigController } from '@/controllers/config.controller';
 import { DatasetController } from '@/controllers/dataset.controller';
 import { ModelController } from '@/controllers/model.controller';
+import { ServiceController } from '@/controllers/service.controller';
+import { JobController } from '@/controllers/job.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -112,5 +114,44 @@ router.post('/api/models/:modelId/versions', ModelController.createVersion);
 
 // 删除模型版本
 router.delete('/api/models/:modelId/versions/:versionId', ModelController.deleteVersion);
+
+/**
+ * 服务部署相关路由
+ */
+// 查询服务列表
+router.get('/api/services', authMiddleware, ServiceController.list);
+
+// 查询服务详情
+router.get('/api/services/:serviceId', authMiddleware, ServiceController.get);
+
+// 创建服务
+router.post('/api/services', authMiddleware, ServiceController.create);
+
+// 删除服务
+router.delete('/api/services/:serviceId', authMiddleware, ServiceController.delete);
+
+/**
+ * 训练任务相关路由
+ */
+// 查询训练任务列表
+router.post('/api/jobs', authMiddleware, JobController.list);
+
+// 查询训练任务详情
+router.get('/api/jobs/:jobId', authMiddleware, JobController.get);
+
+// 创建训练任务
+router.post('/api/jobs/create', authMiddleware, JobController.create);
+
+// 停止训练任务
+router.post('/api/jobs/:jobId/stop', authMiddleware, JobController.stop);
+
+// 删除训练任务
+router.delete('/api/jobs/:jobId', authMiddleware, JobController.delete);
+
+// 查询训练任务事件
+router.get('/api/jobs/:jobId/events', authMiddleware, JobController.getEvents);
+
+// 查询训练任务日志
+router.get('/api/jobs/:jobId/pods/:podName/logs', authMiddleware, JobController.getLogs);
 
 export default router;

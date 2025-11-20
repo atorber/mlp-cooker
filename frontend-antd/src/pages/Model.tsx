@@ -297,7 +297,7 @@ const Model: React.FC = () => {
   return (
     <PageContainer
       title="模型列表"
-      subTitle="管理AIHC模型，支持创建、查看和管理"
+      subTitle="管理模型，支持创建、查看和管理"
       extra={
         <Space>
           <Button

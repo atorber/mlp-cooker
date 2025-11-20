@@ -215,8 +215,23 @@ export class AihcSDK extends BaseService {
         headers,
       };
 
-      // 只有在有请求体时才添加 body
-      if (requestBody) {
+      // 对于 POST/PUT 请求，即使请求体为空对象，也需要设置 body
+      // BceBaseClient 可能需要字符串格式的 body 来正确计算 Content-Length
+      if (method === 'POST' || method === 'PUT') {
+        // 确定要使用的 body
+        let bodyToSend: any;
+        if (requestBody !== undefined && requestBody !== null) {
+          bodyToSend = requestBody;
+        } else {
+          // POST/PUT 请求如果没有提供 body，使用空对象
+          bodyToSend = {};
+        }
+        
+        // 将 body 序列化为 JSON 字符串，确保 Content-Length 可以被正确计算
+        // 即使 BceBaseClient 会自动处理，显式序列化可以避免 Content-Length 计算问题
+        requestOptions.body = JSON.stringify(bodyToSend);
+      } else if (requestBody) {
+        // GET/DELETE 请求只有在有请求体时才添加 body
         requestOptions.body = requestBody;
       }
 
@@ -272,9 +287,12 @@ export class AihcSDK extends BaseService {
    */
   async describeJobs(resourcePoolId?: string, requestBody?: RequestBody): Promise<any> {
     return this.withRetry(async () => {
+      if (requestBody) {
+        requestBody.queueID = this.config.defaultQueue || '';
+      }
       return this.sendRequest('POST', 'DescribeJobs', {
         resourcePoolId: resourcePoolId || this.config.defaultResourcePoolId,
-      }, requestBody || {});
+      }, requestBody);
     });
   }
 

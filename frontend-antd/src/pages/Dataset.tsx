@@ -267,7 +267,7 @@ const Dataset: React.FC = () => {
   return (
     <PageContainer
       title="数据集列表"
-      subTitle="管理AIHC数据集，支持创建、查看和管理"
+      subTitle="管理数据集，支持创建、查看和管理"
       extra={
         <Space>
           <Button
