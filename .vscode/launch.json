@@ -1,0 +1,33 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Start Backend (python scripts/start_backend.py) [conda: base]",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/start_backend.py",
+            "console": "integratedTerminal",
+            "env": {
+                "CONDA_DEFAULT_ENV": "base",
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Start Online (cd frontend-baige && npm run start-online)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "cd frontend-baige && npm run start-online",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Start Antd App (cd frontend-antd && npm run start)",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "cd frontend-antd && npm run start",
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

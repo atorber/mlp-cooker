@@ -1,0 +1,2045 @@
+{
+    "data": {
+        "count": 71,
+        "list": [
+            {
+                "templateID": 11048290,
+                "templateName": "DeepSeek-V3.2-Exp",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-V3.2-Exp是DeepSeek模型的一个实验版本。作为迈向下一代架构的中间步骤，V3.2-Exp 在 V3.1-Terminus 的基础上引入了 DeepSeek 稀疏注意力机制——一种旨在探索和验证在长上下文场景中训练和推理效率优化的稀疏注意力机制",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/7mg5ydyn4",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 500001,
+                        "value": "NEW"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100016,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 17,
+                "ctime": 1759229590,
+                "mtime": 1759229591
+            },
+            {
+                "templateID": 8361711,
+                "templateName": "Kimi-K2-Instruct-0905",
+                "shortDesc": "Kimi K2 是月之暗面开源的 混合专家 (MoE) 语言模型，Kimi K2-Instruct-0905 是 Kimi K2 最新且性能最强的版本。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/dmfgl34hu",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 500001,
+                        "value": "NEW"
+                    },
+                    {
+                        "tagId": 100007,
+                        "value": "月之暗面"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 900001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 17,
+                "ctime": 1758025788,
+                "mtime": 1758025788
+            },
+            {
+                "templateID": 2386560,
+                "templateName": "Qwen3-235B-A22B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3是通义千问系列最新一代大语言模型，提供全系列稠密模型与混合专家（MoE）模型，原生支持32,768 token，通过YaRN扩展至131,072 token。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/ima24esyy",
+                "tags": [
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200009,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 17,
+                "ctime": 1745921226,
+                "mtime": 1757242277
+            },
+            {
+                "templateID": 14469350,
+                "templateName": "Qwen3-30B-A3B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3是通义千问系列最新一代大语言模型，提供完整的稠密模型与混合专家（MoE）模型体系。小型MoE模型Qwen3-30B-A3B的激活参数数量是QwQ-32B的10%，表现更胜一筹。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Cma24k7pk",
+                "tags": [
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200008,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 17,
+                "ctime": 1745921225,
+                "mtime": 1757242256
+            },
+            {
+                "templateID": 14248631,
+                "templateName": "Qwen3-32B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-32B是通义千问系列最新一代大语言模型，参数量32.8B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/nma24scqt",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200007,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 17,
+                "ctime": 1745921166,
+                "mtime": 1757242216
+            },
+            {
+                "templateID": 6572090,
+                "templateName": "RDT-1B",
+                "shortDesc": "RDT是由清华大学TSAIL小组研究开发的模仿学习模型 ，已在超过 100 万个多机器人场景上进行预训练。给定语言指令和最多三个视角的 RGB 图像，RDT 可以预测 64 个机器人动作。RDT 几乎兼容所有现代移动机械手，从单臂到双臂、从关节到 EEF、从位置到速度，甚至轮式运动。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/ime6s4edd",
+                "tags": [
+                    {
+                        "tagId": 200001,
+                        "value": "VLA"
+                    },
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    },
+                    {
+                        "tagId": 500001,
+                        "value": "NEW"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10002,
+                        "linkID": 0,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1758112491,
+                "mtime": 1758112492
+            },
+            {
+                "templateID": 15760446,
+                "templateName": "DeepSeek-V3.1",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-V3.1 是深度求索公司在 DeepSeek-V3.1-Base 基础上进行训练后优化的模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/kmeqhmk91",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100015,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1756121389,
+                "mtime": 1756121390
+            },
+            {
+                "templateID": 11045562,
+                "templateName": "GPT-OSS-20B",
+                "shortDesc": "GPT OSS 是 OpenAI 推出的 重量级开放模型，面向强推理、智能体任务以及多样化开发场景。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Vme16q22e",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100006,
+                        "value": "OpenAI"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 800002,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1754623288,
+                "mtime": 1754623289
+            },
+            {
+                "templateID": 7950328,
+                "templateName": "GPT-OSS-120B",
+                "shortDesc": "GPT OSS 是 OpenAI 推出的 重量级开放模型，面向强推理、智能体任务以及多样化开发场景。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Ame19ud38",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100006,
+                        "value": "OpenAI"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 800001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1754623287,
+                "mtime": 1754623287
+            },
+            {
+                "templateID": 16021911,
+                "templateName": "Qwen2.5-VL-72B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5-VL 是通义千问推出的多模态大模型，在 Qwen-VL 的基础上进行了升级，增强了图像理解、文本理解和多模态交互能力，能够处理更复杂的视觉-语言任务。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Lmdskrfll",
+                "tags": [
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700007,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1754039352,
+                "mtime": 1754039353
+            },
+            {
+                "templateID": 5770021,
+                "templateName": "Qwen2.5-VL-32B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5-VL 是通义千问推出的多模态大模型，在 Qwen-VL 的基础上进行了升级，增强了图像理解、文本理解和多模态交互能力，能够处理更复杂的视觉-语言任务。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/tmdskpi4r",
+                "tags": [
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700006,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1754039351,
+                "mtime": 1754039351
+            },
+            {
+                "templateID": 7187764,
+                "templateName": "Qwen2.5-VL-7B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5-VL 是通义千问推出的多模态大模型，在 Qwen-VL 的基础上进行了升级，增强了图像理解、文本理解和多模态交互能力，能够处理更复杂的视觉-语言任务。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/fmdsjsrvz",
+                "tags": [
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700005,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1754039349,
+                "mtime": 1754039350
+            },
+            {
+                "templateID": 7837704,
+                "templateName": "Qwen2.5-14B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5 是通义千问发布的大模型系列，包含多个基础语言模型和指令微调模型，参数量范围从 0.5B 到 720 亿。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Rmdh1z7c6",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700003,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753774470,
+                "mtime": 1753774470
+            },
+            {
+                "templateID": 12420722,
+                "templateName": "Qwen2.5-7B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5 是通义千问发布的大模型系列，包含多个基础语言模型和指令微调模型，参数量范围从 0.5B 到 720 亿。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Qmdgrom4j",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700004,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753774468,
+                "mtime": 1753774469
+            },
+            {
+                "templateID": 4217404,
+                "templateName": "Qwen2.5-72B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5 是通义千问发布的大模型系列，包含多个基础语言模型和指令微调模型，参数量范围从 0.5B 到 720 亿。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/xmdh24giw",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753774420,
+                "mtime": 1753774420
+            },
+            {
+                "templateID": 4856713,
+                "templateName": "Qwen2.5-32B-Instruct",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen2.5 是通义千问发布的大模型系列，包含多个基础语言模型和指令微调模型，参数量范围从 0.5B 到 720 亿。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/smdh22ui3",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    },
+                    {
+                        "tagId": 400004,
+                        "value": "昆仑芯"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 700002,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753774418,
+                "mtime": 1753774419
+            },
+            {
+                "templateID": 4651335,
+                "templateName": "SparseDrive-加速版",
+                "shortDesc": "通过稀疏场景表示来实现端到端自动驾驶新范式，兼具SOTA的性能和易于部署的优点，加速版比原版性能在部分环境中有50%以上的提升",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Hmcn9ozss",
+                "tags": [
+                    {
+                        "tagId": 200003,
+                        "value": "智驾端到端"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 500002,
+                        "value": "HOT"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100003,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753173182,
+                "mtime": 1753173182
+            },
+            {
+                "templateID": 4746026,
+                "templateName": "SparseDrive",
+                "shortDesc": "通过稀疏场景表示来实现端到端自动驾驶新范式，兼具SOTA的性能和易于部署的优点",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/7mcna186l",
+                "tags": [
+                    {
+                        "tagId": 200003,
+                        "value": "智驾端到端"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 500002,
+                        "value": "HOT"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100002,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1753173180,
+                "mtime": 1753704837
+            },
+            {
+                "templateID": 10983140,
+                "templateName": "ERNIE-4.5-0.3B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600010,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221812,
+                "mtime": 1752221813
+            },
+            {
+                "templateID": 8772552,
+                "templateName": "ERNIE-4.5-0.3B-Base",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600009,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221811,
+                "mtime": 1752221811
+            },
+            {
+                "templateID": 12366030,
+                "templateName": "ERNIE-4.5-21B-A3B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600008,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221809,
+                "mtime": 1752221810
+            },
+            {
+                "templateID": 7341658,
+                "templateName": "ERNIE-4.5-21B-A3B-Base",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600007,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221808,
+                "mtime": 1752221808
+            },
+            {
+                "templateID": 12419158,
+                "templateName": "ERNIE-4.5-VL-28B-A3B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600006,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221806,
+                "mtime": 1752221807
+            },
+            {
+                "templateID": 3019400,
+                "templateName": "ERNIE-4.5-VL-28B-A3B-Base",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600005,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 15,
+                "ctime": 1752221804,
+                "mtime": 1752221805
+            },
+            {
+                "templateID": 8768990,
+                "templateName": "ERNIE-4.5-300B-A47B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/rmccrn9ly",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600004,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 14,
+                "ctime": 1751264089,
+                "mtime": 1751340614
+            },
+            {
+                "templateID": 65500,
+                "templateName": "ERNIE-4.5-VL-424B-A47B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Bmch6945x",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600002,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 13,
+                "ctime": 1751266306,
+                "mtime": 1751340624
+            },
+            {
+                "templateID": 13959977,
+                "templateName": "ERNIE-4.5-300B-A47B-Base",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Umccruta1",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600003,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 12,
+                "ctime": 1751263997,
+                "mtime": 1751340630
+            },
+            {
+                "templateID": 9209499,
+                "templateName": "ERNIE-4.5-VL-424B-A47B-Base",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-ernie.png",
+                "shortDesc": "ERNIE 4.5 是一个全新的大规模多模态模型系列，包含 10 个不同的变体。该系列由拥有 470 亿和 30 亿激活参数的混合专家 (MoE) 模型组成，其中最大的模型总参数量达到 4280 亿，此外还有一个包含 3 亿参数的稠密模型。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Dmccrxboc",
+                "tags": [
+                    {
+                        "tagId": 100005,
+                        "value": "文心大模型"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 200005,
+                        "value": "VLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 600001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 11,
+                "ctime": 1751266287,
+                "mtime": 1751340637
+            },
+            {
+                "templateID": 7545606,
+                "templateName": "RDT-Maniskill",
+                "shortDesc": "RDT是由清华大学TSAIL小组研究开发的模仿学习模型 ，已在超过 100 万个多机器人场景上进行预训练。给定语言指令和最多三个视角的 RGB 图像，RDT 可以预测 64 个机器人动作。RDT 几乎兼容所有现代移动机械手，从单臂到双臂、从关节到 EEF、从位置到速度，甚至轮式运动。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Kmbru9pgr",
+                "tags": [
+                    {
+                        "tagId": 200001,
+                        "value": "VLA"
+                    },
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 300001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 10,
+                "ctime": 1751421103,
+                "mtime": 1751421103
+            },
+            {
+                "templateID": 6603873,
+                "templateName": "π₀-ALOHA",
+                "shortDesc": "π₀-ALOHA 是由 Physical Intelligence 团队开发的开源视觉-语言-动作（VLA） 模型，旨在实现通用机器人控制。能根据语言指令和多视角 RGB 图像 预测 64 个机器人动作，适用于ALOHA机器人。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/7mbrufvy1",
+                "tags": [
+                    {
+                        "tagId": 200001,
+                        "value": "VLA"
+                    },
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 300002,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 9,
+                "ctime": 1751421105,
+                "mtime": 1751421105
+            },
+            {
+                "templateID": 15624936,
+                "templateName": "π₀-FAST-LIBERO ",
+                "shortDesc": "π₀- FAST-LIBERO 是由 Physical Intelligence 团队开发的开源视觉-语言-动作（VLA） 模型，旨在实现通用机器人控制。采用自回归预测 + FAST（Frequency-space Action Sequence Tokenization）动作分词器，将连续动作离散化为 token 序列，能根据语言指令和多视角 RGB 图像 预测 64 个机器人动作，适用于libero机器人仿真平台。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/fmbrulnzl",
+                "tags": [
+                    {
+                        "tagId": 200001,
+                        "value": "VLA"
+                    },
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 300004,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 8,
+                "ctime": 1751421107,
+                "mtime": 1751421107
+            },
+            {
+                "templateID": 7913722,
+                "templateName": "π₀-FAST-DROID",
+                "shortDesc": "π₀- FAST-DROID 是由 Physical Intelligence 团队开发的开源视觉-语言-动作（VLA） 模型，旨在实现通用机器人控制。采用自回归预测 + FAST（Frequency-space Action Sequence Tokenization）动作分词器，将连续动作离散化为 token 序列，能根据语言指令和多视角 RGB 图像 预测 64 个机器人动作，适用于DROID机器人。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Dmbuibu2n",
+                "tags": [
+                    {
+                        "tagId": 200001,
+                        "value": "VLA"
+                    },
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 300003,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 7,
+                "ctime": 1751421106,
+                "mtime": 1751421106
+            },
+            {
+                "templateID": 14018266,
+                "templateName": "BGE-M3",
+                "shortDesc": "BGE-M3是一个通用向量模型，具有多功能性、多语言性和多粒度性的特点。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tmbrdsqaj",
+                "tags": [
+                    {
+                        "tagId": 100004,
+                        "value": "Embedding"
+                    },
+                    {
+                        "tagId": 400001,
+                        "value": "Ray"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 500001,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 6,
+                "ctime": 1749623458,
+                "mtime": 1749623458
+            },
+            {
+                "templateID": 15648363,
+                "templateName": "DeepSeek-R1-0528（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-R1-0528是DeepSeek R1 模型小版本升级，其仍然使用2024年12月所发布的DeepSeek V3 Base 模型作为基座，但在后训练过程中投入了更多算力，显著提升了模型的思维深度与推理能力。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Jmbaf5o60",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 500002,
+                        "value": "HOT"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100013,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 5,
+                "ctime": 1748587839,
+                "mtime": 1751253831
+            },
+            {
+                "templateID": 2227552,
+                "templateName": "DeepSeek-R1-0528-Qwen3-8B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-R1-0528-Qwen3-8B是将DeepSeek-R1-0528的思维链蒸馏出来用于后训练Qwen3 8B Base从而获得。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Hmbaijywe",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100014,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 4,
+                "ctime": 1748592847,
+                "mtime": 1751253824
+            },
+            {
+                "templateID": 3802900,
+                "templateName": "DeepSeek-Prover-V2-671B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-Prover-V2-671B 初始化数据通过DeepSeek-V3驱动的递归定理证明流程采集，与DeepSeek-V3的逐步推理相结合，构建强化学习的初始冷启动。实现了非形式化数学推理与形式化证明在统一模型中的融合。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/2map5szjy",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100012,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 3,
+                "ctime": 1747306382,
+                "mtime": 1747306434
+            },
+            {
+                "templateID": 10509806,
+                "templateName": "DeepSeek-V3-0324",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-V3-0324 是深度求索公司 2025年3月24日 发布的大语言模型升级版本，属于 DeepSeek-V3 系列的小版本更新，性能提升显著，尤其在代码生成、数学推理、前端开发等方面表现突出。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tm98apvcc",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100011,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 2,
+                "ctime": 1745921093,
+                "mtime": 1746586873
+            },
+            {
+                "templateID": 2173670,
+                "templateName": "DeepSeek-R1（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-R1-Zero 通过大规模强化学习（RL）直接训练，无需监督微调（SFT）作为前置步骤，在推理任务中展现出卓越性能。通过强化学习，该模型自然涌现出大量强大且有趣的推理行为。然而，DeepSeek-R1-Zero 也存在一些挑战，例如无限重复、可读性差和语言混杂等问题。 为解决上述问题并进一步提升推理能力， DeepSeek-R1在强化学习前引入了冷启动数据。DeepSeek-R1 在数学、代码和推理任务上的性能已可比肩 OpenAI-o1。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/cm98doeaf",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100010,
+                        "linkName": ""
+                    }
+                ],
+                "weight": 1,
+                "ctime": 1745921092,
+                "mtime": 1746586882
+            },
+            {
+                "templateID": 13446503,
+                "templateName": "Label Studio",
+                "shortDesc": "Label Studio 是一个用于构建机器学习和深度学习模型注释界面的平台。它支持多种注释工具，如图像注释、视频注释、语音注释和结构化数据注释。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/kmfg90jf2",
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 110005,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1757647759,
+                "mtime": 1757647759
+            },
+            {
+                "templateID": 8052315,
+                "templateName": "Isaac Lab",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-nvidia.png",
+                "shortDesc": "Isaac Lab 是由 NVIDIA 推出的基于Isaac Sim的开源机器人研究框架，基于 GPU 加速实现精确仿真，统一和简化强化学习、模仿学习和运动规划等机器人研究工作流程，推动机器人 sim-to-real（仿真到现实）的高效迁移。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Smdsmun0v",
+                "tags": [
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    },
+                    {
+                        "tagId": 500001,
+                        "value": "NEW"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 110008,
+                        "linkName": "Isaac Lab 2.2.0"
+                    },
+                    {
+                        "linkType": 10003,
+                        "linkID": 110004,
+                        "linkName": "Isaac Lab 2.1.0"
+                    }
+                ],
+                "ctime": 1754653224,
+                "mtime": 1759071804
+            },
+            {
+                "templateID": 4011778,
+                "templateName": "Isaac Sim",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-nvidia.png",
+                "shortDesc": "NVIDIA Isaac Sim是基于NVIDIA Omniverse构建的机器人仿真平台。通过GPU加速物理引擎来实现精确仿真，并支持大规模、多传感器RTX渲染。集成数据生成、强化学习、ROS集成和数字孪生模拟等端到端工作流程。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/amdsn54gz",
+                "tags": [
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    },
+                    {
+                        "tagId": 500001,
+                        "value": "NEW"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 110007,
+                        "linkName": "Isaac Sim 5.0.0"
+                    },
+                    {
+                        "linkType": 10003,
+                        "linkID": 110003,
+                        "linkName": "Isaac Sim 4.5.0"
+                    }
+                ],
+                "ctime": 1754653030,
+                "mtime": 1759071652
+            },
+            {
+                "templateID": 14781036,
+                "templateName": "ManiSkill",
+                "shortDesc": "ManiSkill是一个由SAPIEN支持的开源机器人模拟与训练框架，通过GPU并行化技术实现高吞吐仿真和数据采集，支持多样化机器人任务和仿真-现实闭环迁移，并提供丰富的预置学习算法。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tmdsn7qqf",
+                "tags": [
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 110002,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754284683,
+                "mtime": 1754284683
+            },
+            {
+                "templateID": 4807624,
+                "templateName": "LeRobot",
+                "shortDesc": "LeRobot是由Hugging Face主导开发的开源机器人学习框架，目前主要支持数据集格式转换功能，支持将HDF5、RLDS等多种格式的数据集转换为LeRobotDataset格式。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Nmdsnpzfj",
+                "tags": [
+                    {
+                        "tagId": 300001,
+                        "value": "具身智能"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 110001,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754284552,
+                "mtime": 1754284552
+            },
+            {
+                "templateID": 16233470,
+                "templateName": "BEVDet",
+                "shortDesc": "BEVDet 是一种用于自动驾驶领域的多视角 3D 目标检测模型，2021 年被提出，它通过构建统一的鸟瞰图特征空间，开创了多视角视觉感知的新范式。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/2mdskvod8",
+                "tags": [
+                    {
+                        "tagId": 200004,
+                        "value": "智驾感知模型"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100007,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754284046,
+                "mtime": 1754284047
+            },
+            {
+                "templateID": 3107913,
+                "templateName": "BEVFormer",
+                "shortDesc": "提取的环视特征通过模型学习的方式转换到 BEV 空间（模型去学习如何将特征从 图像坐标系转换到 BEV 坐标系），从而实现 3D 目标检测和地图分割任务，并取得了 SOTA 的效果。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/ymdsmsho4",
+                "tags": [
+                    {
+                        "tagId": 200004,
+                        "value": "智驾感知模型"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100006,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754283921,
+                "mtime": 1754283921
+            },
+            {
+                "templateID": 9926699,
+                "templateName": "BEVFusion",
+                "shortDesc": "BEVFusion是一个高效且通用的多任务多传感器融合模型，用于自动驾驶的3D感知。通过统一的鸟瞰图表示，它保留了几何信息和语义信息，解决了点级融合方法的局限性。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Omdsk8vsy",
+                "tags": [
+                    {
+                        "tagId": 200004,
+                        "value": "智驾感知模型"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100005,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754283686,
+                "mtime": 1754283687
+            },
+            {
+                "templateID": 13119125,
+                "templateName": "UniAD",
+                "shortDesc": "UniAD是一个端到端的自动驾驶框架，通过整合感知、预测、决策和控制模块，实现全栈驾驶任务的协同优化，显著提升系统在复杂场景下的性能和安全性。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/dmdskdvgl",
+                "tags": [
+                    {
+                        "tagId": 200003,
+                        "value": "智驾端到端"
+                    },
+                    {
+                        "tagId": 400003,
+                        "value": "Python"
+                    },
+                    {
+                        "tagId": 300002,
+                        "value": "自动驾驶"
+                    },
+                    {
+                        "tagId": 500002,
+                        "value": "HOT"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10003,
+                        "linkID": 100004,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1754279423,
+                "mtime": 1754279424
+            },
+            {
+                "templateID": 1562003,
+                "templateName": "Llama-3_1-Nemotron-Ultra-253B-v1",
+                "shortDesc": "Llama-3_1-Nemotron-Ultra-253B-v1是英伟达开源基于Llama-3.1-405B-Instruct微调的推理模型，参数量253B。专注于推理、聊天偏好和任务以及 RAG和工具调用，支持 128K tokens 上下文长度。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Dmadv410p",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 400003,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1747023561,
+                "mtime": 1747049582
+            },
+            {
+                "templateID": 10060736,
+                "templateName": "Llama-3_3-Nemotron-Super-49B-v1",
+                "shortDesc": "Llama-3.3-Nemotron-Super-49B-v1 是英伟达开源基于 Llama-3.3-70B-Instruct微调的大语言模型，专注于推理能力优化，针对人类对话偏好、RAG和工具调用等任务进行了后训练。该模型支持 128K tokens 的超长上下文窗口。Llama-3.3-Nemotron-Super-49B-v1 在模型精度与效率之间实现了出色的平衡，大幅降低了模型的显存占用，能够处理更大规模的负载。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/tmaer6f2i",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 400002,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1747023560,
+                "mtime": 1747023560
+            },
+            {
+                "templateID": 3981907,
+                "templateName": "Llama-3.1-Nemotron-Nano-8B-v1",
+                "shortDesc": "Llama-3.1-Nemotron-Nano-8B-v1 是英伟达开源基于Llama-3.1-8B-Instruct微调的推理模型，参数量253B。专注于推理、聊天偏好和任务以及 RAG和工具调用。该模型在模型精度和计算效率之间取得了卓越的平衡。在Llama-3.1-8B-Instruct的基础上进一步优化，提升了推理能力，支持 128K tokens 的上下文长度。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/bmaer3vdu",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 400001,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1747023559,
+                "mtime": 1747049554
+            },
+            {
+                "templateID": 5064679,
+                "templateName": "Qwen3-235B-A22B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3是通义千问系列最新一代大语言模型，提供全系列稠密模型与混合专家（MoE）模型，原生支持32,768 token，通过YaRN扩展至131,072 token。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/ima24esyy",
+                "tags": [
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200017,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979654,
+                "mtime": 1745979655
+            },
+            {
+                "templateID": 667949,
+                "templateName": "Qwen3-30B-A3B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3是通义千问系列最新一代大语言模型，提供完整的稠密模型与混合专家（MoE）模型体系。小型MoE模型Qwen3-30B-A3B的激活参数数量是QwQ-32B的10%，表现更胜一筹。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Cma24k7pk",
+                "tags": [
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200016,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979653,
+                "mtime": 1745979653
+            },
+            {
+                "templateID": 6350994,
+                "templateName": "Qwen3-14B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-14B是通义千问系列最新一代大语言模型，提供完整的稠密模型与混合专家（MoE）模型体系，参数数量14.8B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/9ma25kp9j",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200014,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979522,
+                "mtime": 1745979606
+            },
+            {
+                "templateID": 4173916,
+                "templateName": "Qwen3-32B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-32B是通义千问系列最新一代大语言模型，参数量32.8B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/nma24scqt",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200015,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979522,
+                "mtime": 1745979523
+            },
+            {
+                "templateID": 16083035,
+                "templateName": "Qwen3-8B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-8B是通义千问系列最新一代大语言模型，参数量8.2B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tma25yrnw",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200013,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979517,
+                "mtime": 1745979517
+            },
+            {
+                "templateID": 15699368,
+                "templateName": "Qwen3-4B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-4B是通义千问系列最新一代大语言模型，参数量4B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Rma26d8gy",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200012,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979516,
+                "mtime": 1745979516
+            },
+            {
+                "templateID": 15951035,
+                "templateName": "Qwen3-1.7B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-1.7B是通义千问系列最新一代大语言模型，参数量1.7B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Fma26hjfl",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200011,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979515,
+                "mtime": 1745979515
+            },
+            {
+                "templateID": 13794039,
+                "templateName": "Qwen3-0.6B（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-0.6B是通义千问系列最新一代大语言模型，参数量0.6B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/pma26pdgc",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200010,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745979514,
+                "mtime": 1745979514
+            },
+            {
+                "templateID": 6055659,
+                "templateName": "Qwen3-14B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-14B是通义千问系列最新一代大语言模型，提供完整的稠密模型与混合专家（MoE）模型体系，参数数量14.8B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/9ma25kp9j",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200006,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921164,
+                "mtime": 1745921165
+            },
+            {
+                "templateID": 10391576,
+                "templateName": "Qwen3-8B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-8B是通义千问系列最新一代大语言模型，参数量8.2B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tma25yrnw",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200005,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921163,
+                "mtime": 1745921163
+            },
+            {
+                "templateID": 949926,
+                "templateName": "Qwen3-4B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-4B是通义千问系列最新一代大语言模型，参数量4B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Rma26d8gy",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200004,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921162,
+                "mtime": 1745921162
+            },
+            {
+                "templateID": 14931139,
+                "templateName": "Qwen3-1.7B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-1.7B是通义千问系列最新一代大语言模型，参数量1.7B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Fma26hjfl",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200003,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921161,
+                "mtime": 1745921161
+            },
+            {
+                "templateID": 7090181,
+                "templateName": "Qwen3-0.6B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "Qwen3-0.6B是通义千问系列最新一代大语言模型，参数量0.6B。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/pma26pdgc",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200002,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921159,
+                "mtime": 1745921160
+            },
+            {
+                "templateID": 11877644,
+                "templateName": "DeepSeek-V3（FP8）",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-V3模型适用于多种自然语言处理任务，如文本生成、问答系统、文本摘要等，能够生成高质量的语言内容并支持多语言对话。该模型拥有671亿个总参数，能够处理更大规模的数据集，在各项任务种表现出更强的泛化能力、提供更快的推理时间。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/hm98d8lvh",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    },
+                    {
+                        "tagId": 100002,
+                        "value": "MoE"
+                    },
+                    {
+                        "tagId": 500002,
+                        "value": "HOT"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100009,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921091,
+                "mtime": 1745921091
+            },
+            {
+                "templateID": 7886100,
+                "templateName": "QwQ-32B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-qwen.png",
+                "shortDesc": "QwQ 是 Qwen 系列的推理模型，与传统指令调优（instruction-tuned）模型相比，具备思维与推理能力的 QwQ 在下游任务（尤其是复杂难题）中表现显著提升。QwQ-32B作为中等规模的推理模型，在性能上可与当前最先进的推理模型（如 DeepSeek-R1、o1-mini 等）相媲美。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/zm98dvapy",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100003,
+                        "value": "通义千问"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 200001,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921071,
+                "mtime": 1745921071
+            },
+            {
+                "templateID": 10194471,
+                "templateName": "DeepSeek-R1-Distill-Llama-70B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "基于 Llama-3.3-70B-Instruct 架构，通过 DeepSeek-R1 的强化学习（RL）输出进行精细调优，是目前参数规模最大的蒸馏模型（700 亿参数）。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Tm98e2u2d",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100006,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921033,
+                "mtime": 1745921033
+            },
+            {
+                "templateID": 4266127,
+                "templateName": "DeepSeek-R1-Distill-Qwen-32B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "基于 Qwen2.5-32B 架构，通过知识蒸馏技术从 DeepSeek-R1 生成的 80 万精选样本中微调，参数规模 325 亿。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Um98eob7p",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100005,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921032,
+                "mtime": 1745921032
+            },
+            {
+                "templateID": 7199404,
+                "templateName": "DeepSeek-R1-Distill-Qwen-14B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "基于 Qwen2.5系列模型架构，通过知识蒸馏技术从 DeepSeek-R1 生成的 80 万精选样本中微调，针对中等规模硬件优化的蒸馏模型，参数量 140 亿，适用于资源有限场景。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Um9atn3li",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100004,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921031,
+                "mtime": 1745921031
+            },
+            {
+                "templateID": 15729139,
+                "templateName": "DeepSeek-R1-Distill-Llama-8B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "基于 Llama-3 架构的轻量级蒸馏模型（80 亿参数），面向低算力资源设计。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Em9b0op10",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100003,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921029,
+                "mtime": 1745921029
+            },
+            {
+                "templateID": 10391605,
+                "templateName": "DeepSeek-R1-Distill-Qwen-7B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-R1-Distill-Qwen-7B 是DeepSeek AI从DeepSeek-R1模型中蒸馏出来的Qwen模型，比经过强化学习训练出来的小型稠密模型拥有更好的推理能力。参数量为70亿，专为移动端或嵌入式设备优化。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Dm9atnxpy",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100002,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745921028,
+                "mtime": 1745921028
+            },
+            {
+                "templateID": 13548258,
+                "templateName": "DeepSeek-R1-Distill-Qwen-1.5B",
+                "thumb": "https://aihclite-pub.cdn.bcebos.com/icon/tpl-deepseek.png",
+                "shortDesc": "DeepSeek-R1-Distill-Qwen-1.5B是DeepSeek AI从DeepSeek-R1模型中蒸馏出来的Qwen模型，比经过强化学习训练出来的小型稠密模型拥有更好的推理能力。参数量为15亿，专为移动端或嵌入式设备优化。",
+                "document": "https://cloud.baidu.com/doc/AIHC/s/Om9atop99",
+                "tags": [
+                    {
+                        "tagId": 100001,
+                        "value": "LLM"
+                    },
+                    {
+                        "tagId": 100000,
+                        "value": "DeepSeek"
+                    }
+                ],
+                "linkInfo": [
+                    {
+                        "linkType": 10001,
+                        "linkID": 100001,
+                        "linkName": ""
+                    }
+                ],
+                "ctime": 1745920982,
+                "mtime": 1745920982
+            }
+        ]
+    },
+    "errno": 0,
+    "requestId": "4f822dc9-00f6-47e4-a974-b84c60d78ed2",
+    "request_id": "4f822dc9-00f6-47e4-a974-b84c60d78ed2"
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "ds-itu7ep4",
+    "name": "python",
+    "imageId": "ds-itu7ep4",
+    "frameworks": [
+      "PyTorch 2.6.0",
+      "DeepSpeed"
+    ],
+    "applicableScopes": [
+      "开发机",
+      "分布式训练",
+      "在线服务部署"
+    ],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "DataJuicer的GPU镜像,用于DataJuicer的训练和开发",
+    "imageAddress": "registry.baidubce.com/aihc p-public/mpirun",
+    "lastUpdateTime": "2025-10-15T19:33:15.604568",
+    "status": "online",
+    "icon": "P",
+    "introduction": "FuSe 数据集包含在 RAIL 实验室@加州大学伯克利分校的 WidowX 机器人上收集的 26,866 条轨迹 (远程操控轨迹,涵盖桌面抓取、购物袋内抓取和按钮按压三类任务)。\n\n它包含在多个环境中收集的视觉、触觉、声音和动作数据,并使用自然语言进行标注。\n\n机器人通过Meta Oculus Quest 2 VR头显操作,任务结合语言指令和复杂视觉遮挡,支持多传感器与语言融合的机器人策略研究。",
+    "paperUrl": "https://huggingface.co/papers/2501.04693",
+    "codeUrl": "https://github.com/oier-mees/FuSe",
+    "license": "HuggingFace"
+  },
+  {
+    "id": "ds-tensorflow",
+    "name": "tensorflow",
+    "imageId": "ds-tensorflow",
+    "frameworks": [
+      "TensorFlow 2.12.0"
+    ],
+    "applicableScopes": [
+      "开发机",
+      "分布式训练"
+    ],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "TensorFlow深度学习框架镜像",
+    "imageAddress": "registry.baidubce.com/aihc p-public/tensorflow",
+    "lastUpdateTime": "2025-10-15T19:32:21.639483",
+    "status": "offline",
+    "icon": "T",
+    "introduction": "TensorFlow是一个端到端开源机器学习平台。它拥有一个全面而灵活的生态系统，其中包含各种工具、库和社区资源，可助力研究人员推动先进机器学习技术的发展，并使开发者能够轻松地构建和部署由机器学习提供支持的应用。",
+    "paperUrl": "https://www.tensorflow.org/about/bib",
+    "codeUrl": "https://github.com/tensorflow/tensorflow",
+    "license": "Apache 2.0"
+  },
+  {
+    "id": "ds-pytorch-cpu",
+    "name": "pytorch-cpu",
+    "imageId": "ds-pytorch-cpu",
+    "frameworks": [
+      "PyTorch 1.13.0"
+    ],
+    "applicableScopes": [
+      "开发机"
+    ],
+    "chipType": "CPU",
+    "presetCuda": false,
+    "description": "PyTorch CPU版本镜像",
+    "imageAddress": "registry.baidubce.com/aihc p-public/pytorch-cpu",
+    "lastUpdateTime": "2025-09-24T15:45:00Z",
+    "status": "online",
+    "icon": "P",
+    "introduction": "PyTorch是一个开源的Python机器学习库，基于Torch，用于自然语言处理等应用程序。它主要由Facebook的人工智能研究小组开发。",
+    "paperUrl": "https://pytorch.org/about/",
+    "codeUrl": "https://github.com/pytorch/pytorch",
+    "license": "BSD"
+  }
+]

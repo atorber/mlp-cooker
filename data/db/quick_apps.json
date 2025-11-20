@@ -1,0 +1,60 @@
+[
+  {
+    "appId": "app_1758689438381",
+    "serviceType": "development",
+    "appType": "model_development",
+    "imageUrl": "docker.io/test:latest",
+    "modelStorageUrl": "bos:/abc/qwen",
+    "presetStorageUrl": "bos:/abc/data",
+    "startCommand": "sleep 3d",
+    "availableMachines": [],
+    "excludeMachines": [],
+    "status": "created",
+    "ctime": 1758689438,
+    "mtime": 1758702686,
+    "appName": "qwen3"
+  },
+  {
+    "appId": "app_1758689714428",
+    "serviceType": "development",
+    "appType": "model_development",
+    "imageUrl": "docker.io/test:latest",
+    "modelStorageUrl": "",
+    "presetStorageUrl": "",
+    "startCommand": "",
+    "availableMachines": [],
+    "excludeMachines": [],
+    "status": "created",
+    "ctime": 1758689714,
+    "mtime": 1758689714
+  },
+  {
+    "appId": "app_1758689721880",
+    "serviceType": "online",
+    "appType": "inference_service",
+    "imageUrl": "docker.io/new-test:latest",
+    "modelStorageUrl": "",
+    "presetStorageUrl": "",
+    "startCommand": "",
+    "availableMachines": [],
+    "excludeMachines": [],
+    "status": "created",
+    "ctime": 1758689721,
+    "mtime": 1758689721
+  },
+  {
+    "appId": "app_1758689737435",
+    "appName": "重启后测试应用",
+    "serviceType": "development",
+    "appType": "model_development",
+    "imageUrl": "docker.io/restart-test:latest",
+    "modelStorageUrl": "",
+    "presetStorageUrl": "",
+    "startCommand": "",
+    "availableMachines": [],
+    "excludeMachines": [],
+    "status": "created",
+    "ctime": 1758689737,
+    "mtime": 1758689737
+  }
+]

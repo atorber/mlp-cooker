@@ -1,0 +1,2085 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "MLP COOKER",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5002/",
+      "description": "AIHC-MENTOR 后端服务"
+    },
+    {
+      "url": "http://localhost:8000/",
+      "description": "前端开发服务器"
+    }
+  ],
+  "paths": {
+    "/api/currentUser": {
+      "get": {
+        "tags": ["api"],
+        "description": "获取当前的用户",
+        "operationId": "currentUser",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-swagger-router-controller": "api"
+    },
+    "/api/login/captcha": {
+      "post": {
+        "description": "发送验证码",
+        "operationId": "getFakeCaptcha",
+        "tags": ["login"],
+        "parameters": [
+          {
+            "name": "phone",
+            "in": "query",
+            "description": "手机号",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FakeCaptcha"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login/outLogin": {
+      "post": {
+        "description": "登录接口",
+        "operationId": "outLogin",
+        "tags": ["login"],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-swagger-router-controller": "api"
+    },
+    "/api/login/account": {
+      "post": {
+        "tags": ["login"],
+        "description": "登录接口",
+        "operationId": "login",
+        "requestBody": {
+          "description": "登录系统",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginParams"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "x-swagger-router-controller": "api"
+    },
+    "/api/notices": {
+      "summary": "getNotices",
+      "description": "NoticeIconItem",
+      "get": {
+        "tags": ["api"],
+        "operationId": "getNotices",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoticeIconList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rule": {
+      "get": {
+        "tags": ["rule"],
+        "description": "获取规则列表",
+        "operationId": "rule",
+        "parameters": [
+          {
+            "name": "current",
+            "in": "query",
+            "description": "当前的页码",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "页面的容量",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["rule"],
+        "description": "新建规则",
+        "operationId": "addRule",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleListItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["rule"],
+        "description": "新建规则",
+        "operationId": "updateRule",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuleListItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["rule"],
+        "description": "删除规则",
+        "operationId": "removeRule",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "x-swagger-router-controller": "api"
+    },
+    "/swagger": {
+      "x-swagger-pipe": "swagger_raw"
+    },
+    "/api/upload": {
+      "post": {
+        "tags": ["文件管理"],
+        "description": "文件上传API",
+        "operationId": "uploadFile",
+        "requestBody": {
+          "description": "上传的文件",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "上传成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/icafe-lastweek": {
+      "get": {
+        "tags": ["iCafe统计"],
+        "description": "执行上周问题统计脚本",
+        "operationId": "icafeLastweek",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统计成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/icafe-2025h2": {
+      "get": {
+        "tags": ["iCafe统计"],
+        "description": "执行2025H2需求统计脚本",
+        "operationId": "icafe2025h2",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "统计成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/daily-report": {
+      "get": {
+        "tags": ["报告生成"],
+        "description": "执行每日报告脚本",
+        "operationId": "dailyReport",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "报告生成成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/icafe-debug": {
+      "post": {
+        "tags": ["调试工具"],
+        "description": "执行iCafe调试脚本",
+        "operationId": "icafeDebug",
+        "requestBody": {
+          "description": "调试参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {"type": "string"},
+                  "params": {"type": "object"}
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "调试成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/validate-aksk": {
+      "get": {
+        "tags": ["调试工具"],
+        "description": "验证AKSK",
+        "operationId": "validateAksk",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "验证成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ku/docs": {
+      "get": {
+        "tags": ["知识库管理"],
+        "description": "获取知识库文档列表",
+        "operationId": "getKnowledgeDocs",
+        "parameters": [
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 10}
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "搜索关键词",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/KnowledgeDoc"}
+                        },
+                        "total": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ku/docs/tree": {
+      "get": {
+        "tags": ["知识库管理"],
+        "description": "获取知识库文档树",
+        "operationId": "getKnowledgeDocTree",
+        "parameters": [
+          {
+            "name": "parent_doc_guid",
+            "in": "query",
+            "description": "父文档ID",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "docTree": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/KnowledgeDoc"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ku/docs/create": {
+      "post": {
+        "tags": ["知识库管理"],
+        "description": "创建知识库文档",
+        "operationId": "createKnowledgeDoc",
+        "requestBody": {
+          "description": "文档创建参数",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "createMode": {
+                    "type": "string",
+                    "enum": ["content", "upload"],
+                    "description": "创建模式"
+                  },
+                  "title": {"type": "string", "description": "文档标题"},
+                  "parentDocGuid": {"type": "string", "description": "父文档ID"},
+                  "content": {"type": "string", "description": "文档内容"},
+                  "file": {"type": "string", "format": "binary", "description": "上传的MD文件"}
+                },
+                "required": ["createMode", "title", "parentDocGuid"]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "createMode": {
+                    "type": "string",
+                    "enum": ["content", "upload"]
+                  },
+                  "title": {"type": "string"},
+                  "parentDocGuid": {"type": "string"},
+                  "content": {"type": "string"}
+                },
+                "required": ["createMode", "title", "parentDocGuid"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ku/docs/{doc_id}": {
+      "get": {
+        "tags": ["知识库管理"],
+        "description": "获取文档详情",
+        "operationId": "getKnowledgeDocDetail",
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "description": "文档ID",
+            "required": true,
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/KnowledgeDoc"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["知识库管理"],
+        "description": "更新文档",
+        "operationId": "updateKnowledgeDoc",
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "description": "文档ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "description": "更新参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {"type": "string"},
+                  "content": {"type": "string"}
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["知识库管理"],
+        "description": "删除文档",
+        "operationId": "deleteKnowledgeDoc",
+        "parameters": [
+          {
+            "name": "doc_id",
+            "in": "path",
+            "description": "文档ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ku/info": {
+      "get": {
+        "tags": ["知识库管理"],
+        "description": "获取知识库信息",
+        "operationId": "getKnowledgeBaseInfo",
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "repositoryId": {"type": "string"},
+                        "name": {"type": "string"},
+                        "description": {"type": "string"},
+                        "createTime": {"type": "string"},
+                        "updateTime": {"type": "string"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/card-compliance/cards": {
+      "get": {
+        "tags": ["卡片合规"],
+        "description": "获取卡片合规列表",
+        "operationId": "getCardComplianceCards",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "卡片类型",
+            "schema": {
+              "type": "string",
+              "enum": ["customer_demand", "customer_issue"]
+            }
+          },
+          {
+            "name": "checkStatus",
+            "in": "query",
+            "description": "检查状态",
+            "schema": {
+              "type": "string",
+              "enum": ["all", "compliant", "non_compliant"]
+            }
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 10}
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "description": "访问令牌",
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/CardComplianceItem"}
+                        },
+                        "total": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/card-compliance/check": {
+      "post": {
+        "tags": ["卡片合规"],
+        "description": "卡片规范性检测",
+        "operationId": "checkCardCompliance",
+        "requestBody": {
+          "description": "检测参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cardType": {
+                    "type": "string",
+                    "enum": ["customer_demand", "customer_issue"]
+                  },
+                  "immediate": {"type": "boolean"}
+                },
+                "required": ["cardType"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "检测成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "checkTime": {"type": "string"},
+                        "cardType": {"type": "string"},
+                        "totalCards": {"type": "integer"},
+                        "nonCompliantCards": {"type": "integer"},
+                        "issues": {"type": "array"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aihc/public-dataset/list": {
+      "get": {
+        "tags": ["公共数据集"],
+        "description": "获取公共数据集列表",
+        "operationId": "getPublicDatasetList",
+        "parameters": [
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 10}
+          },
+          {
+            "name": "keywordType",
+            "in": "query",
+            "description": "关键词类型",
+            "schema": {"type": "string", "default": "name"}
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "搜索关键词",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "includeStatistics",
+            "in": "query",
+            "description": "是否包含统计信息",
+            "schema": {"type": "boolean", "default": false}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/PublicDatasetItem"}
+                        },
+                        "total": {"type": "integer"},
+                        "statistics": {
+                          "type": "object",
+                          "description": "统计信息（当includeStatistics=true时返回）"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aihc/public-dataset/create": {
+      "post": {
+        "tags": ["公共数据集"],
+        "description": "创建公共数据集",
+        "operationId": "createPublicDataset",
+        "requestBody": {
+          "description": "数据集创建参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string", "description": "数据集名称"},
+                  "description": {"type": "string", "description": "数据集描述"},
+                  "dataType": {"type": "string", "description": "数据类型"},
+                  "category": {"type": "string", "description": "数据集分类"},
+                  "tags": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "标签列表"
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": ["public", "private"],
+                    "description": "可见性"
+                  }
+                },
+                "required": ["name", "description", "dataType"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aihc/public-dataset/{dataset_id}": {
+      "get": {
+        "tags": ["公共数据集"],
+        "description": "获取公共数据集详情",
+        "operationId": "getPublicDatasetDetail",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "description": "数据集ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PublicDatasetItem"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aihc/public-dataset/version": {
+      "post": {
+        "tags": ["公共数据集"],
+        "description": "创建公共数据集版本",
+        "operationId": "createPublicDatasetVersion",
+        "requestBody": {
+          "description": "版本创建参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datasetID": {"type": "string", "description": "数据集ID"},
+                  "PublicDataEntries": {
+                    "type": "object",
+                    "description": "公共数据条目"
+                  },
+                  "version": {"type": "string", "description": "版本号"},
+                  "description": {"type": "string", "description": "版本描述"}
+                },
+                "required": ["datasetID", "PublicDataEntries"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/aihc/public-dataset/dump": {
+      "post": {
+        "tags": ["公共数据集"],
+        "description": "创建公共数据集转储",
+        "operationId": "createPublicDatasetDump",
+        "requestBody": {
+          "description": "转储参数",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datasetID": {"type": "string", "description": "数据集ID"},
+                  "dumpType": {"type": "string", "description": "转储类型"},
+                  "format": {"type": "string", "description": "转储格式"},
+                  "options": {"type": "object", "description": "转储选项"}
+                },
+                "required": ["datasetID"]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"type": "object"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/preset-images": {
+      "get": {
+        "tags": ["预置镜像管理"],
+        "description": "获取预置镜像列表",
+        "operationId": "getPresetImages",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "description": "镜像名称或描述关键词搜索",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "framework",
+            "in": "query",
+            "description": "框架筛选（PyTorch、TensorFlow、DeepSpeed等）",
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "chipType",
+            "in": "query",
+            "description": "芯片类型筛选（GPU、CPU、NPU）",
+            "schema": {
+              "type": "string",
+              "enum": ["GPU", "CPU", "NPU"]
+            }
+          },
+          {
+            "name": "applicableScope",
+            "in": "query",
+            "description": "适用范围筛选",
+            "schema": {
+              "type": "string",
+              "enum": ["开发机", "分布式训练", "在线服务部署"]
+            }
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 10}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/PresetImageItem"}
+                        },
+                        "total": {"type": "integer"},
+                        "pageNo": {"type": "integer"},
+                        "pageSize": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["预置镜像管理"],
+        "description": "创建新的预置镜像",
+        "operationId": "createPresetImage",
+        "requestBody": {
+          "description": "预置镜像创建参数",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "frameworks", "applicableScopes", "chipType"],
+                "properties": {
+                  "name": {"type": "string", "description": "镜像名称"},
+                  "frameworks": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "支持的框架列表"
+                  },
+                  "applicableScopes": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "适用范围列表"
+                  },
+                  "chipType": {
+                    "type": "string",
+                    "enum": ["GPU", "CPU", "NPU"],
+                    "description": "芯片类型"
+                  },
+                  "presetCuda": {"type": "boolean", "description": "是否预置CUDA"},
+                  "description": {"type": "string", "description": "镜像描述"},
+                  "imageAddress": {"type": "string", "description": "镜像地址"},
+                  "introduction": {"type": "string", "description": "详细介绍"},
+                  "paperUrl": {"type": "string", "description": "论文链接"},
+                  "codeUrl": {"type": "string", "description": "代码链接"},
+                  "license": {"type": "string", "description": "开源协议"},
+                  "icon": {"type": "string", "description": "图标标识"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "创建成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string", "description": "新创建的镜像ID"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/preset-images/{id}": {
+      "get": {
+        "tags": ["预置镜像管理"],
+        "description": "获取预置镜像详情",
+        "operationId": "getPresetImageDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "预置镜像ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {"$ref": "#/components/schemas/PresetImageItem"}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "镜像不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["预置镜像管理"],
+        "description": "更新预置镜像信息",
+        "operationId": "updatePresetImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "预置镜像ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "description": "预置镜像更新参数",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {"type": "string", "description": "镜像名称"},
+                  "frameworks": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "支持的框架列表"
+                  },
+                  "applicableScopes": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "适用范围列表"
+                  },
+                  "chipType": {
+                    "type": "string",
+                    "enum": ["GPU", "CPU", "NPU"],
+                    "description": "芯片类型"
+                  },
+                  "presetCuda": {"type": "boolean", "description": "是否预置CUDA"},
+                  "description": {"type": "string", "description": "镜像描述"},
+                  "imageAddress": {"type": "string", "description": "镜像地址"},
+                  "introduction": {"type": "string", "description": "详细介绍"},
+                  "paperUrl": {"type": "string", "description": "论文链接"},
+                  "codeUrl": {"type": "string", "description": "代码链接"},
+                  "license": {"type": "string", "description": "开源协议"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string", "description": "镜像ID"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "镜像不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["预置镜像管理"],
+        "description": "删除预置镜像",
+        "operationId": "deletePresetImage",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "预置镜像ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "删除成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "镜像不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/preset-images/{id}/versions": {
+      "get": {
+        "tags": ["预置镜像管理"],
+        "description": "获取镜像版本列表",
+        "operationId": "getPresetImageVersions",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "预置镜像ID",
+            "required": true,
+            "schema": {"type": "string"}
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "description": "页码",
+            "schema": {"type": "integer", "default": 1}
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "每页数量",
+            "schema": {"type": "integer", "default": 10}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"},
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {"$ref": "#/components/schemas/PresetImageVersion"}
+                        },
+                        "total": {"type": "integer"},
+                        "pageNo": {"type": "integer"},
+                        "pageSize": {"type": "integer"}
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/preset-images/{id}/status": {
+      "put": {
+        "tags": ["预置镜像管理"],
+        "description": "更新预置镜像状态（上架/下架/待上线）",
+        "operationId": "updatePresetImageStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "预置镜像ID",
+            "required": true,
+            "schema": {"type": "string"}
+          }
+        ],
+        "requestBody": {
+          "description": "状态更新参数",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["online", "offline", "pending"],
+                    "description": "镜像状态"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "更新成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "镜像不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CurrentUser": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "userid": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "notifyCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "country": {
+            "type": "string"
+          },
+          "access": {
+            "type": "string"
+          },
+          "geographic": {
+            "type": "object",
+            "properties": {
+              "province": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "city": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "key": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResult": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "currentAuthority": {
+            "type": "string"
+          }
+        }
+      },
+      "PageParams": {
+        "type": "object",
+        "properties": {
+          "current": {
+            "type": "number"
+          },
+          "pageSize": {
+            "type": "number"
+          }
+        }
+      },
+      "RuleListItem": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "href": {
+            "type": "string"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "desc": {
+            "type": "string"
+          },
+          "callNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "progress": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RuleList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RuleListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "列表的内容总数",
+            "format": "int32"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FakeCaptcha": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginParams": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "autoLogin": {
+            "type": "boolean"
+          },
+          "type": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "required": ["errorCode"],
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string",
+            "description": "业务约定的错误码"
+          },
+          "errorMessage": {
+            "type": "string",
+            "description": "业务上的错误信息"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "业务上的请求是否成功"
+          }
+        }
+      },
+      "NoticeIconList": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NoticeIconItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "列表的内容总数",
+            "format": "int32"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NoticeIconItemType": {
+        "title": "NoticeIconItemType",
+        "description": "已读未读列表的枚举",
+        "type": "string",
+        "properties": {},
+        "enum": ["notification", "message", "event"]
+      },
+      "NoticeIconItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "extra": {
+            "type": "string",
+            "format": "any"
+          },
+          "key": { "type": "string" },
+          "read": {
+            "type": "boolean"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "datetime": {
+            "type": "string",
+            "format": "date"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "extensions": {
+              "x-is-enum": true
+            },
+            "$ref": "#/components/schemas/NoticeIconItemType"
+          }
+        }
+      },
+      "KnowledgeDoc": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "文档ID"},
+          "docGuid": {"type": "string", "description": "文档GUID"},
+          "name": {"type": "string", "description": "文档名称"},
+          "title": {"type": "string", "description": "文档标题"},
+          "content": {"type": "string", "description": "文档内容"},
+          "type": {"type": "string", "description": "文档类型"},
+          "childCount": {"type": "integer", "description": "子文档数量"},
+          "created": {"type": "integer", "description": "创建时间戳"},
+          "publishTime": {"type": "integer", "description": "发布时间戳"},
+          "createTime": {"type": "string", "description": "创建时间"},
+          "updateTime": {"type": "string", "description": "更新时间"},
+          "repositoryGuid": {"type": "string", "description": "知识库GUID"},
+          "url": {"type": "string", "description": "文档URL"},
+          "path": {"type": "string", "description": "文档路径"},
+          "status": {"type": "string", "description": "文档状态"},
+          "creator": {"type": "string", "description": "创建者"},
+          "children": {
+            "type": "array",
+            "items": {"$ref": "#/components/schemas/KnowledgeDoc"},
+            "description": "子文档列表"
+          }
+        }
+      },
+      "CardComplianceItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "卡片ID"},
+          "sequence": {"type": "integer", "description": "卡片序号"},
+          "title": {"type": "string", "description": "卡片标题"},
+          "type": {"type": "string", "description": "卡片类型"},
+          "status": {"type": "string", "description": "卡片状态"},
+          "complianceStatus": {"type": "string", "description": "合规状态"},
+          "issues": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "合规问题列表"
+          },
+          "createTime": {"type": "string", "description": "创建时间"},
+          "updateTime": {"type": "string", "description": "更新时间"},
+          "assignee": {"type": "string", "description": "负责人"},
+          "priority": {"type": "string", "description": "优先级"}
+        }
+      },
+      "PublicDatasetItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "数据集ID"},
+          "datasetID": {"type": "string", "description": "数据集ID（API字段）"},
+          "name": {"type": "string", "description": "数据集名称"},
+          "description": {"type": "string", "description": "数据集描述"},
+          "dataType": {"type": "string", "description": "数据类型"},
+          "type": {"type": "string", "description": "数据集类型"},
+          "category": {"type": "string", "description": "数据集分类"},
+          "status": {"type": "string", "description": "数据集状态"},
+          "version": {"type": "string", "description": "数据集版本"},
+          "visibility": {
+            "type": "string",
+            "enum": ["public", "private"],
+            "description": "可见性"
+          },
+          "createTime": {"type": "string", "description": "创建时间"},
+          "updateTime": {"type": "string", "description": "更新时间"},
+          "creator": {"type": "string", "description": "创建者"},
+          "size": {"type": "integer", "description": "数据集大小"},
+          "downloadCount": {"type": "integer", "description": "下载次数"},
+          "viewCount": {"type": "integer", "description": "查看次数"},
+          "tags": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "标签列表"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "元数据信息"
+          },
+          "fileCount": {"type": "integer", "description": "文件数量"},
+          "format": {"type": "string", "description": "数据格式"},
+          "source": {"type": "string", "description": "数据来源"},
+          "license": {"type": "string", "description": "许可证信息"}
+        }
+      },
+      "PresetImageItem": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "镜像唯一标识"},
+          "name": {"type": "string", "description": "镜像名称"},
+          "imageId": {"type": "string", "description": "镜像ID"},
+          "frameworks": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "支持的框架列表"
+          },
+          "applicableScopes": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "适用范围列表"
+          },
+          "chipType": {
+            "type": "string",
+            "enum": ["GPU", "CPU", "NPU"],
+            "description": "芯片类型"
+          },
+          "presetCuda": {"type": "boolean", "description": "是否预置CUDA"},
+          "description": {"type": "string", "description": "镜像描述"},
+          "imageAddress": {"type": "string", "description": "镜像地址"},
+          "lastUpdateTime": {"type": "string", "description": "最后更新时间"},
+          "status": {
+            "type": "string",
+            "enum": ["online", "offline", "pending"],
+            "description": "状态"
+          },
+          "icon": {"type": "string", "description": "图标标识"},
+          "introduction": {"type": "string", "description": "详细介绍"},
+          "paperUrl": {"type": "string", "description": "论文链接"},
+          "codeUrl": {"type": "string", "description": "代码链接"},
+          "license": {"type": "string", "description": "开源协议"}
+        }
+      },
+      "PresetImageVersion": {
+        "type": "object",
+        "properties": {
+          "version": {"type": "string", "description": "版本号"},
+          "imageAddress": {"type": "string", "description": "镜像地址"},
+          "size": {"type": "string", "description": "镜像大小"},
+          "pythonVersion": {"type": "string", "description": "Python版本"},
+          "cudaVersion": {"type": "string", "description": "CUDA版本"},
+          "description": {"type": "string", "description": "版本描述"},
+          "createTime": {"type": "string", "description": "创建时间"}
+        }
+      }
+    }
+  }
+}
