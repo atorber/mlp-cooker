@@ -25,20 +25,76 @@ export class ResourceController {
   }
 
   /**
-   * 查询队列列表
+   * 查询队列列表（包含详情信息）
    */
   public static async listQueues(req: Request, res: Response): Promise<void> {
     try {
-      const { resourcePoolId, pageNumber, pageSize, keywordType, keyword } = req.query;
+      const { resourcePoolId, pageNumber, pageSize, keywordType, keyword, includeDetails } = req.query;
       
       const sdk = ResourceController.getResourceSDK();
-      const result = await sdk.describeQueues({
+      let result = await sdk.describeQueues({
         resourcePoolId: (resourcePoolId as string) || undefined,
         pageNumber: pageNumber ? parseInt(pageNumber as string, 10) : undefined,
         pageSize: pageSize ? parseInt(pageSize as string, 10) : undefined,
         keywordType: (keywordType as string) || undefined,
         keyword: (keyword as string) || undefined,
       });
+
+      // 如果需要包含详情，为每个队列获取详情信息
+      if (includeDetails === 'true' || includeDetails === '1') {
+        let queues: any[] = [];
+        
+        // 解析响应数据
+        if (Array.isArray(result)) {
+          queues = result;
+        } else if (result?.queues && Array.isArray(result.queues)) {
+          queues = result.queues;
+        } else if (result?.data && Array.isArray(result.data)) {
+          queues = result.data;
+        }
+
+        // 并发获取每个队列的详情
+        const queueDetails = await Promise.allSettled(
+          queues.map(async (queue) => {
+            const queueId = queue.queueId || queue.id;
+            if (queueId) {
+              try {
+                const detail = await sdk.describeQueue(queueId);
+                return {
+                  ...queue,
+                  detail: detail?.queue || detail?.data || detail,
+                };
+              } catch (error) {
+                console.error(`获取队列 ${queueId} 详情失败:`, error);
+                return {
+                  ...queue,
+                  detail: null,
+                };
+              }
+            }
+            return queue;
+          })
+        );
+
+        // 合并详情到队列数据中
+        const queuesWithDetails = queueDetails.map((detailResult) => {
+          if (detailResult.status === 'fulfilled') {
+            return detailResult.value;
+          }
+          return null;
+        }).filter(Boolean);
+
+        // 更新结果
+        if (Array.isArray(result)) {
+          result = queuesWithDetails as any;
+        } else if (result?.queues) {
+          result = { ...result, queues: queuesWithDetails };
+        } else if (result?.data) {
+          result = { ...result, data: queuesWithDetails };
+        } else {
+          result = queuesWithDetails as any;
+        }
+      }
 
       ResponseUtils.success(res, result, '查询队列列表成功');
     } catch (error) {
@@ -63,6 +119,8 @@ export class ResourceController {
 
       const sdk = ResourceController.getResourceSDK();
       const result = await sdk.describeQueue(queueId);
+
+      // console.log(result);
 
       ResponseUtils.success(res, result, '查询队列详情成功');
     } catch (error) {

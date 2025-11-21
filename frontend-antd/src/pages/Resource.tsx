@@ -1,439 +1,1339 @@
-import { EyeOutlined, ReloadOutlined } from '@ant-design/icons';
-import type { ActionType, ProColumns } from '@ant-design/pro-components';
-import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { ReloadOutlined } from '@ant-design/icons';
+import { PageContainer } from '@ant-design/pro-components';
+import { request } from '@umijs/max';
 import {
   App,
   Button,
   Card,
   Descriptions,
-  Drawer,
+  Progress,
   Space,
+  Spin,
   Statistic,
+  Table,
   Tag,
   Typography,
 } from 'antd';
-import React, { useRef, useState, useEffect } from 'react';
-import { request } from '@umijs/max';
+import React, { useEffect, useState } from 'react';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
-// 队列数据类型
-interface Queue {
+// 加速卡类型
+interface AcceleratorCard {
+  acceleratorCount: string;
+  acceleratorType: string;
+  acceleratorDescription: string;
+}
+
+// 资源信息
+interface ResourceInfo {
+  milliCPUcores?: string;
+  cpuCores?: string;
+  memoryGi?: string;
+  acceleratorCardList?: AcceleratorCard[];
+}
+
+// 队列详情类型
+interface QueueDetail {
   queueId?: string;
   queueName?: string;
+  queueType?: string;
   resourcePoolId?: string;
-  resourcePoolName?: string;
-  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  parentQueue?: string;
+  opened?: boolean;
+  reclaimable?: boolean;
+  preemptable?: boolean;
+  disableOversell?: boolean;
+  queueingStrategy?: string;
+  requeueTimeout?: number;
+  enableVGPU?: boolean;
+  capability?: ResourceInfo;
+  deserved?: ResourceInfo;
+  allocated?: ResourceInfo;
+  guarantee?: ResourceInfo;
+  maxDeservedForSubqueue?: ResourceInfo;
+  maxGuaranteeForSubqueue?: ResourceInfo;
+  children?: QueueDetail[];
+  runningJobs?: number;
+  bindingNodes?: Array<{
+    machineSpec?: string;
+    nodeNameList?: string[];
+    count?: number;
+    acceleratorType?: string;
+  }>;
+}
+
+// 资源池详情类型
+interface ResourcePoolDetail {
+  resourcePoolId?: string;
+  name?: string;
+  type?: string;
   description?: string;
-  quota?: {
-    total?: number;
-    used?: number;
-    available?: number;
+  phase?: string;
+  region?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  configuration?: {
+    exposedPublic?: boolean;
+    forbidDelete?: boolean;
+    deschedulerEnabled?: boolean;
+    unifiedSchedulerEnabled?: boolean;
+    datasetPermissionEnabled?: boolean;
+    volumePermissionEnabled?: boolean;
+    imageNoAuthPullEnabled?: boolean;
+    publicNetInferenceServiceEnable?: boolean;
   };
-  resources?: {
-    [key: string]: {
-      total?: number;
-      used?: number;
-      available?: number;
+  associatedResources?: Array<{
+    provider?: string;
+    id?: string;
+  }>;
+  network?: {
+    mode?: string;
+    master?: {
+      vpcId?: string;
+      vpcCidr?: string;
+      region?: string;
     };
+    nodes?: {
+      vpcId?: string;
+      subnetIds?: string[];
+      region?: string;
+    };
+    pods?: {
+      vpcId?: string;
+      subnetCidr?: string;
+      region?: string;
+    };
+    clusterIPCidr?: string;
   };
-  createTime?: string;
-  updateTime?: string;
+  bindingStorages?: Array<{
+    provider?: string;
+    id?: string;
+  }>;
+  bindingMonitor?: Array<{
+    provider?: string;
+    id?: string;
+  }>;
+  [key: string]: any;
 }
 
 const Resource: React.FC = () => {
   const { message: messageApi } = App.useApp();
-  const proTableRef = useRef<ActionType>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedQueue, setSelectedQueue] = useState<Queue | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [statistics, setStatistics] = useState<{
-    totalQueues: number;
-    totalResources: number;
-    usedResources: number;
-  }>({
-    totalQueues: 0,
-    totalResources: 0,
-    usedResources: 0,
-  });
+  const [loading, setLoading] = useState(false);
+  const [actualQueueDetail, setActualQueueDetail] =
+    useState<QueueDetail | null>(null); // 实际显示的队列（可能是children中的第一个）
+  const [resourcePoolDetail, setResourcePoolDetail] =
+    useState<ResourcePoolDetail | null>(null);
+  const [resourcePoolLoading, setResourcePoolLoading] = useState(false);
+  const [configQueueId, setConfigQueueId] = useState<string>('');
 
-  // 获取队列列表
-  const fetchQueues = async (params: any) => {
-    try {
-      const response = await request('/api/resources/queues', {
-        method: 'GET',
-        params: {
-          pageNumber: params.current || 1,
-          pageSize: params.pageSize || 10,
-          keyword: params.keyword,
-          keywordType: params.keywordType,
-          resourcePoolId: params.resourcePoolId,
-        },
-      });
-
-      if (response.success) {
-        // 处理响应数据格式
-        const data = response.data;
-        let queues: Queue[] = [];
-        let total = 0;
-
-        if (Array.isArray(data)) {
-          queues = data;
-          total = data.length;
-        } else if (data?.queues && Array.isArray(data.queues)) {
-          queues = data.queues;
-          total = data.totalCount || data.total || data.queues.length;
-        } else if (data?.result && Array.isArray(data.result)) {
-          queues = data.result;
-          total = data.total || data.result.length;
-        } else if (data?.data && Array.isArray(data.data)) {
-          queues = data.data;
-          total = data.total || data.data.length;
+  // 获取配置中的队列ID
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await request(
+          '/api/config/ML_PLATFORM_RESOURCE_QUEUE_ID',
+          {
+            method: 'GET',
+          },
+        );
+        if (response.success && response.data?.value) {
+          setConfigQueueId(response.data.value);
         }
-
-        // 计算统计数据
-        const totalQueues = queues.length;
-        let totalResources = 0;
-        let usedResources = 0;
-
-        queues.forEach((queue) => {
-          if (queue.quota) {
-            totalResources += queue.quota.total || 0;
-            usedResources += queue.quota.used || 0;
-          }
-        });
-
-        setStatistics({
-          totalQueues,
-          totalResources,
-          usedResources,
-        });
-
-        return {
-          data: queues,
-          success: true,
-          total: total,
-        };
-      } else {
-        messageApi.error(response.message || '获取队列列表失败');
-        return {
-          data: [],
-          success: false,
-          total: 0,
-        };
+      } catch (error) {
+        console.error('获取配置失败:', error);
       }
-    } catch (error) {
-      console.error('获取队列列表失败:', error);
-      messageApi.error('获取队列列表失败');
-      return {
-        data: [],
-        success: false,
-        total: 0,
-      };
-    }
-  };
+    };
+    fetchConfig();
+  }, []);
 
   // 获取队列详情
-  const fetchQueueDetail = async (queueId: string) => {
-    setDetailLoading(true);
+  const fetchQueueDetail = async () => {
+    if (!configQueueId) {
+      messageApi.warning('请先在系统设置中配置 ML_PLATFORM_RESOURCE_QUEUE_ID');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await request(`/api/resources/queues/${queueId}`, {
+      const response = await request(`/api/resources/queues/${configQueueId}`, {
         method: 'GET',
       });
 
       if (response.success) {
-        setSelectedQueue(response.data || response.data?.queue || null);
+        const data = response.data;
+        // 处理响应数据格式
+        const queue = data?.queue || data || null;
+
+        // 仅使用children[0]的信息做统计和展示
+        let actualQueue: QueueDetail | null = null;
+        if (
+          queue?.children &&
+          Array.isArray(queue.children) &&
+          queue.children.length > 0
+        ) {
+          // 直接使用children[0]作为实际队列
+          actualQueue = queue.children[0];
+          // 保留父队列的bindingNodes（如果子队列没有）
+          if (actualQueue && !actualQueue.bindingNodes && queue.bindingNodes) {
+            actualQueue.bindingNodes = queue.bindingNodes;
+          }
+        } else {
+          // 如果没有children，使用原队列
+          actualQueue = queue || null;
+        }
+
+        setActualQueueDetail(actualQueue); // 实际显示的队列
+
+        // 如果队列有资源池ID，获取资源池详情
+        if (actualQueue?.resourcePoolId) {
+          fetchResourcePoolDetail(actualQueue.resourcePoolId);
+        }
       } else {
         messageApi.error(response.message || '获取队列详情失败');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取队列详情失败:', error);
-      messageApi.error('获取队列详情失败');
+      messageApi.error(error?.message || '获取队列详情失败');
     } finally {
-      setDetailLoading(false);
+      setLoading(false);
     }
   };
 
-  // 查看详情
-  const handleViewDetail = async (record: Queue) => {
-    const queueId = record.queueId || record.id;
-    if (queueId) {
-      await fetchQueueDetail(queueId);
-      setDrawerVisible(true);
+  // 获取资源池详情
+  const fetchResourcePoolDetail = async (resourcePoolId: string) => {
+    if (!resourcePoolId) {
+      return;
+    }
+
+    setResourcePoolLoading(true);
+    try {
+      const response = await request(`/api/resources/pools/${resourcePoolId}`, {
+        method: 'GET',
+      });
+
+      if (response.success) {
+        const data = response.data;
+        // 处理响应数据格式：直接使用 data，因为后端已经处理过了
+        const pool = data || null;
+        setResourcePoolDetail(pool);
+      } else {
+        console.error('获取资源池详情失败:', response.message);
+        // 资源池详情获取失败不影响主流程，只记录错误
+      }
+    } catch (error: any) {
+      console.error('获取资源池详情失败:', error);
+      // 资源池详情获取失败不影响主流程，只记录错误
+    } finally {
+      setResourcePoolLoading(false);
     }
   };
 
-  // 刷新列表
+  // 组件加载时获取队列详情
+  useEffect(() => {
+    if (configQueueId) {
+      fetchQueueDetail();
+    }
+  }, [configQueueId]);
+
+  // 刷新
   const handleRefresh = () => {
-    proTableRef.current?.reload();
+    fetchQueueDetail();
   };
 
-  // 获取状态颜色
-  const getStatusColor = (status: string | number | null | undefined) => {
-    if (!status) return 'default';
-    const statusStr = String(status).toLowerCase();
-    if (statusStr === 'running' || statusStr === 'active' || statusStr === '正常') {
-      return 'success';
-    }
-    if (statusStr === 'stopped' || statusStr === 'inactive' || statusStr === '停止') {
-      return 'default';
-    }
-    if (statusStr === 'error' || statusStr === 'failed' || statusStr === '错误') {
-      return 'error';
-    }
-    return 'processing';
+  // 计算加速卡使用率
+  const calculateUsageRate = (allocated?: string, deserved?: string) => {
+    const allocatedNum = parseFloat(allocated || '0');
+    const deservedNum = parseFloat(deserved || '0');
+    if (deservedNum === 0) return 0;
+    return Math.min((allocatedNum / deservedNum) * 100, 100);
   };
 
-  // 获取状态文本
-  const getStatusText = (status: string | number | null | undefined) => {
-    if (!status) return '-';
-    const statusStr = String(status);
-    const statusMap: { [key: string]: string } = {
-      running: '运行中',
-      active: '活跃',
-      stopped: '已停止',
-      inactive: '非活跃',
-      error: '错误',
-      failed: '失败',
-    };
-    return statusMap[statusStr.toLowerCase()] || statusStr;
-  };
+  // 渲染加速卡信息表格
+  const renderAcceleratorTable = (
+    title: string,
+    capability?: ResourceInfo,
+    deserved?: ResourceInfo,
+    allocated?: ResourceInfo,
+  ) => {
+    if (!capability?.acceleratorCardList?.length) {
+      return null;
+    }
 
-  // 列定义
-  const columns: ProColumns<Queue>[] = [
-    {
-      title: '队列ID',
-      dataIndex: 'queueId',
-      key: 'queueId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.queueId || record.id,
-    },
-    {
-      title: '队列名称',
-      dataIndex: 'queueName',
-      key: 'queueName',
-      width: 200,
-      ellipsis: true,
-    },
-    {
-      title: '资源池',
-      dataIndex: 'resourcePoolName',
-      key: 'resourcePoolName',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.resourcePoolName || record.resourcePoolId || '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 120,
-      render: (status: any) => {
-        const statusText = getStatusText(status);
-        const color = getStatusColor(status);
-        return <Tag color={color}>{statusText}</Tag>;
+    const columns = [
+      {
+        title: '加速卡类型',
+        dataIndex: 'acceleratorType',
+        key: 'acceleratorType',
+        width: 200,
       },
-    },
-    {
-      title: '资源配额',
-      key: 'quota',
-      width: 200,
-      render: (_text, record) => {
-        if (record.quota) {
-          const { total = 0, used = 0, available = 0 } = record.quota;
-          return (
-            <Space>
-              <span>总计: {total}</span>
-              <span>已用: {used}</span>
-              <span>可用: {available}</span>
-            </Space>
+      {
+        title: '资源描述',
+        dataIndex: 'acceleratorDescription',
+        key: 'acceleratorDescription',
+        width: 250,
+      },
+      {
+        title: '总容量',
+        key: 'capability',
+        width: 120,
+        render: (_: any, _record: AcceleratorCard, index: number) => {
+          const capabilityCard = capability?.acceleratorCardList?.[index];
+          return capabilityCard?.acceleratorCount || '-';
+        },
+      },
+      {
+        title: '应得配额',
+        key: 'deserved',
+        width: 120,
+        render: (_: any, _record: AcceleratorCard, index: number) => {
+          const deservedCard = deserved?.acceleratorCardList?.[index];
+          return deservedCard?.acceleratorCount || '-';
+        },
+      },
+      {
+        title: '分配量',
+        key: 'allocated',
+        width: 120,
+        render: (_: any, _record: AcceleratorCard, index: number) => {
+          const allocatedCard = allocated?.acceleratorCardList?.[index];
+          return allocatedCard?.acceleratorCount || '-';
+        },
+      },
+      {
+        title: '使用率',
+        key: 'usage',
+        width: 200,
+        render: (_: any, _record: AcceleratorCard, index: number) => {
+          const deservedCard = deserved?.acceleratorCardList?.[index];
+          const allocatedCard = allocated?.acceleratorCardList?.[index];
+          const usageRate = calculateUsageRate(
+            allocatedCard?.acceleratorCount,
+            deservedCard?.acceleratorCount,
           );
-        }
-        return '-';
+          return (
+            <Progress
+              percent={usageRate}
+              status={
+                usageRate >= 90
+                  ? 'exception'
+                  : usageRate >= 70
+                    ? 'active'
+                    : 'success'
+              }
+              format={(percent) => `${percent?.toFixed(1)}%`}
+            />
+          );
+        },
       },
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
-      width: 180,
-      render: (text: any) => {
-        if (!text) return '-';
-        try {
-          const date = typeof text === 'number' ? new Date(text * 1000) : new Date(text);
-          if (Number.isNaN(date.getTime())) return String(text);
-          return date.toLocaleString('zh-CN');
-        } catch {
-          return String(text);
+    ];
+
+    return (
+      <div style={{ marginTop: 16 }}>
+        <Title level={5}>{title}</Title>
+        <Table
+          columns={columns}
+          dataSource={capability.acceleratorCardList}
+          rowKey={(record, index) => `${record.acceleratorType}-${index}`}
+          pagination={false}
+          size="small"
+        />
+      </div>
+    );
+  };
+
+  // 计算统计信息（仅使用children[0]的信息）
+  const statistics = React.useMemo(() => {
+    // 仅使用实际显示的队列（children[0]）信息
+    const targetQueue = actualQueueDetail;
+    if (!targetQueue) {
+      return {
+        totalAccelerators: 0,
+        allocatedAccelerators: 0,
+        availableAccelerators: 0,
+        totalCpuCores: 0,
+        allocatedCpuCores: 0,
+        availableCpuCores: 0,
+        totalMemoryGi: 0,
+        allocatedMemoryGi: 0,
+        availableMemoryGi: 0,
+        totalRunningJobs: 0,
+      };
+    }
+
+    const calculateAccelerators = (cardList?: AcceleratorCard[]) => {
+      if (!cardList || cardList.length === 0) return 0;
+      return cardList.reduce(
+        (sum, card) => sum + parseFloat(card.acceleratorCount || '0'),
+        0,
+      );
+    };
+
+    const parseCpu = (cpu?: string | number) => {
+      if (!cpu) return 0;
+      return typeof cpu === 'string' ? parseFloat(cpu) : cpu;
+    };
+
+    const parseMemory = (memory?: string | number) => {
+      if (!memory) return 0;
+      if (typeof memory === 'string') {
+        const num = parseFloat(memory);
+        // 如果数值很大，可能是以字节为单位，转换为GB
+        if (num > 1000000) {
+          return num / (1024 * 1024 * 1024); // 转换为GB
         }
-      },
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 120,
-      fixed: 'right',
-      render: (_text, record) => (
-        <Space>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record)}
-          >
-            查看详情
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+        return num;
+      }
+      return memory;
+    };
+
+    // 仅计算当前队列（children[0]）的资源
+    let totalAccelerators = 0;
+    let allocatedAccelerators = 0;
+    let totalCpuCores = 0;
+    let allocatedCpuCores = 0;
+    let totalMemoryGi = 0;
+    let allocatedMemoryGi = 0;
+    const totalRunningJobs = targetQueue.runningJobs || 0;
+
+    if (targetQueue.deserved) {
+      if (targetQueue.deserved.acceleratorCardList) {
+        totalAccelerators = calculateAccelerators(
+          targetQueue.deserved.acceleratorCardList,
+        );
+      }
+      if (targetQueue.deserved.cpuCores !== undefined) {
+        totalCpuCores = parseCpu(targetQueue.deserved.cpuCores);
+      } else if (targetQueue.deserved.milliCPUcores !== undefined) {
+        totalCpuCores = parseCpu(targetQueue.deserved.milliCPUcores) / 1000;
+      }
+      if (targetQueue.deserved.memoryGi !== undefined) {
+        totalMemoryGi = parseMemory(targetQueue.deserved.memoryGi);
+      }
+    }
+
+    if (targetQueue.allocated) {
+      if (
+        targetQueue.allocated.acceleratorCardList &&
+        targetQueue.allocated.acceleratorCardList.length > 0
+      ) {
+        allocatedAccelerators = calculateAccelerators(
+          targetQueue.allocated.acceleratorCardList,
+        );
+      }
+      if (targetQueue.allocated.cpuCores !== undefined) {
+        allocatedCpuCores = parseCpu(targetQueue.allocated.cpuCores);
+      } else if (targetQueue.allocated.milliCPUcores !== undefined) {
+        allocatedCpuCores =
+          parseCpu(targetQueue.allocated.milliCPUcores) / 1000;
+      }
+      if (targetQueue.allocated.memoryGi !== undefined) {
+        allocatedMemoryGi = parseMemory(targetQueue.allocated.memoryGi);
+      }
+    }
+
+    return {
+      totalAccelerators,
+      allocatedAccelerators,
+      availableAccelerators: totalAccelerators - allocatedAccelerators,
+      totalCpuCores,
+      allocatedCpuCores,
+      availableCpuCores: totalCpuCores - allocatedCpuCores,
+      totalMemoryGi,
+      allocatedMemoryGi,
+      availableMemoryGi: totalMemoryGi - allocatedMemoryGi,
+      totalRunningJobs,
+    };
+  }, [actualQueueDetail]);
 
   return (
     <PageContainer
       header={{
         title: '计算资源',
         breadcrumb: {},
-      }}
-    >
-      {/* 统计卡片 */}
-      <div style={{ marginBottom: 16 }}>
-        <Card>
-          <Space size="large">
-            <Statistic
-              title="队列总数"
-              value={statistics.totalQueues}
-              prefix={<ReloadOutlined />}
-            />
-            <Statistic
-              title="总资源数"
-              value={statistics.totalResources}
-              prefix={<ReloadOutlined />}
-            />
-            <Statistic
-              title="已用资源数"
-              value={statistics.usedResources}
-              prefix={<ReloadOutlined />}
-            />
-            <Statistic
-              title="资源使用率"
-              value={
-                statistics.totalResources > 0
-                  ? ((statistics.usedResources / statistics.totalResources) * 100).toFixed(2)
-                  : 0
-              }
-              suffix="%"
-            />
-          </Space>
-        </Card>
-      </div>
-
-      {/* 队列列表 */}
-      <ProTable<Queue>
-        headerTitle="队列列表"
-        actionRef={proTableRef}
-        rowKey={(record) => record.queueId || record.id || ''}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-        }}
-        toolBarRender={() => [
+        extra: [
           <Button
             key="refresh"
             type="primary"
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
+            loading={loading}
           >
             刷新
           </Button>,
-        ]}
-        request={fetchQueues}
-        columns={columns}
-        scroll={{ x: 1200 }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
-        }}
-      />
+        ],
+      }}
+    >
+      {!configQueueId ? (
+        <Card>
+          <Text type="warning">
+            请先在系统设置中配置 ML_PLATFORM_RESOURCE_QUEUE_ID
+          </Text>
+        </Card>
+      ) : (
+        <Spin spinning={loading}>
+          {actualQueueDetail ? (
+            <>
+              {/* 统计卡片 */}
+              <Card style={{ marginBottom: 16 }}>
+                <Space size="large">
+                  <Statistic
+                    title="队列名称"
+                    value={actualQueueDetail?.queueName || '-'}
+                  />
+                  <Statistic
+                    title="队列ID"
+                    value={actualQueueDetail?.queueId || '-'}
+                  />
+                  <Statistic
+                    title="队列类型"
+                    value={actualQueueDetail?.queueType || '-'}
+                  />
+                  <Statistic
+                    title="状态"
+                    value={
+                      actualQueueDetail?.opened
+                        ? '开启'
+                        : '关闭'
+                    }
+                    valueStyle={{
+                      color: actualQueueDetail?.opened
+                        ? '#3f8600'
+                        : '#cf1322',
+                    }}
+                  />
+                  {statistics.totalRunningJobs > 0 && (
+                    <Statistic
+                      title="运行中任务"
+                      value={actualQueueDetail?.runningJobs || 0}
+                      prefix={<ReloadOutlined />}
+                    />
+                  )}
+                </Space>
+              </Card>
 
-      {/* 详情抽屉 */}
-      <Drawer
-        title="队列详情"
-        width={600}
-        open={drawerVisible}
-        onClose={() => {
-          setDrawerVisible(false);
-          setSelectedQueue(null);
-        }}
-        loading={detailLoading}
-      >
-        {selectedQueue && (
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="队列ID">
-              {selectedQueue.queueId || selectedQueue.id || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="队列名称">
-              {selectedQueue.queueName || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="资源池ID">
-              {selectedQueue.resourcePoolId || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="资源池名称">
-              {selectedQueue.resourcePoolName || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="状态">
-              <Tag color={getStatusColor(selectedQueue.status)}>
-                {getStatusText(selectedQueue.status)}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="描述">
-              {selectedQueue.description || '-'}
-            </Descriptions.Item>
-            {selectedQueue.quota && (
-              <>
-                <Descriptions.Item label="总配额">
-                  {selectedQueue.quota.total || 0}
-                </Descriptions.Item>
-                <Descriptions.Item label="已使用">
-                  {selectedQueue.quota.used || 0}
-                </Descriptions.Item>
-                <Descriptions.Item label="可用">
-                  {selectedQueue.quota.available || 0}
-                </Descriptions.Item>
-              </>
-            )}
-            {selectedQueue.resources && Object.keys(selectedQueue.resources).length > 0 && (
-              <Descriptions.Item label="资源详情">
-                <div>
-                  {Object.entries(selectedQueue.resources).map(([key, value]) => (
-                    <div key={key} style={{ marginBottom: 8 }}>
-                      <Title level={5}>{key}</Title>
-                      <Space>
-                        <span>总计: {value.total || 0}</span>
-                        <span>已用: {value.used || 0}</span>
-                        <span>可用: {value.available || 0}</span>
-                      </Space>
-                    </div>
-                  ))}
+              {/* 资源统计 */}
+              <Card style={{ marginBottom: 16 }}>
+                <Title level={4}>资源统计</Title>
+
+                {/* 加速卡统计 */}
+                <div style={{ marginTop: 16 }}>
+                  <Title level={5}>加速卡</Title>
+                  <Space size="large" style={{ marginTop: 8 }}>
+                    <Statistic
+                      title="总量"
+                      value={statistics.totalAccelerators.toFixed(2)}
+                      suffix="张"
+                    />
+                    <Statistic
+                      title="分配量"
+                      value={statistics.allocatedAccelerators.toFixed(2)}
+                      suffix="张"
+                    />
+                    <Statistic
+                      title="最大可用量"
+                      value={statistics.availableAccelerators.toFixed(2)}
+                      suffix="张"
+                    />
+                    <Statistic
+                      title="使用率"
+                      value={
+                        statistics.totalAccelerators > 0
+                          ? (
+                              (statistics.allocatedAccelerators /
+                                statistics.totalAccelerators) *
+                              100
+                            ).toFixed(2)
+                          : 0
+                      }
+                      suffix="%"
+                      valueStyle={{
+                        color:
+                          statistics.totalAccelerators > 0 &&
+                          (statistics.allocatedAccelerators /
+                            statistics.totalAccelerators) *
+                            100 >=
+                            90
+                            ? '#cf1322'
+                            : statistics.totalAccelerators > 0 &&
+                                (statistics.allocatedAccelerators /
+                                  statistics.totalAccelerators) *
+                                  100 >=
+                                  70
+                              ? '#faad14'
+                              : '#3f8600',
+                      }}
+                    />
+                  </Space>
                 </div>
-              </Descriptions.Item>
-            )}
-            <Descriptions.Item label="创建时间">
-              {selectedQueue.createTime
-                ? new Date(selectedQueue.createTime).toLocaleString('zh-CN')
-                : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="更新时间">
-              {selectedQueue.updateTime
-                ? new Date(selectedQueue.updateTime).toLocaleString('zh-CN')
-                : '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Drawer>
+
+                {/* CPU统计 */}
+                <div style={{ marginTop: 24 }}>
+                  <Title level={5}>CPU</Title>
+                  <Space size="large" style={{ marginTop: 8 }}>
+                    <Statistic
+                      title="总量"
+                      value={statistics.totalCpuCores.toFixed(2)}
+                      suffix="核"
+                    />
+                    <Statistic
+                      title="分配量"
+                      value={statistics.allocatedCpuCores.toFixed(2)}
+                      suffix="核"
+                    />
+                    <Statistic
+                      title="最大可用量"
+                      value={statistics.availableCpuCores.toFixed(2)}
+                      suffix="核"
+                    />
+                    <Statistic
+                      title="使用率"
+                      value={
+                        statistics.totalCpuCores > 0
+                          ? (
+                              (statistics.allocatedCpuCores /
+                                statistics.totalCpuCores) *
+                              100
+                            ).toFixed(2)
+                          : 0
+                      }
+                      suffix="%"
+                      valueStyle={{
+                        color:
+                          statistics.totalCpuCores > 0 &&
+                          (statistics.allocatedCpuCores /
+                            statistics.totalCpuCores) *
+                            100 >=
+                            90
+                            ? '#cf1322'
+                            : statistics.totalCpuCores > 0 &&
+                                (statistics.allocatedCpuCores /
+                                  statistics.totalCpuCores) *
+                                  100 >=
+                                  70
+                              ? '#faad14'
+                              : '#3f8600',
+                      }}
+                    />
+                  </Space>
+                </div>
+
+                {/* 内存统计 */}
+                <div style={{ marginTop: 24 }}>
+                  <Title level={5}>内存</Title>
+                  <Space size="large" style={{ marginTop: 8 }}>
+                    <Statistic
+                      title="总量"
+                      value={statistics.totalMemoryGi.toFixed(2)}
+                      suffix="GB"
+                    />
+                    <Statistic
+                      title="分配量"
+                      value={statistics.allocatedMemoryGi.toFixed(2)}
+                      suffix="GB"
+                    />
+                    <Statistic
+                      title="最大可用量"
+                      value={statistics.availableMemoryGi.toFixed(2)}
+                      suffix="GB"
+                    />
+                    <Statistic
+                      title="使用率"
+                      value={
+                        statistics.totalMemoryGi > 0
+                          ? (
+                              (statistics.allocatedMemoryGi /
+                                statistics.totalMemoryGi) *
+                              100
+                            ).toFixed(2)
+                          : 0
+                      }
+                      suffix="%"
+                      valueStyle={{
+                        color:
+                          statistics.totalMemoryGi > 0 &&
+                          (statistics.allocatedMemoryGi /
+                            statistics.totalMemoryGi) *
+                            100 >=
+                            90
+                            ? '#cf1322'
+                            : statistics.totalMemoryGi > 0 &&
+                                (statistics.allocatedMemoryGi /
+                                  statistics.totalMemoryGi) *
+                                  100 >=
+                                  70
+                              ? '#faad14'
+                              : '#3f8600',
+                      }}
+                    />
+                  </Space>
+                </div>
+              </Card>
+
+              {/* 队列基本信息 */}
+              <Card style={{ marginBottom: 16 }}>
+                <Title level={4}>队列基本信息</Title>
+                <Descriptions column={2} bordered style={{ marginTop: 16 }}>
+                  <Descriptions.Item label="队列ID">
+                    {actualQueueDetail?.queueId || '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="队列名称">
+                    {actualQueueDetail?.queueName || '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="队列类型">
+                    {actualQueueDetail?.queueType || '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="资源池ID">
+                    {actualQueueDetail?.resourcePoolId || '-'}
+                  </Descriptions.Item>
+                  {actualQueueDetail?.parentQueue && (
+                    <Descriptions.Item label="父队列">
+                      {actualQueueDetail?.parentQueue}
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.runningJobs !==
+                    undefined && (
+                    <Descriptions.Item label="运行中任务数">
+                      {actualQueueDetail?.runningJobs}
+                    </Descriptions.Item>
+                  )}
+                  <Descriptions.Item label="状态">
+                    <Tag
+                      color={
+                        actualQueueDetail?.opened
+                          ? 'success'
+                          : 'default'
+                      }
+                    >
+                      {actualQueueDetail?.opened
+                        ? '开启'
+                        : '关闭'}
+                    </Tag>
+                  </Descriptions.Item>
+                  {actualQueueDetail?.reclaimable !==
+                    undefined && (
+                    <Descriptions.Item label="可回收">
+                      <Tag
+                        color={
+                          actualQueueDetail?.reclaimable
+                            ? 'success'
+                            : 'default'
+                        }
+                      >
+                        {actualQueueDetail?.reclaimable
+                          ? '是'
+                          : '否'}
+                      </Tag>
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.preemptable !==
+                    undefined && (
+                    <Descriptions.Item label="可抢占">
+                      <Tag
+                        color={
+                          actualQueueDetail?.preemptable
+                            ? 'warning'
+                            : 'default'
+                        }
+                      >
+                        {actualQueueDetail?.preemptable
+                          ? '是'
+                          : '否'}
+                      </Tag>
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.disableOversell !==
+                    undefined && (
+                    <Descriptions.Item label="禁用超卖">
+                      <Tag
+                        color={
+                          !actualQueueDetail?.disableOversell
+                            ? 'success'
+                            : 'default'
+                        }
+                      >
+                        {!actualQueueDetail?.disableOversell
+                          ? '允许'
+                          : '禁止'}
+                      </Tag>
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.queueingStrategy && (
+                    <Descriptions.Item label="调度策略">
+                      {actualQueueDetail?.queueingStrategy}
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.requeueTimeout !==
+                    undefined && (
+                    <Descriptions.Item label="重入队超时">
+                      {actualQueueDetail?.requeueTimeout}
+                    </Descriptions.Item>
+                  )}
+                  {actualQueueDetail?.enableVGPU !==
+                    undefined && (
+                    <Descriptions.Item label="支持vGPU">
+                      <Tag
+                        color={
+                          actualQueueDetail?.enableVGPU
+                            ? 'success'
+                            : 'default'
+                        }
+                      >
+                        {actualQueueDetail?.enableVGPU
+                          ? '是'
+                          : '否'}
+                      </Tag>
+                    </Descriptions.Item>
+                  )}
+                  <Descriptions.Item label="创建时间">
+                    {actualQueueDetail?.createdAt
+                      ? new Date(
+                          actualQueueDetail?.createdAt ?? '',
+                        ).toLocaleString('zh-CN')
+                      : '-'}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="更新时间">
+                    {actualQueueDetail?.updatedAt
+                      ? new Date(
+                          actualQueueDetail?.updatedAt ?? '',
+                        ).toLocaleString('zh-CN')
+                      : '-'}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Card>
+
+              {/* 绑定节点信息 */}
+              {actualQueueDetail?.bindingNodes &&
+                (actualQueueDetail?.bindingNodes?.length ||
+                  0) > 0 && (
+                  <Card style={{ marginBottom: 16 }}>
+                    <Title level={4}>绑定节点信息</Title>
+                    <Table
+                      columns={[
+                        {
+                          title: '机器规格',
+                          dataIndex: 'machineSpec',
+                          key: 'machineSpec',
+                        },
+                        {
+                          title: '加速卡类型',
+                          dataIndex: 'acceleratorType',
+                          key: 'acceleratorType',
+                        },
+                        {
+                          title: '节点数量',
+                          dataIndex: 'count',
+                          key: 'count',
+                        },
+                        {
+                          title: '节点列表',
+                          dataIndex: 'nodeNameList',
+                          key: 'nodeNameList',
+                          render: (nodeNameList: string[] | undefined) => {
+                            if (!nodeNameList || nodeNameList.length === 0)
+                              return '-';
+                            return (
+                              <Space wrap>
+                                {nodeNameList.map((node) => (
+                                  <Tag key={node} color="blue">
+                                    {node}
+                                  </Tag>
+                                ))}
+                              </Space>
+                            );
+                          },
+                        },
+                      ]}
+                      dataSource={
+                        actualQueueDetail?.bindingNodes || []
+                      }
+                      rowKey={(record, index) =>
+                        `${record.machineSpec}-${index}`
+                      }
+                      pagination={false}
+                      size="small"
+                    />
+                  </Card>
+                )}
+
+              {/* 资源详情 */}
+              <Card style={{ marginBottom: 16 }}>
+                <Title level={4}>资源详情</Title>
+
+                {/* CPU和内存信息 */}
+                {(actualQueueDetail?.capability ||
+                  actualQueueDetail?.deserved ||
+                  actualQueueDetail?.allocated) && (
+                  <div style={{ marginTop: 16 }}>
+                    <Title level={5}>CPU和内存</Title>
+                    <Descriptions column={2} bordered style={{ marginTop: 8 }}>
+                      <Descriptions.Item label="CPU总容量（核）">
+                        {actualQueueDetail?.capability
+                          ?.cpuCores ||
+                          (actualQueueDetail?.capability
+                            ?.milliCPUcores
+                            ? (
+                                parseFloat(
+                                  String(
+                                    actualQueueDetail?.capability
+                                      ?.milliCPUcores ?? '',
+                                  ),
+                                ) / 1000
+                              ).toFixed(2)
+                            : '-')}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="CPU应得配额（核）">
+                        {actualQueueDetail?.deserved
+                          ?.cpuCores ||
+                          (actualQueueDetail?.deserved
+                            ?.milliCPUcores
+                            ? (
+                                parseFloat(
+                                  String(
+                                    actualQueueDetail?.deserved
+                                      ?.milliCPUcores ?? '',
+                                  ),
+                                ) / 1000
+                              ).toFixed(2)
+                            : '-')}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="CPU已分配（核）">
+                        {actualQueueDetail?.allocated
+                          ?.cpuCores ||
+                          (actualQueueDetail?.allocated
+                            ?.milliCPUcores
+                            ? (
+                                parseFloat(
+                                  String(
+                                    actualQueueDetail?.allocated
+                                      ?.milliCPUcores ?? '',
+                                  ),
+                                ) / 1000
+                              ).toFixed(2)
+                            : '-') ||
+                          '0'}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="CPU可用（核）">
+                        {(() => {
+                          const deservedNum =
+                            actualQueueDetail?.deserved?.cpuCores
+                              ? parseFloat(String(actualQueueDetail.deserved.cpuCores))
+                              : actualQueueDetail?.deserved?.milliCPUcores
+                                ? parseFloat(
+                                    String(actualQueueDetail.deserved.milliCPUcores),
+                                  ) / 1000
+                                : 0;
+                          const allocatedNum =
+                            actualQueueDetail?.allocated?.cpuCores
+                              ? parseFloat(String(actualQueueDetail.allocated.cpuCores))
+                              : actualQueueDetail?.allocated?.milliCPUcores
+                                ? parseFloat(
+                                    String(
+                                      actualQueueDetail.allocated?.milliCPUcores || '0',
+                                    ),
+                                  ) / 1000
+                                : 0;
+                          return deservedNum > 0
+                            ? (deservedNum - allocatedNum).toFixed(2)
+                            : '-';
+                        })()}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="内存总容量（GB）">
+                        {actualQueueDetail?.capability
+                          ?.memoryGi
+                          ? (() => {
+                              const memoryGi = actualQueueDetail
+                                ?.capability?.memoryGi;
+                              if (!memoryGi) return '-';
+                              if (typeof memoryGi === 'number') {
+                                return (memoryGi as number).toFixed(2);
+                              }
+                              const num = parseFloat(String(memoryGi));
+                              if (Number.isNaN(num)) return '-';
+                              return num > 1000000
+                                ? (num / (1024 * 1024 * 1024)).toFixed(2)
+                                : num.toFixed(2);
+                            })()
+                          : '-'}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="内存应得配额（GB）">
+                        {actualQueueDetail?.deserved?.memoryGi
+                          ? (() => {
+                              const memoryGi = actualQueueDetail
+                                ?.deserved?.memoryGi;
+                              if (!memoryGi) return '-';
+                              if (typeof memoryGi === 'number') {
+                                return (memoryGi as number).toFixed(2);
+                              }
+                              const num = parseFloat(String(memoryGi));
+                              return Number.isNaN(num) ? '-' : num.toFixed(2);
+                            })()
+                          : '-'}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="内存已分配（GB）">
+                        {actualQueueDetail?.allocated?.memoryGi
+                          ? (() => {
+                              const memoryGi = actualQueueDetail
+                                ?.allocated?.memoryGi;
+                              if (!memoryGi) return '0';
+                              if (typeof memoryGi === 'number') {
+                                return (memoryGi as number).toFixed(2);
+                              }
+                              const num = parseFloat(String(memoryGi));
+                              return Number.isNaN(num) ? '0' : num.toFixed(2);
+                            })()
+                          : '0'}
+                      </Descriptions.Item>
+                      <Descriptions.Item label="内存可用（GB）">
+                        {(() => {
+                          const deserved = actualQueueDetail?.deserved?.memoryGi
+                            ? typeof actualQueueDetail.deserved.memoryGi === 'number'
+                              ? actualQueueDetail.deserved.memoryGi
+                              : parseFloat(String(actualQueueDetail.deserved.memoryGi))
+                            : 0;
+                          const allocated = actualQueueDetail?.allocated?.memoryGi
+                            ? typeof actualQueueDetail.allocated?.memoryGi === 'number'
+                              ? actualQueueDetail.allocated.memoryGi
+                              : parseFloat(
+                                  String(actualQueueDetail.allocated?.memoryGi || '0'),
+                                )
+                            : 0;
+                          return deserved > 0
+                            ? (deserved - allocated).toFixed(2)
+                            : '-';
+                        })()}
+                      </Descriptions.Item>
+                    </Descriptions>
+                  </div>
+                )}
+
+                {/* 加速卡详情 */}
+                {renderAcceleratorTable(
+                  '加速卡资源情况',
+                  actualQueueDetail?.capability,
+                  actualQueueDetail?.deserved,
+                  actualQueueDetail?.allocated,
+                )}
+              </Card>
+
+              {/* 资源池信息 */}
+              {actualQueueDetail?.resourcePoolId && (
+                <Card>
+                  <Spin spinning={resourcePoolLoading}>
+                    <Title level={4}>资源池信息</Title>
+                    {resourcePoolDetail ? (
+                      <>
+                        <Descriptions
+                          column={2}
+                          bordered
+                          style={{ marginTop: 16 }}
+                        >
+                          <Descriptions.Item label="资源池ID">
+                            {resourcePoolDetail.resourcePoolId || '-'}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="资源池名称">
+                            {resourcePoolDetail.name || '-'}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="资源池类型">
+                            {resourcePoolDetail.type || '-'}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="状态">
+                            {resourcePoolDetail.phase ? (
+                              <Tag
+                                color={
+                                  resourcePoolDetail.phase === 'running'
+                                    ? 'success'
+                                    : 'default'
+                                }
+                              >
+                                {resourcePoolDetail.phase === 'running'
+                                  ? '运行中'
+                                  : resourcePoolDetail.phase}
+                              </Tag>
+                            ) : (
+                              '-'
+                            )}
+                          </Descriptions.Item>
+                          {resourcePoolDetail.description && (
+                            <Descriptions.Item label="描述" span={2}>
+                              {resourcePoolDetail.description}
+                            </Descriptions.Item>
+                          )}
+                          {resourcePoolDetail.region && (
+                            <Descriptions.Item label="区域">
+                              {resourcePoolDetail.region}
+                            </Descriptions.Item>
+                          )}
+                          {resourcePoolDetail.createdAt && (
+                            <Descriptions.Item label="创建时间">
+                              {new Date(
+                                resourcePoolDetail.createdAt,
+                              ).toLocaleString('zh-CN')}
+                            </Descriptions.Item>
+                          )}
+                          {resourcePoolDetail.updatedAt && (
+                            <Descriptions.Item label="更新时间">
+                              {new Date(
+                                resourcePoolDetail.updatedAt,
+                              ).toLocaleString('zh-CN')}
+                            </Descriptions.Item>
+                          )}
+                        </Descriptions>
+
+                        {/* 配置信息 */}
+                        {resourcePoolDetail.configuration && (
+                          <div style={{ marginTop: 16 }}>
+                            <Title level={5}>配置信息</Title>
+                            <Descriptions
+                              column={2}
+                              bordered
+                              style={{ marginTop: 8 }}
+                            >
+                              <Descriptions.Item label="公开暴露">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .exposedPublic
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .exposedPublic
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="禁止删除">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .forbidDelete
+                                      ? 'warning'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration.forbidDelete
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="启用调度器">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .deschedulerEnabled
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .deschedulerEnabled
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="统一调度器">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .unifiedSchedulerEnabled
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .unifiedSchedulerEnabled
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="数据集权限">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .datasetPermissionEnabled
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .datasetPermissionEnabled
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="存储卷权限">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .volumePermissionEnabled
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .volumePermissionEnabled
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="镜像无认证拉取">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .imageNoAuthPullEnabled
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .imageNoAuthPullEnabled
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                              <Descriptions.Item label="公网推理服务">
+                                <Tag
+                                  color={
+                                    resourcePoolDetail.configuration
+                                      .publicNetInferenceServiceEnable
+                                      ? 'success'
+                                      : 'default'
+                                  }
+                                >
+                                  {resourcePoolDetail.configuration
+                                    .publicNetInferenceServiceEnable
+                                    ? '是'
+                                    : '否'}
+                                </Tag>
+                              </Descriptions.Item>
+                            </Descriptions>
+                          </div>
+                        )}
+
+                        {/* 关联资源 */}
+                        {resourcePoolDetail.associatedResources &&
+                          resourcePoolDetail.associatedResources.length > 0 && (
+                            <div style={{ marginTop: 16 }}>
+                              <Title level={5}>关联资源</Title>
+                              <Space wrap style={{ marginTop: 8 }}>
+                                {resourcePoolDetail.associatedResources.map(
+                                  (resource) => (
+                                    <Tag key={`${resource.provider}-${resource.id}`} color="blue">
+                                      {resource.provider}: {resource.id}
+                                    </Tag>
+                                  ),
+                                )}
+                              </Space>
+                            </div>
+                          )}
+
+                        {/* 网络配置 */}
+                        {resourcePoolDetail.network && (
+                          <div style={{ marginTop: 16 }}>
+                            <Title level={5}>网络配置</Title>
+                            <Descriptions
+                              column={2}
+                              bordered
+                              style={{ marginTop: 8 }}
+                            >
+                              <Descriptions.Item label="网络模式">
+                                {resourcePoolDetail.network.mode || '-'}
+                              </Descriptions.Item>
+                              <Descriptions.Item label="集群IP CIDR">
+                                {resourcePoolDetail.network.clusterIPCidr ||
+                                  '-'}
+                              </Descriptions.Item>
+                              {resourcePoolDetail.network.master && (
+                                <>
+                                  <Descriptions.Item label="Master VPC ID">
+                                    {resourcePoolDetail.network.master.vpcId ||
+                                      '-'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Master VPC CIDR">
+                                    {resourcePoolDetail.network.master
+                                      .vpcCidr || '-'}
+                                  </Descriptions.Item>
+                                </>
+                              )}
+                              {resourcePoolDetail.network.nodes?.subnetIds && (
+                                <Descriptions.Item label="节点子网ID" span={2}>
+                                  {resourcePoolDetail.network.nodes.subnetIds.join(
+                                    ', ',
+                                  ) || '-'}
+                                </Descriptions.Item>
+                              )}
+                              {resourcePoolDetail.network.pods && (
+                                <>
+                                  <Descriptions.Item label="Pods VPC ID">
+                                    {resourcePoolDetail.network.pods.vpcId ||
+                                      '-'}
+                                  </Descriptions.Item>
+                                  <Descriptions.Item label="Pods 子网CIDR">
+                                    {resourcePoolDetail.network.pods
+                                      .subnetCidr || '-'}
+                                  </Descriptions.Item>
+                                </>
+                              )}
+                            </Descriptions>
+                          </div>
+                        )}
+
+                        {/* 绑定存储 */}
+                        {resourcePoolDetail.bindingStorages &&
+                          resourcePoolDetail.bindingStorages.length > 0 && (
+                            <div style={{ marginTop: 16 }}>
+                              <Title level={5}>绑定存储</Title>
+                              <Space wrap style={{ marginTop: 8 }}>
+                                {resourcePoolDetail.bindingStorages.map(
+                                  (storage) => (
+                                    <Tag key={`${storage.provider}-${storage.id}`} color="green">
+                                      {storage.provider}: {storage.id}
+                                    </Tag>
+                                  ),
+                                )}
+                              </Space>
+                            </div>
+                          )}
+
+                        {/* 绑定监控 */}
+                        {resourcePoolDetail.bindingMonitor &&
+                          resourcePoolDetail.bindingMonitor.length > 0 && (
+                            <div style={{ marginTop: 16 }}>
+                              <Title level={5}>绑定监控</Title>
+                              <Space wrap style={{ marginTop: 8 }}>
+                                {resourcePoolDetail.bindingMonitor.map(
+                                  (monitor) => (
+                                    <Tag key={`${monitor.provider}-${monitor.id}`} color="orange">
+                                      {monitor.provider}: {monitor.id}
+                                    </Tag>
+                                  ),
+                                )}
+                              </Space>
+                            </div>
+                          )}
+                      </>
+                    ) : !resourcePoolLoading ? (
+                      <Text style={{ marginTop: 16, display: 'block' }}>
+                        暂无资源池信息
+                      </Text>
+                    ) : null}
+                  </Spin>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Card>
+              <Text>暂无队列信息</Text>
+            </Card>
+          )}
+        </Spin>
+      )}
     </PageContainer>
   );
 };
 
 export default Resource;
-

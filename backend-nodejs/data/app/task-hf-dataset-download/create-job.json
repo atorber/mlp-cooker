@@ -1,22 +1,28 @@
 {
-  "taskParams": {
-    "name": "hf-dataset-download",
-    "jobType": "PyTorchJob",
-    "command": "",
-    "jobSpec": {
-      "replicas": 1,
-      "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
-      "resources": [],
-      "envs": [
-        {
-          "name": "HF_ENDPOINT",
-          "value": "https://hf-mirror.com"
-        }
-      ],
-      "enableRDMA": false
-    },
-    "dataset_name": "BAAI/bge-large-zh-v1.5",
-    "save_path": "/mnt/pvc/datasets/bge-large-zh-v1.5"
-  }
+  "name": "hf-dataset-download",
+  "queue": "default",
+  "jobType": "PyTorchJob",
+  "command": "",
+  "jobSpec": {
+    "replicas": 1,
+    "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+    "resources": [],
+    "envs": [
+      {
+        "name": "DATASET_URL",
+        "value": "https://hf-mirror.com"
+      }
+    ],
+    "enableRDMA": false
+  },
+  "labels": [],
+  "datasources": [
+    {
+      "type": "pfs",
+      "name": "pfs-pxE6jz",
+      "sourcePath": "/",
+      "mountPath": "/data"
+    }
+  ]
 }
 

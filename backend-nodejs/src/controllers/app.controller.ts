@@ -62,12 +62,30 @@ export class AppController {
 
     try {
       const fileContent = fs.readFileSync(templatePath, 'utf-8');
-      const template = JSON.parse(fileContent);
+      const templateData = JSON.parse(fileContent);
 
       // 加载对应的 command.sh 文件
       const command = AppController.loadCommandFromShell(appPath, null, actionType);
-      if (command && template.taskParams) {
-        template.taskParams.command = command;
+
+      // 判断模板数据的结构：如果已经有 taskParams，直接使用；否则包装为 taskParams
+      let template: any;
+      if (templateData.taskParams) {
+        // 已经有 taskParams 结构，直接使用
+        template = {
+          ...templateData,
+        };
+        if (command) {
+          template.taskParams.command = command;
+        }
+      } else {
+        // 没有 taskParams 结构，将整个内容作为 taskParams
+        template = {
+          taskParams: templateData,
+        };
+        if (command) {
+          template.command = command;
+          template.taskParams.command = command;
+        }
       }
 
       return template;

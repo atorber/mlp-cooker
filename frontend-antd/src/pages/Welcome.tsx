@@ -5,6 +5,7 @@ import {
   DatabaseOutlined,
   AppstoreOutlined,
   CloudOutlined,
+  ClusterOutlined,
 } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
@@ -20,7 +21,17 @@ const Welcome: React.FC = () => {
     datasetCount: 0,
     modelCount: 0,
   });
+  const [resourceStatistics, setResourceStatistics] = useState({
+    totalAccelerators: 0,
+    allocatedAccelerators: 0,
+    totalCpuCores: 0,
+    allocatedCpuCores: 0,
+    totalMemoryGi: 0,
+    allocatedMemoryGi: 0,
+    runningJobs: 0,
+  });
   const [loading, setLoading] = useState(false);
+  const [resourceLoading, setResourceLoading] = useState(false);
 
   // 获取平台统计数据
   useEffect(() => {
@@ -156,7 +167,125 @@ const Welcome: React.FC = () => {
     };
 
     fetchStatistics();
+    fetchResourceStatistics();
   }, []);
+
+  // 获取计算资源统计数据
+  const fetchResourceStatistics = async () => {
+    setResourceLoading(true);
+    try {
+      // 先获取配置的队列ID
+      const configRes = await request('/api/config/ML_PLATFORM_RESOURCE_QUEUE_ID', {
+        method: 'GET',
+      });
+
+      if (!configRes?.success || !configRes?.data?.value) {
+        console.log('未配置队列ID，跳过计算资源统计');
+        setResourceLoading(false);
+        return;
+      }
+
+      const configQueueId = configRes.data.value;
+
+      // 获取队列详情
+      const queueRes = await request(`/api/resources/queues/${configQueueId}`, {
+        method: 'GET',
+      });
+
+      if (queueRes?.success) {
+        const data = queueRes.data;
+        const queue = data?.queue || data || null;
+
+        // 仅使用children[0]的信息做统计
+        let actualQueue = null;
+        if (
+          queue?.children &&
+          Array.isArray(queue.children) &&
+          queue.children.length > 0
+        ) {
+          actualQueue = queue.children[0];
+        } else {
+          actualQueue = queue || null;
+        }
+
+        if (actualQueue) {
+          // 计算加速卡统计
+          const calculateAccelerators = (cardList: any[]) => {
+            if (!cardList || cardList.length === 0) return 0;
+            return cardList.reduce((sum, card) => sum + parseFloat(card.acceleratorCount || '0'), 0);
+          };
+
+          const parseCpu = (cpu: string | number | undefined) => {
+            if (!cpu) return 0;
+            return typeof cpu === 'string' ? parseFloat(cpu) : cpu;
+          };
+
+          const parseMemory = (memory: string | number | undefined) => {
+            if (!memory) return 0;
+            if (typeof memory === 'string') {
+              const num = parseFloat(memory);
+              if (num > 1000000) {
+                return num / (1024 * 1024 * 1024);
+              }
+              return num;
+            }
+            return memory;
+          };
+
+          let totalAccelerators = 0;
+          let allocatedAccelerators = 0;
+          let totalCpuCores = 0;
+          let allocatedCpuCores = 0;
+          let totalMemoryGi = 0;
+          let allocatedMemoryGi = 0;
+          const runningJobs = actualQueue.runningJobs || 0;
+
+          // 计算资源统计
+          if (actualQueue.deserved) {
+            if (actualQueue.deserved.acceleratorCardList) {
+              totalAccelerators = calculateAccelerators(actualQueue.deserved.acceleratorCardList);
+            }
+            if (actualQueue.deserved.cpuCores !== undefined) {
+              totalCpuCores = parseCpu(actualQueue.deserved.cpuCores);
+            } else if (actualQueue.deserved.milliCPUcores !== undefined) {
+              totalCpuCores = parseCpu(actualQueue.deserved.milliCPUcores) / 1000;
+            }
+            if (actualQueue.deserved.memoryGi !== undefined) {
+              totalMemoryGi = parseMemory(actualQueue.deserved.memoryGi);
+            }
+          }
+
+          if (actualQueue.allocated) {
+            if (actualQueue.allocated.acceleratorCardList && actualQueue.allocated.acceleratorCardList.length > 0) {
+              allocatedAccelerators = calculateAccelerators(actualQueue.allocated.acceleratorCardList);
+            }
+            if (actualQueue.allocated.cpuCores !== undefined) {
+              allocatedCpuCores = parseCpu(actualQueue.allocated.cpuCores);
+            } else if (actualQueue.allocated.milliCPUcores !== undefined) {
+              allocatedCpuCores = parseCpu(actualQueue.allocated.milliCPUcores) / 1000;
+            }
+            if (actualQueue.allocated.memoryGi !== undefined) {
+              allocatedMemoryGi = parseMemory(actualQueue.allocated.memoryGi);
+            }
+          }
+
+          setResourceStatistics({
+            totalAccelerators,
+            allocatedAccelerators,
+            totalCpuCores,
+            allocatedCpuCores,
+            totalMemoryGi,
+            allocatedMemoryGi,
+            runningJobs,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('获取计算资源统计失败:', error);
+    } finally {
+      setResourceLoading(false);
+    }
+  };
 
   const features = [
     {
@@ -226,65 +355,9 @@ const Welcome: React.FC = () => {
       subTitle="一站式机器学习平台资源管理，提升工作效率"
     >
       <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <ProCard>
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <h1
-                style={{
-                  fontSize: '28px',
-                  marginBottom: '16px',
-                  color: token.colorTextHeading,
-                }}
-              >
-                欢迎使用机器学习平台
-              </h1>
-              <p
-                style={{
-                  fontSize: '16px',
-                  color: token.colorTextSecondary,
-                  marginBottom: '32px',
-                }}
-              >
-                基于百度百舸平台构建的企业级机器学习资源管理平台，提供完整的AI模型训练、部署和管理功能
-              </p>
-            </div>
-          </ProCard>
-        </Col>
 
-        <Col span={24}>
-          <ProCard title="功能模块" extra={<Button type="link">查看全部</Button>}>
-            <Row gutter={[16, 16]}>
-              {features.map((feature) => (
-                <Col xs={24} sm={12} md={8} lg={6} key={feature.path}>
-                  <Card
-                    hoverable
-                    style={{ height: '100%' }}
-                    styles={{ body: { padding: '20px' } }}
-                    onClick={() => history.push(feature.path)}
-                  >
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ marginBottom: '12px' }}>{feature.icon}</div>
-                      <h3 style={{ marginBottom: '8px', fontSize: '16px' }}>
-                        {feature.title}
-                      </h3>
-                      <p
-                        style={{
-                          color: token.colorTextSecondary,
-                          fontSize: '14px',
-                        }}
-                      >
-                        {feature.description}
-                      </p>
-                    </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          </ProCard>
-        </Col>
-
-        <Col xs={24} sm={12}>
-          <ProCard title="平台统计">
+      <Col xs={24} sm={12}>
+          <ProCard title="平台统计" style={{ height: '100%' }}>
             <Spin spinning={loading}>
               <Row gutter={16}>
                 <Col span={12}>
@@ -321,6 +394,110 @@ const Welcome: React.FC = () => {
                 </Col>
               </Row>
             </Spin>
+          </ProCard>
+        </Col>
+
+        <Col xs={24} sm={12}>
+          <ProCard
+            title="计算资源"
+            style={{ height: '100%' }}
+            extra={
+              <Button
+                type="link"
+                onClick={() => history.push('/resource')}
+                icon={<ClusterOutlined />}
+              >
+                查看详情
+              </Button>
+            }
+          >
+            <Spin spinning={resourceLoading}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Statistic
+                    title="加速卡总量"
+                    value={resourceStatistics.totalAccelerators.toFixed(1)}
+                    suffix="张"
+                    valueStyle={{ color: '#722ed1' }}
+                    prefix={<ClusterOutlined />}
+                  />
+                  <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: 4, minHeight: '18px' }}>
+                    {resourceStatistics.totalAccelerators > 0
+                      ? `已分配: ${resourceStatistics.allocatedAccelerators.toFixed(1)} 张`
+                      : '\u00A0'}
+                  </div>
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="CPU总量"
+                    value={resourceStatistics.totalCpuCores.toFixed(1)}
+                    suffix="核"
+                    valueStyle={{ color: '#13c2c2' }}
+                  />
+                  <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: 4, minHeight: '18px' }}>
+                    {resourceStatistics.totalCpuCores > 0
+                      ? `已分配: ${resourceStatistics.allocatedCpuCores.toFixed(1)} 核`
+                      : '\u00A0'}
+                  </div>
+                </Col>
+                <Col span={12} style={{ marginTop: 16 }}>
+                  <Statistic
+                    title="内存总量"
+                    value={resourceStatistics.totalMemoryGi.toFixed(1)}
+                    suffix="GB"
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                  <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: 4, minHeight: '18px' }}>
+                    {resourceStatistics.totalMemoryGi > 0
+                      ? `已分配: ${resourceStatistics.allocatedMemoryGi.toFixed(1)} GB`
+                      : '\u00A0'}
+                  </div>
+                </Col>
+                <Col span={12} style={{ marginTop: 16 }}>
+                  <Statistic
+                    title="运行中任务"
+                    value={resourceStatistics.runningJobs}
+                    valueStyle={{ color: '#fa8c16' }}
+                    prefix={<ThunderboltOutlined />}
+                  />
+                  <div style={{ fontSize: '12px', color: '#8c8c8c', marginTop: 4, minHeight: '18px' }}>
+                    {'\u00A0'}
+                  </div>
+                </Col>
+              </Row>
+            </Spin>
+          </ProCard>
+        </Col>
+
+        <Col span={24}>
+          <ProCard title="功能模块" extra={<Button type="link">查看全部</Button>}>
+            <Row gutter={[16, 16]}>
+              {features.map((feature) => (
+                <Col xs={24} sm={12} md={8} lg={6} key={feature.path}>
+                  <Card
+                    hoverable
+                    style={{ height: '100%' }}
+                    styles={{ body: { padding: '20px' } }}
+                    onClick={() => history.push(feature.path)}
+                  >
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ marginBottom: '12px' }}>{feature.icon}</div>
+                      <h3 style={{ marginBottom: '8px', fontSize: '16px' }}>
+                        {feature.title}
+                      </h3>
+                      <p
+                        style={{
+                          color: token.colorTextSecondary,
+                          fontSize: '14px',
+                        }}
+                      >
+                        {feature.description}
+                      </p>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
           </ProCard>
         </Col>
 

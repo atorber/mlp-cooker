@@ -254,9 +254,15 @@ const Application: React.FC = () => {
           successMessage = '训练任务创建成功';
           break;
         case 'create-job':
-          // 调用创建任务接口（如果有的话）
-          messageApi.warning('批量任务功能尚未实现');
-          return;
+          // 调用创建任务接口（使用训练任务接口，因为都是 createJob）
+          response = await request('/api/jobs/create', {
+            method: 'POST',
+            data: {
+              taskParams: JSON.stringify(taskParams),
+            },
+          });
+          successMessage = '任务创建成功';
+          break;
         default:
           return;
       }
@@ -268,7 +274,7 @@ const Application: React.FC = () => {
         // 跳转到对应页面
         if (actionType === 'deploy') {
           history.push('/deployment');
-        } else if (actionType === 'train') {
+        } else if (actionType === 'train' || actionType === 'create-job') {
           history.push('/training');
         }
       } else {
