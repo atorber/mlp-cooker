@@ -1,6 +1,6 @@
 {
   "name": "aihc-mentor-backend",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "AIHC-MENTOR Backend Node.js + TypeScript",
   "main": "dist/app.js",
   "scripts": {
