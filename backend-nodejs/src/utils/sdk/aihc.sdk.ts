@@ -20,6 +20,7 @@ export interface AihcConfig {
   defaultResourcePoolId: string;
   defaultQueue: string;
   defaultPfsInstanceId: string;
+  defaultBucket: string;
 }
 
 /**
@@ -57,6 +58,7 @@ export class AihcSDK extends BaseService {
       defaultResourcePoolId: config?.defaultResourcePoolId || mlResourceConfig.poolId,
       defaultQueue: config?.defaultQueue || mlResourceConfig.queueId,
       defaultPfsInstanceId: config?.defaultPfsInstanceId || mlResourceConfig.pfsInstanceId,
+      defaultBucket: config?.defaultBucket || mlResourceConfig.bucket,
     };
 
     this.client = this.createClient();
@@ -309,16 +311,6 @@ export class AihcSDK extends BaseService {
       // 确保请求体中的 queue 字段和 queueID 一致
       const body: RequestBody = { ...requestBody, queue: finalQueueID };
       delete body.queueID;
-
-      // 如果请求体中有 datasource 数组，且未指定 PFS 实例ID，则使用默认值
-      if (this.config.defaultPfsInstanceId && Array.isArray(body.datasource)) {
-        body.datasource = body.datasource.map((ds: any) => {
-          if (ds.type === 'pfs' && !ds.name) {
-            return { ...ds, name: this.config.defaultPfsInstanceId };
-          }
-          return ds;
-        });
-      }
 
       return this.sendRequest('POST', 'CreateJob', {
         resourcePoolId: finalResourcePoolId,

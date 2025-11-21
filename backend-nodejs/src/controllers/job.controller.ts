@@ -91,8 +91,6 @@ export class JobController {
   public static async create(req: Request, res: Response): Promise<void> {
     try {
       const requestBody = req.body;
-      const { resourcePoolId, queueID } = req.query;
-
       if (!requestBody) {
         ResponseUtils.error(res, '请求体不能为空');
         return;
@@ -102,19 +100,46 @@ export class JobController {
       const yamlConfig = YamlConfigManager.getInstance();
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       
-      const finalResourcePoolId = (resourcePoolId as string) || mlResourceConfig.poolId;
-      const finalQueueID = (queueID as string) || mlResourceConfig.queueId;
-
-      if (!finalQueueID) {
-        ResponseUtils.error(res, '配置文件中缺少队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_QUEUE_ID');
-        return;
-      }
+      const resourcePoolId = mlResourceConfig.poolId;
+      const queueID = mlResourceConfig.queueId;
+      requestBody.queue = queueID;
 
       const sdk = JobController.getJobSDK();
+
+      // 处理 datasources 数组，确保符合接口文档要求
+      // 接口文档要求字段名为 datasources（复数）
+      // DataSource 字段定义：
+      // - type: String, 必选，枚举值：pfs/hostPath/dataset/bos
+      // - name: String, 必选，数据源名称（type为pfs时填写pfs实例id，type为bos时默认为空）
+      // - sourcePath: String, 必选，源路径（type为pfs时默认为/）
+      // - mountPath: String, 必选，容器内挂载路径
+      // - options: Option, 可选，数据源参数
+      if (Array.isArray(requestBody.datasources)) {
+        requestBody.datasources = requestBody.datasources.map((ds: any) => {
+          const processedDs: any = { ...ds };
+          
+          // 处理 type === 'pfs' 的情况
+          if (processedDs.type === 'pfs') {
+            processedDs.name = mlResourceConfig.pfsInstanceId;
+            processedDs.sourcePath = '/';
+            processedDs.mountPath = '/data';
+          }
+          
+          // 处理 type === 'bos' 的情况（name 默认为空）
+          if (processedDs.type === 'bos') {
+            processedDs.name = '';
+            processedDs.sourcePath = `${mlResourceConfig.bucket}/`;
+            processedDs.mountPath = '/data';
+          }
+          
+          return processedDs;
+        });
+      }
+
       const result = await sdk.createJob(
         requestBody,
-        finalResourcePoolId,
-        finalQueueID
+        resourcePoolId,
+        queueID
       );
 
       ResponseUtils.success(res, result, '训练任务创建成功');
