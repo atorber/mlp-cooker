@@ -243,7 +243,7 @@ const Deployment: React.FC = () => {
       if (typeof values.taskParams === 'string') {
         try {
           taskParams = JSON.parse(values.taskParams);
-        } catch (parseError) {
+        } catch (_parseError) {
           messageApi.error('任务参数格式错误，必须是有效的 JSON 格式');
           return;
         }
@@ -255,7 +255,7 @@ const Deployment: React.FC = () => {
       }
 
       // 如果启动命令不为空，则替换任务参数中的 command 值
-      if (values.command && values.command.trim()) {
+      if (values.command?.trim()) {
         taskParams.command = values.command.trim();
       }
 
@@ -385,7 +385,7 @@ const Deployment: React.FC = () => {
       key: 'resourcePoolId',
       width: 150,
       ellipsis: true,
-      render: (text, record) => {
+      render: (text, _record) => {
         // 优先显示资源池名称，其次显示资源池ID
         return text || '-';
       },
@@ -439,9 +439,9 @@ const Deployment: React.FC = () => {
           // 如果是字符串，直接解析
           const timestamp = typeof text === 'number' ? text * 1000 : (typeof text === 'string' ? text : String(text));
           const date = new Date(timestamp);
-          if (isNaN(date.getTime())) return '-';
+          if (Number.isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
-        } catch (e) {
+        } catch (_e) {
           return '-';
         }
       },
@@ -459,9 +459,9 @@ const Deployment: React.FC = () => {
           // 如果是字符串，直接解析
           const timestamp = typeof text === 'number' ? text * 1000 : (typeof text === 'string' ? text : String(text));
           const date = new Date(timestamp);
-          if (isNaN(date.getTime())) return '-';
+          if (Number.isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
-        } catch (e) {
+        } catch (_e) {
           return '-';
         }
       },
@@ -578,7 +578,7 @@ const Deployment: React.FC = () => {
                       return Promise.reject(new Error('任务参数必须是有效的 JSON 对象'));
                     }
                     return Promise.resolve();
-                  } catch (e) {
+                  } catch (_e) {
                     return Promise.reject(new Error('任务参数格式错误，必须是有效的 JSON 格式'));
                   }
                 },
@@ -685,8 +685,8 @@ const Deployment: React.FC = () => {
                         ? selectedService.createdAt * 1000
                         : selectedService.createdAt;
                       const date = new Date(timestamp);
-                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (e) {
+                      return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (_e) {
                       return '-';
                     }
                   })()
@@ -700,8 +700,8 @@ const Deployment: React.FC = () => {
                         ? selectedService.updatedAt * 1000
                         : selectedService.updatedAt;
                       const date = new Date(timestamp);
-                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (e) {
+                      return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (_e) {
                       return '-';
                     }
                   })()

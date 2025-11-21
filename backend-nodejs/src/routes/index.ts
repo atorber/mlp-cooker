@@ -5,6 +5,7 @@ import { DatasetController } from '@/controllers/dataset.controller';
 import { ModelController } from '@/controllers/model.controller';
 import { ServiceController } from '@/controllers/service.controller';
 import { JobController } from '@/controllers/job.controller';
+import { AppController } from '@/controllers/app.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -140,5 +141,14 @@ router.get('/api/jobs/:jobId/events', authMiddleware, JobController.getEvents);
 
 // 查询训练任务日志
 router.get('/api/jobs/:jobId/pods/:podName/logs', authMiddleware, JobController.getLogs);
+
+/**
+ * 应用模板相关路由
+ */
+// 查询应用模板列表
+router.get('/api/apps', authMiddleware, AppController.list);
+
+// 查询应用模板详情
+router.get('/api/apps/:appId', authMiddleware, AppController.get);
 
 export default router;

@@ -49,6 +49,7 @@ export default {
   'menu.editor.flow': 'Flow Editor',
   'menu.editor.mind': 'Mind Editor',
   'menu.editor.koni': 'Koni Editor',
+  'menu.application': 'Application',
   'menu.deployment': 'Deployment',
   'menu.training': 'Training',
   'menu.task': 'Task',

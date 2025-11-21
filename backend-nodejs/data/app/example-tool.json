@@ -1,0 +1,31 @@
+{
+  "name": "示例工具应用",
+  "description": "这是一个工具类应用模板示例",
+  "type": "deployment",
+  "categoryType": "tool",
+  "category": "工具应用",
+  "tags": ["工具", "示例"],
+  "templates": {
+    "deploy-tool": {
+      "command": "python tool.py",
+      "taskParams": {
+        "name": "example-tool-service",
+        "replicas": 1,
+        "description": "示例工具服务",
+        "resourceSpec": {
+          "acceleratorCount": 1,
+          "acceleratorType": "baidu.com/h20_141g_cgpu"
+        }
+      }
+    }
+  },
+  "actions": [
+    {
+      "type": "deploy",
+      "label": "部署工具",
+      "description": "部署工具服务",
+      "templateKey": "deploy-tool"
+    }
+  ]
+}
+

@@ -1,0 +1,47 @@
+{
+  "name": "示例训练任务",
+  "description": "这是一个示例训练任务模板，用于快速创建训练任务",
+  "type": "training",
+  "categoryType": "model",
+  "category": "模型训练",
+  "tags": ["训练", "PyTorch", "示例"],
+  "templates": {
+    "train": {
+      "command": "sleep 1d",
+      "accelerators": {
+        "baidu.com/a800_80g_cgpu": 8,
+        "baidu.com/h20_141g_cgpu": 1
+      },
+      "taskParams": {
+        "name": "example-training-job",
+        "jobType": "PyTorchJob",
+        "command": "sleep 1d",
+        "jobSpec": {
+          "replicas": 1,
+          "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+          "resources": [],
+          "envs": [
+            {
+              "name": "NCCL_DEBUG",
+              "value": "DEBUG"
+            },
+            {
+              "name": "NCCL_IB_DISABLE",
+              "value": "0"
+            }
+          ],
+          "enableRDMA": true
+        }
+      }
+    }
+  },
+  "actions": [
+    {
+      "type": "train",
+      "label": "创建训练任务",
+      "description": "创建训练任务",
+      "templateKey": "train"
+    }
+  ]
+}
+

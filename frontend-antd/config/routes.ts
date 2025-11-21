@@ -29,6 +29,12 @@ export default [
     component: './Welcome',
   },
   {
+    name: 'application',
+    icon: 'appstore',
+    path: '/application',
+    component: './Application',
+  },
+  {
     name: 'deployment',
     icon: 'rocket',
     path: '/deployment',
