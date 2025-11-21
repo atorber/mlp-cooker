@@ -8,11 +8,155 @@ import {
 } from '@ant-design/icons';
 import { PageContainer, ProCard } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import { Button, Card, Col, Row, Space, Statistic, theme } from 'antd';
-import React from 'react';
+import { Button, Card, Col, Row, Space, Statistic, theme, Spin } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { request } from '@umijs/max';
 
 const Welcome: React.FC = () => {
   const { token } = theme.useToken();
+  const [statistics, setStatistics] = useState({
+    serviceCount: 0,
+    jobCount: 0,
+    datasetCount: 0,
+    modelCount: 0,
+  });
+  const [loading, setLoading] = useState(false);
+
+  // 获取平台统计数据
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      setLoading(true);
+      try {
+        // 并行获取所有统计数据
+        const [servicesRes, jobsRes, datasetsRes, modelsRes] = await Promise.allSettled([
+          // 获取服务数量（使用较大的pageSize确保获取到totalCount，但实际只需要总数）
+          request('/api/services', {
+            method: 'GET',
+            params: {
+              pageNumber: 1,
+              pageSize: 1000, // 使用较大的pageSize，但主要依赖totalCount
+            },
+          }),
+          // 获取训练任务数量（POST请求，使用配置中的默认资源池ID）
+          request('/api/jobs', {
+            method: 'POST',
+            data: {}, // 空body，使用默认配置的resourcePoolId和queueId
+            params: {}, // 不传resourcePoolId，后端会使用配置文件中的默认值
+          }),
+          // 获取数据集数量（分别获取BOS和PFS，然后合并）
+          Promise.all([
+            request('/api/datasets', {
+              method: 'GET',
+              params: {
+                pageNumber: 1,
+                pageSize: 1,
+                storageType: 'BOS',
+              },
+            }),
+            request('/api/datasets', {
+              method: 'GET',
+              params: {
+                pageNumber: 1,
+                pageSize: 1,
+                storageType: 'PFS',
+              },
+            }),
+          ]).then(([bosRes, pfsRes]) => {
+            // 合并BOS和PFS的数据集数量
+            const bosTotal = bosRes?.success ? (bosRes.data?.totalCount || bosRes.data?.total || (Array.isArray(bosRes.data?.datasets) ? bosRes.data.datasets.length : 0) || 0) : 0;
+            const pfsTotal = pfsRes?.success ? (pfsRes.data?.totalCount || pfsRes.data?.total || (Array.isArray(pfsRes.data?.datasets) ? pfsRes.data.datasets.length : 0) || 0) : 0;
+            return {
+              success: true,
+              data: {
+                totalCount: bosTotal + pfsTotal,
+                total: bosTotal + pfsTotal,
+              },
+            };
+          }),
+          // 获取模型数量
+          request('/api/models', {
+            method: 'GET',
+            params: {
+              pageNumber: 1,
+              pageSize: 1,
+            },
+          }),
+        ]);
+
+        // 处理服务数量
+        if (servicesRes.status === 'fulfilled' && servicesRes.value?.success) {
+          const data = servicesRes.value.data;
+          let serviceTotal = 0;
+          // 按照部署页面的逻辑处理数据格式
+          if (Array.isArray(data)) {
+            serviceTotal = data.length;
+          } else if (data?.services && Array.isArray(data.services)) {
+            // 优先使用totalCount或total，否则使用数组长度
+            serviceTotal = data.totalCount || data.total || data.services.length;
+          } else if (data?.result && Array.isArray(data.result)) {
+            serviceTotal = data.totalCount || data.total || data.result.length;
+          } else if (data?.data && Array.isArray(data.data)) {
+            serviceTotal = data.totalCount || data.total || data.data.length;
+          } else if (data?.totalCount !== undefined) {
+            serviceTotal = data.totalCount;
+          } else if (data?.total !== undefined) {
+            serviceTotal = data.total;
+          }
+          setStatistics((prev) => ({ ...prev, serviceCount: serviceTotal }));
+        } else if (servicesRes.status === 'rejected') {
+          console.error('获取服务数量失败:', servicesRes.reason);
+        }
+
+        // 处理训练任务数量
+        if (jobsRes.status === 'fulfilled' && jobsRes.value?.success) {
+          const data = jobsRes.value.data;
+          let jobTotal = 0;
+          if (Array.isArray(data)) {
+            jobTotal = data.length;
+          } else if (data?.totalCount !== undefined) {
+            jobTotal = data.totalCount;
+          } else if (data?.total !== undefined) {
+            jobTotal = data.total;
+          } else if (Array.isArray(data?.jobs)) {
+            jobTotal = data.jobs.length;
+          } else if (Array.isArray(data?.data)) {
+            jobTotal = data.data.length;
+          }
+          setStatistics((prev) => ({ ...prev, jobCount: jobTotal }));
+        }
+
+        // 处理数据集数量
+        if (datasetsRes.status === 'fulfilled' && datasetsRes.value?.success) {
+          const datasetTotal = datasetsRes.value.data?.totalCount || datasetsRes.value.data?.total || 0;
+          setStatistics((prev) => ({ ...prev, datasetCount: datasetTotal }));
+        }
+
+        // 处理模型数量
+        if (modelsRes.status === 'fulfilled' && modelsRes.value?.success) {
+          const data = modelsRes.value.data;
+          let modelTotal = 0;
+          if (Array.isArray(data)) {
+            modelTotal = data.length;
+          } else if (data?.totalCount !== undefined) {
+            modelTotal = data.totalCount;
+          } else if (data?.total !== undefined) {
+            modelTotal = data.total;
+          } else if (Array.isArray(data?.models)) {
+            modelTotal = data.models.length;
+          } else if (Array.isArray(data?.data)) {
+            modelTotal = data.data.length;
+          }
+          setStatistics((prev) => ({ ...prev, modelCount: modelTotal }));
+        }
+      } catch (error) {
+        console.error('获取统计数据失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, []);
 
   const features = [
     {
@@ -141,40 +285,42 @@ const Welcome: React.FC = () => {
 
         <Col xs={24} sm={12}>
           <ProCard title="平台统计">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Statistic
-                  title="服务数量"
-                  value={0}
-                  valueStyle={{ color: '#1890ff' }}
-                  prefix={<RocketOutlined />}
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="训练任务"
-                  value={0}
-                  valueStyle={{ color: '#eb2f96' }}
-                  prefix={<ThunderboltOutlined />}
-                />
-              </Col>
-              <Col span={12} style={{ marginTop: 16 }}>
-                <Statistic
-                  title="数据集"
-                  value={0}
-                  valueStyle={{ color: '#f5222d' }}
-                  prefix={<DatabaseOutlined />}
-                />
-              </Col>
-              <Col span={12} style={{ marginTop: 16 }}>
-                <Statistic
-                  title="模型"
-                  value={0}
-                  valueStyle={{ color: '#faad14' }}
-                  prefix={<AppstoreOutlined />}
-                />
-              </Col>
-            </Row>
+            <Spin spinning={loading}>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Statistic
+                    title="服务数量"
+                    value={statistics.serviceCount}
+                    valueStyle={{ color: '#1890ff' }}
+                    prefix={<RocketOutlined />}
+                  />
+                </Col>
+                <Col span={12}>
+                  <Statistic
+                    title="训练任务"
+                    value={statistics.jobCount}
+                    valueStyle={{ color: '#eb2f96' }}
+                    prefix={<ThunderboltOutlined />}
+                  />
+                </Col>
+                <Col span={12} style={{ marginTop: 16 }}>
+                  <Statistic
+                    title="数据集"
+                    value={statistics.datasetCount}
+                    valueStyle={{ color: '#f5222d' }}
+                    prefix={<DatabaseOutlined />}
+                  />
+                </Col>
+                <Col span={12} style={{ marginTop: 16 }}>
+                  <Statistic
+                    title="模型"
+                    value={statistics.modelCount}
+                    valueStyle={{ color: '#faad14' }}
+                    prefix={<AppstoreOutlined />}
+                  />
+                </Col>
+              </Row>
+            </Spin>
           </ProCard>
         </Col>
 
