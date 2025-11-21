@@ -164,14 +164,34 @@ export class ServiceController {
 
   /**
    * 创建服务
+   * 请求体格式：{ "taskParams": "{...}" } 或 { "taskParams": {...} }
+   * taskParams 可以是 JSON 字符串或 JSON 对象，将作为 requestBody 发送给 AIHC API
    */
   public static async create(req: Request, res: Response): Promise<void> {
     try {
-      const requestBody = req.body;
+      const { taskParams } = req.body;
       const { clientToken } = req.query;
+      
+      if (!taskParams) {
+        ResponseUtils.error(res, '任务参数字段不能为空');
+        return;
+      }
 
-      if (!requestBody) {
-        ResponseUtils.error(res, '请求体不能为空');
+      // 解析任务参数（支持 JSON 字符串或 JSON 对象）
+      let requestBody: any;
+      if (typeof taskParams === 'string') {
+        try {
+          requestBody = JSON.parse(taskParams);
+        } catch (parseError) {
+          ResponseUtils.error(res, '任务参数格式错误，必须是有效的 JSON 格式', {
+            error: parseError instanceof Error ? parseError.message : 'Unknown error'
+          });
+          return;
+        }
+      } else if (typeof taskParams === 'object') {
+        requestBody = taskParams;
+      } else {
+        ResponseUtils.error(res, '任务参数必须是 JSON 字符串或 JSON 对象');
         return;
       }
 
@@ -186,6 +206,9 @@ export class ServiceController {
         ResponseUtils.error(res, '配置文件中缺少资源池ID或队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID');
         return;
       }
+
+      // 确保请求体中的 queue 字段和配置的 queueID 一致
+      requestBody.queue = queueName;
 
       const sdk = ServiceController.getServiceSDK();
       const result = await sdk.createService(

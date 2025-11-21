@@ -87,12 +87,33 @@ export class JobController {
 
   /**
    * 创建训练任务
+   * 请求体格式：{ "taskParams": "{...}" } 或 { "taskParams": {...} }
+   * taskParams 可以是 JSON 字符串或 JSON 对象，将作为 requestBody 发送给 AIHC API
    */
   public static async create(req: Request, res: Response): Promise<void> {
     try {
-      const requestBody = req.body;
-      if (!requestBody) {
-        ResponseUtils.error(res, '请求体不能为空');
+      const { taskParams } = req.body;
+      
+      if (!taskParams) {
+        ResponseUtils.error(res, '任务参数字段不能为空');
+        return;
+      }
+
+      // 解析任务参数（支持 JSON 字符串或 JSON 对象）
+      let requestBody: any;
+      if (typeof taskParams === 'string') {
+        try {
+          requestBody = JSON.parse(taskParams);
+        } catch (parseError) {
+          ResponseUtils.error(res, '任务参数格式错误，必须是有效的 JSON 格式', {
+            error: parseError instanceof Error ? parseError.message : 'Unknown error'
+          });
+          return;
+        }
+      } else if (typeof taskParams === 'object') {
+        requestBody = taskParams;
+      } else {
+        ResponseUtils.error(res, '任务参数必须是 JSON 字符串或 JSON 对象');
         return;
       }
 
@@ -102,9 +123,14 @@ export class JobController {
       
       const resourcePoolId = mlResourceConfig.poolId;
       const queueID = mlResourceConfig.queueId;
-      requestBody.queue = queueID;
 
-      const sdk = JobController.getJobSDK();
+      if (!resourcePoolId || !queueID) {
+        ResponseUtils.error(res, '配置文件中缺少资源池ID或队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID');
+        return;
+      }
+
+      // 确保请求体中的 queue 字段和配置的 queueID 一致
+      requestBody.queue = queueID;
 
       // 处理 datasources 数组，确保符合接口文档要求
       // 接口文档要求字段名为 datasources（复数）
@@ -136,6 +162,7 @@ export class JobController {
         });
       }
 
+      const sdk = JobController.getJobSDK();
       const result = await sdk.createJob(
         requestBody,
         resourcePoolId,

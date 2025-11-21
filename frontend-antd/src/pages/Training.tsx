@@ -145,23 +145,34 @@ const Training: React.FC = () => {
   // 创建训练任务
   const handleCreate = async (values: any) => {
     try {
-      // 构建创建训练任务的请求体（资源池ID和队列ID由后端从配置文件读取）
-      const requestBody: any = {
-        name: values.name,
-        description: values.description || '',
-      };
-
-      // 如果有其他配置，添加到请求体（根据实际API需要添加）
-      if (values.command) {
-        requestBody.command = values.command;
+      // 验证 taskParams 是否是有效的 JSON
+      let taskParams: any;
+      if (typeof values.taskParams === 'string') {
+        try {
+          taskParams = JSON.parse(values.taskParams);
+        } catch (parseError) {
+          messageApi.error('任务参数格式错误，必须是有效的 JSON 格式');
+          return;
+        }
+      } else if (typeof values.taskParams === 'object') {
+        taskParams = values.taskParams;
+      } else {
+        messageApi.error('任务参数格式错误');
+        return;
       }
-      if (values.image) {
-        requestBody.image = values.image;
+
+      // 如果启动命令不为空，则替换任务参数中的 command 值
+      if (values.command && values.command.trim()) {
+        taskParams.command = values.command.trim();
       }
 
+      // 发送请求，只传递 taskParams 字段
+      // 后端会自动从配置文件读取 resourcePoolId 和 queueID
       const response = await request('/api/jobs/create', {
         method: 'POST',
-        data: requestBody,
+        data: {
+          taskParams: JSON.stringify(taskParams),
+        },
       });
 
       if (response.success) {
@@ -479,7 +490,7 @@ const Training: React.FC = () => {
           createForm.resetFields();
         }}
         onOk={() => createForm.submit()}
-        width={800}
+        width={900}
       >
         <Form
           form={createForm}
@@ -487,40 +498,73 @@ const Training: React.FC = () => {
           onFinish={handleCreate}
         >
           <Form.Item
-            name="name"
-            label="任务名称"
-            rules={[
-              { required: true, message: '请输入任务名称' },
-            ]}
-          >
-            <Input placeholder="请输入任务名称" />
-          </Form.Item>
-          <Form.Item
             name="command"
             label="启动命令"
-            rules={[{ required: true, message: '请输入启动命令' }]}
+            tooltip="如果填写了启动命令，将替换任务参数中的 command 字段"
           >
-            <TextArea rows={4} placeholder="请输入启动命令，例如：python train.py" />
+            <TextArea
+              rows={3}
+              placeholder="请输入启动命令，例如：sleep 1d 或 python train.py"
+            />
           </Form.Item>
           <Form.Item
-            name="image"
-            label="镜像地址"
-            rules={[{ required: true, message: '请输入镜像地址' }]}
+            name="taskParams"
+            label="任务参数（JSON格式）"
+            rules={[
+              { required: true, message: '请输入任务参数' },
+              {
+                validator: (_, value) => {
+                  if (!value) {
+                    return Promise.resolve();
+                  }
+                  try {
+                    const parsed = typeof value === 'string' ? JSON.parse(value) : value;
+                    if (typeof parsed !== 'object' || parsed === null) {
+                      return Promise.reject(new Error('任务参数必须是有效的 JSON 对象'));
+                    }
+                    return Promise.resolve();
+                  } catch (e) {
+                    return Promise.reject(new Error('任务参数格式错误，必须是有效的 JSON 格式'));
+                  }
+                },
+              },
+            ]}
           >
-            <Input placeholder="请输入镜像地址，例如：registry.baidubce.com/your-image:tag" />
-          </Form.Item>
-          <Form.Item
-            name="description"
-            label="描述"
-          >
-            <TextArea rows={4} placeholder="请输入任务描述" />
+            <TextArea
+              rows={15}
+              placeholder={`请输入任务参数（JSON格式），例如：
+{
+  "name": "test-job",
+  "command": "sleep 1d",
+  "jobType": "PyTorchJob",
+  "jobSpec": {
+    "replicas": 1,
+    "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+    "resources": [],
+    "envs": [
+      {
+        "name": "NCCL_DEBUG",
+        "value": "DEBUG"
+      }
+    ],
+    "enableRDMA": true
+  }
+}
+
+注意：如果上面填写了启动命令，任务参数中的 command 字段将被启动命令替换`}
+              style={{ fontFamily: 'monospace' }}
+            />
           </Form.Item>
           <Form.Item
             label="提示"
             style={{ marginBottom: 0 }}
           >
             <div style={{ color: '#999', fontSize: '12px' }}>
-              资源池ID和队列ID将从系统配置中自动读取（ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID）
+              <div>• 任务参数必须以 JSON 格式填写，可以是 JSON 对象或 JSON 字符串</div>
+              <div>• 如果填写了启动命令，将自动替换任务参数中的 command 字段</div>
+              <div>• 资源池ID和队列ID将从系统配置中自动读取（ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID）</div>
+              <div>• queue 字段会自动设置为配置文件中的队列ID</div>
+              <div>• 如果 datasources 中包含 type='pfs' 的数据源，会自动填充默认的 PFS 实例ID和路径</div>
             </div>
           </Form.Item>
         </Form>
