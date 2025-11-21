@@ -1,7 +1,7 @@
 {
   "command": "python train.py",
   "taskParams": {
-    "name": "multi-action-training",
+    "name": "train-action-service",
     "jobType": "PyTorchJob",
     "command": "python train.py",
     "jobSpec": {

@@ -1,5 +1,5 @@
 {
-  "name": "hf-dataset-download",
+  "name": "task-hf-dataset-download",
   "queue": "default",
   "jobType": "PyTorchJob",
   "command": "",
@@ -10,7 +10,7 @@
     "envs": [
       {
         "name": "DATASET_URL",
-        "value": "https://hf-mirror.com"
+        "value": "https://huggingface.co/datasets/tensonaut/EPSTEIN_FILES_20K"
       }
     ],
     "enableRDMA": false

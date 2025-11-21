@@ -1,7 +1,7 @@
 {
   "command": "python tool.py",
   "taskParams": {
-    "name": "example-tool-service",
+    "name": "tool-service-example",
     "replicas": 1,
     "description": "示例工具服务",
     "resourceSpec": {

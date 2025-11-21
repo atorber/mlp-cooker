@@ -20,7 +20,7 @@ import {
   Tag,
 } from 'antd';
 import React, { useRef, useState } from 'react';
-import { request } from '@umijs/max';
+import { request, history } from '@umijs/max';
 
 const { TextArea } = Input;
 
@@ -179,7 +179,8 @@ const Training: React.FC = () => {
         messageApi.success('训练任务创建成功');
         setCreateModalVisible(false);
         createForm.resetFields();
-        proTableRef.current?.reload();
+        // 跳转到训练列表页面
+        history.push('/training');
       } else {
         messageApi.error(response.message || '创建训练任务失败');
       }

@@ -1,5 +1,5 @@
 {
-  "name": "task-hf-model-download",
+  "name": "task-ms-dataset-download",
   "queue": "default",
   "jobType": "PyTorchJob",
   "command": "",
@@ -10,7 +10,7 @@
     "envs": [
       {
         "name": "DATASET_URL",
-        "value": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct"
+        "value": "https://www.modelscope.cn/datasets/Alibaba-DT/SKYLENAGE-ReasoningMATH"
       }
     ],
     "enableRDMA": false
@@ -25,3 +25,4 @@
     }
   ]
 }
+

@@ -7,6 +7,7 @@ import { ServiceController } from '@/controllers/service.controller';
 import { JobController } from '@/controllers/job.controller';
 import { AppController } from '@/controllers/app.controller';
 import { ResourceController } from '@/controllers/resource.controller';
+import { TaskController } from '@/controllers/task.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -142,6 +143,12 @@ router.get('/api/jobs/:jobId/events', authMiddleware, JobController.getEvents);
 
 // 查询训练任务日志
 router.get('/api/jobs/:jobId/pods/:podName/logs', authMiddleware, JobController.getLogs);
+
+/**
+ * 任务相关路由（批量任务，自动过滤包含 task- 关键字的 job）
+ */
+// 查询任务列表
+router.post('/api/tasks', authMiddleware, TaskController.list);
 
 /**
  * 应用模板相关路由

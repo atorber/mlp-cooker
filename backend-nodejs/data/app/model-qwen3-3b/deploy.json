@@ -3,7 +3,7 @@
     "baidu.com/h20": 1
   },
   "taskParams": {
-    "name": "qwen3-3b-service",
+    "name": "deploy-qwen3-3b",
     "replicas": 1,
     "description": "Qwen3-3B服务",
     "resourceSpec": {

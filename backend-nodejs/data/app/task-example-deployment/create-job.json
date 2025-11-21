@@ -1,6 +1,6 @@
 {
   "taskParams": {
-    "name": "example-task",
+    "name": "task-example-task",
     "jobType": "PyTorchJob",
     "command": "python task.py",
     "jobSpec": {

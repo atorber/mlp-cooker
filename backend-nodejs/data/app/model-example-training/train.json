@@ -5,7 +5,7 @@
     "baidu.com/h20": 1
   },
   "taskParams": {
-    "name": "example-training-job",
+    "name": "train-example-service",
     "jobType": "PyTorchJob",
     "command": "sleep 1d",
     "jobSpec": {

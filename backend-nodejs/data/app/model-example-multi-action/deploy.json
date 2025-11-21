@@ -4,7 +4,7 @@
     "baidu.com/h20": 1
   },
   "taskParams": {
-    "name": "multi-action-service",
+    "name": "deploy-action-service",
     "replicas": 1,
     "description": "多操作示例服务",
     "resourceSpec": {

@@ -274,8 +274,10 @@ const Application: React.FC = () => {
         // 跳转到对应页面
         if (actionType === 'deploy') {
           history.push('/deployment');
-        } else if (actionType === 'train' || actionType === 'create-job') {
+        } else if (actionType === 'train') {
           history.push('/training');
+        } else if (actionType === 'create-job') {
+          history.push('/task');
         }
       } else {
         messageApi.error(response.message || '操作失败');
