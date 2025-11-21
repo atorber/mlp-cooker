@@ -1,8 +1,6 @@
 import {
   DeleteOutlined,
-  EditOutlined,
   EyeOutlined,
-  FileTextOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -21,7 +19,6 @@ import {
   Space,
   Tag,
   Tabs,
-  message,
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { request } from '@umijs/max';
@@ -184,7 +181,7 @@ const Dataset: React.FC = () => {
       key: 'datasetId',
       width: 200,
       ellipsis: true,
-      render: (text, record) => record.datasetId || record.id,
+      render: (_text, record) => record.datasetId || record.id,
     },
     {
       title: '名称',
@@ -228,7 +225,7 @@ const Dataset: React.FC = () => {
       key: 'createTime',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
     },
     {
       title: '更新时间',
@@ -236,7 +233,7 @@ const Dataset: React.FC = () => {
       key: 'updateTime',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
     },
     {
       title: '操作',

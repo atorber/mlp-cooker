@@ -1,7 +1,4 @@
 import {
-  RocketOutlined,
-  ThunderboltOutlined,
-  FileDoneOutlined,
   ReloadOutlined,
   RightOutlined,
 } from '@ant-design/icons';
@@ -532,8 +529,8 @@ const Application: React.FC = () => {
           actionType === 'deploy'
             ? '部署服务'
             : actionType === 'train'
-            ? '创建训练任务'
-            : '创建任务'
+              ? '创建训练任务'
+              : '创建任务'
         }
         open={actionModalVisible}
         onCancel={() => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   PageContainer,
   ProTable,
-  ProColumns,
+  type ProColumns,
 } from '@ant-design/pro-components';
 import {
   Tag,
@@ -23,7 +23,6 @@ import {
   ArrowLeftOutlined,
   SearchOutlined,
   ReloadOutlined,
-  LinkOutlined,
   GithubOutlined,
   FileTextOutlined,
   PlusOutlined,
@@ -230,8 +229,8 @@ const PresetImageDetail: React.FC = () => {
     <PageContainer>
       {/* 返回链接 */}
       <div style={{ marginBottom: 16 }}>
-        <Button 
-          type="link" 
+        <Button
+          type="link"
           icon={<ArrowLeftOutlined />}
           onClick={() => history.push('/preset-image/manage')}
         >
@@ -259,32 +258,32 @@ const PresetImageDetail: React.FC = () => {
           }}>
             {imageDetail.icon || imageDetail.name.charAt(0).toUpperCase()}
           </div>
-          
+
           {/* 标题和信息区域 */}
           <div style={{ flex: 1 }}>
             {/* 标题 */}
             <Title level={2} style={{ margin: 0, marginBottom: 16 }}>
               {imageDetail.name}
             </Title>
-            
+
             {/* 信息行 */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
               <Text code>{imageDetail.imageId}</Text>
-              
+
               <Space wrap>
-                {imageDetail.frameworks?.map((framework, index) => (
-                  <Tag key={index} color="blue">{framework}</Tag>
+                {imageDetail.frameworks?.map((framework) => (
+                  <Tag key={framework} color="blue">{framework}</Tag>
                 ))}
               </Space>
-              
+
               <Tag color={imageDetail.chipType === 'GPU' ? 'green' : imageDetail.chipType === 'CPU' ? 'green' : 'purple'}>
                 {imageDetail.chipType}
               </Tag>
-              
+
               {imageDetail.presetCuda && (
                 <Tag color="green">预置CUDA</Tag>
               )}
-              
+
               <Text type="secondary" style={{ fontSize: 12 }}>
                 最后更新时间 {imageDetail.lastUpdateTime}
               </Text>
@@ -360,10 +359,10 @@ const PresetImageDetail: React.FC = () => {
                   如果您使用该数据集, 请查看并遵守发布方声明的开源协议 {imageDetail.license}
                 </Text>
               </div>
-              <Card 
-                size="small" 
-                style={{ 
-                  background: '#f5f5f5', 
+              <Card
+                size="small"
+                style={{
+                  background: '#f5f5f5',
                   border: '1px solid #d9d9d9',
                   fontFamily: 'monospace'
                 }}
@@ -373,7 +372,7 @@ const PresetImageDetail: React.FC = () => {
                   <Button size="small" type="link">复制</Button>
                 </div>
                 <pre style={{ margin: 0, fontSize: 12, lineHeight: 1.4 }}>
-{`@inproceedings{jones25fuse,
+                  {`@inproceedings{jones25fuse,
 title={Beyond Sight: Finetuning Generalist Robot Policies with Heterogeneous Sensors via Language Grounding},
 author={Joshua Jones and Oier Mees and Carmelo Sferrazza and Kyle Stachowicz and Pieter Abbeel and Sergey Levine},
 booktitle = {Proceedings of the IEEE International Conference on Robotics and Automation (ICRA)},
@@ -399,7 +398,7 @@ address = {Atlanta, USA}
                 </Select>
               </Col>
               <Col flex="auto">
-                <Input 
+                <Input
                   placeholder="请输入关键字搜索"
                   suffix={<SearchOutlined />}
                 />
@@ -408,8 +407,8 @@ address = {Atlanta, USA}
                 <Button icon={<ReloadOutlined />} />
               </Col>
               <Col>
-                <Button 
-                  type="primary" 
+                <Button
+                  type="primary"
                   icon={<PlusOutlined />}
                   onClick={() => setVersionModalVisible(true)}
                 >
@@ -515,8 +514,8 @@ address = {Atlanta, USA}
             label="版本描述"
             rules={[{ required: true, message: '请输入版本描述' }]}
           >
-            <Input.TextArea 
-              rows={4} 
+            <Input.TextArea
+              rows={4}
               placeholder="请输入版本描述信息"
             />
           </Form.Item>

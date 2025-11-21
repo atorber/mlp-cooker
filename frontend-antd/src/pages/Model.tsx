@@ -1,8 +1,6 @@
 import {
   DeleteOutlined,
-  EditOutlined,
   EyeOutlined,
-  FileTextOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -21,7 +19,6 @@ import {
   Select,
   Space,
   Tag,
-  message,
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { request } from '@umijs/max';
@@ -49,7 +46,7 @@ interface Model {
 
 const Model: React.FC = () => {
   const { message: messageApi } = App.useApp();
-  const proTableRef = useRef<ActionType>();
+  const proTableRef = useRef<ActionType>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -202,7 +199,7 @@ const Model: React.FC = () => {
       key: 'modelId',
       width: 200,
       ellipsis: true,
-      render: (text, record) => record.modelId || record.id,
+      render: (_text, record) => record.modelId || record.id,
     },
     {
       title: '名称',
@@ -255,7 +252,7 @@ const Model: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
     },
     {
       title: '更新时间',
@@ -263,7 +260,7 @@ const Model: React.FC = () => {
       key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
     },
     {
       title: '操作',

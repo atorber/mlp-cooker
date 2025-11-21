@@ -7,7 +7,6 @@ import {
   ProFormText,
 } from '@ant-design/pro-components';
 import {
-  FormattedMessage,
   Helmet,
   SelectLang,
   useIntl,

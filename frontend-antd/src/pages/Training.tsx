@@ -51,7 +51,7 @@ interface Job {
 
 const Training: React.FC = () => {
   const { message: messageApi } = App.useApp();
-  const proTableRef = useRef<ActionType>();
+  const proTableRef = useRef<ActionType>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -150,7 +150,7 @@ const Training: React.FC = () => {
       if (typeof values.taskParams === 'string') {
         try {
           taskParams = JSON.parse(values.taskParams);
-        } catch (parseError) {
+        } catch (_parseError) {
           messageApi.error('任务参数格式错误，必须是有效的 JSON 格式');
           return;
         }
@@ -162,7 +162,7 @@ const Training: React.FC = () => {
       }
 
       // 如果启动命令不为空，则替换任务参数中的 command 值
-      if (values.command && values.command.trim()) {
+      if (values.command?.trim()) {
         taskParams.command = values.command.trim();
       }
 
@@ -234,27 +234,27 @@ const Training: React.FC = () => {
   const getStatusColor = (status?: string | number | null) => {
     if (!status) return 'default';
     const statusStr = String(status).toLowerCase();
-    
+
     // 运行中状态
     if (statusStr === 'running' || statusStr.includes('running') || statusStr === 'pending') {
       return 'processing';
     }
-    
+
     // 已完成/已停止状态
     if (statusStr === 'completed' || statusStr === 'stopped' || statusStr === 'manualtermination' || statusStr.includes('termination')) {
       return 'success';
     }
-    
+
     // 错误状态
     if (statusStr === 'error' || statusStr === 'failed' || statusStr.includes('error') || statusStr.includes('failed')) {
       return 'error';
     }
-    
+
     // 创建中状态
     if (statusStr === 'creating' || statusStr.includes('creating')) {
       return 'processing';
     }
-    
+
     return 'default';
   };
 
@@ -266,7 +266,7 @@ const Training: React.FC = () => {
       key: 'jobId',
       width: 200,
       ellipsis: true,
-      render: (text, record) => record.jobId || record.id,
+      render: (_text, record) => record.jobId || record.id,
     },
     {
       title: '任务名称',
@@ -293,19 +293,19 @@ const Training: React.FC = () => {
       render: (text, record) => {
         // status 可能是字符串或对象（ProTable 的 valueEnum 可能会转换）
         let statusValue: any = text || record.status;
-        
+
         // 如果是对象，尝试提取状态值
         if (statusValue && typeof statusValue === 'object') {
           // valueEnum 返回的对象可能是 { text: '运行中', status: 'Processing' } 格式
           // 或者需要从 record.status 中获取原始值
           statusValue = record.status || statusValue.text || statusValue.value || statusValue.name || null;
         }
-        
+
         if (!statusValue) return '-';
-        
+
         // 确保是字符串类型
         const statusStr = String(statusValue);
-        
+
         // 状态文本映射
         const statusTextMap: Record<string, string> = {
           Running: '运行中',
@@ -316,7 +316,7 @@ const Training: React.FC = () => {
           Error: '错误',
           Failed: '失败',
         };
-        
+
         const displayText = statusTextMap[statusStr] || statusStr;
         return <Tag color={getStatusColor(statusStr)}>{displayText}</Tag>;
       },
@@ -367,10 +367,10 @@ const Training: React.FC = () => {
       render: (text) => {
         if (!text) return '-';
         try {
-          const date = new Date(text);
-          if (isNaN(date.getTime())) return '-';
+          const date = new Date(text as any);
+          if (Number.isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
-        } catch (e) {
+        } catch (_e) {
           return '-';
         }
       },
@@ -385,10 +385,10 @@ const Training: React.FC = () => {
         // finishedAt 是完成时间，ISO 8601格式，可能为空字符串 ""
         if (!text || text === '') return '-';
         try {
-          const date = new Date(text);
-          if (isNaN(date.getTime())) return '-';
+          const date = new Date(text as any);
+          if (Number.isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
-        } catch (e) {
+        } catch (_e) {
           return '-';
         }
       },
@@ -523,7 +523,7 @@ const Training: React.FC = () => {
                       return Promise.reject(new Error('任务参数必须是有效的 JSON 对象'));
                     }
                     return Promise.resolve();
-                  } catch (e) {
+                  } catch (_e) {
                     return Promise.reject(new Error('任务参数格式错误，必须是有效的 JSON 格式'));
                   }
                 },
@@ -621,34 +621,34 @@ const Training: React.FC = () => {
               {selectedJob.jobType || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="创建时间">
-              {selectedJob.createdAt 
+              {selectedJob.createdAt
                 ? (() => {
-                    try {
-                      const date = new Date(selectedJob.createdAt);
-                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (e) {
-                      return '-';
-                    }
-                  })()
+                  try {
+                    const date = new Date(selectedJob.createdAt);
+                    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                  } catch (_e) {
+                    return '-';
+                  }
+                })()
                 : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="完成时间">
               {selectedJob.finishedAt && selectedJob.finishedAt !== ''
                 ? (() => {
-                    try {
-                      const date = new Date(selectedJob.finishedAt);
-                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (e) {
-                      return '-';
-                    }
-                  })()
+                  try {
+                    const date = new Date(selectedJob.finishedAt);
+                    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                  } catch (_e) {
+                    return '-';
+                  }
+                })()
                 : '-'}
             </Descriptions.Item>
             {selectedJob.config && (
               <Descriptions.Item label="配置信息">
-                <pre style={{ 
-                  background: '#f5f5f5', 
-                  padding: '12px', 
+                <pre style={{
+                  background: '#f5f5f5',
+                  padding: '12px',
                   borderRadius: '4px',
                   maxHeight: '300px',
                   overflow: 'auto',

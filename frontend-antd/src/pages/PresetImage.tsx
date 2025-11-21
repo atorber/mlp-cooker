@@ -215,7 +215,7 @@ const PresetImage: React.FC = () => {
   };
 
   // 更新状态
-  const handleStatusChange = async (image: PresetImage, newStatus: string) => {
+  const _handleStatusChange = async (image: PresetImage, newStatus: string) => {
     try {
       const response = await request(`/api/preset-images/${image.id}/status`, {
         method: 'PUT',
@@ -368,8 +368,8 @@ const PresetImage: React.FC = () => {
       width: 200,
       render: (_: any, record: PresetImage) => (
         <Space wrap>
-          {record.frameworks?.map((framework: string, index: number) => (
-            <Tag key={index} color="blue">{framework}</Tag>
+          {record.frameworks?.map((framework: string) => (
+            <Tag key={framework} color="blue">{framework}</Tag>
           ))}
         </Space>
       ),
@@ -380,8 +380,8 @@ const PresetImage: React.FC = () => {
       width: 200,
       render: (_: any, record: PresetImage) => (
         <Space wrap>
-          {record.applicableScopes?.map((scope: string, index: number) => (
-            <Tag key={index} color="purple">{scope}</Tag>
+          {record.applicableScopes?.map((scope: string) => (
+            <Tag key={scope} color="purple">{scope}</Tag>
           ))}
         </Space>
       ),
@@ -853,15 +853,15 @@ const PresetImage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label="框架" span={1}>
                 <Space wrap>
-                  {selectedImage.frameworks?.map((framework, index) => (
-                    <Tag key={index} color="blue">{framework}</Tag>
+                  {selectedImage.frameworks?.map((framework) => (
+                    <Tag key={framework} color="blue">{framework}</Tag>
                   ))}
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="适用范围" span={1}>
                 <Space wrap>
-                  {selectedImage.applicableScopes?.map((scope, index) => (
-                    <Tag key={index} color="purple">{scope}</Tag>
+                  {selectedImage.applicableScopes?.map((scope) => (
+                    <Tag key={scope} color="purple">{scope}</Tag>
                   ))}
                 </Space>
               </Descriptions.Item>

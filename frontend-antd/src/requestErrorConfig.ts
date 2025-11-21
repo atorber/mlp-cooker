@@ -14,7 +14,7 @@ enum ErrorShowType {
 interface ResponseStructure {
   success: boolean;
   data: any;
-  errorCode?: number;
+  errorCode?: number | string;
   errorMessage?: string;
   showType?: ErrorShowType;
 }
@@ -31,17 +31,17 @@ export const errorConfig: RequestConfig = {
     errorThrower: (res) => {
       const response = res as unknown as ResponseStructure & { message?: string };
       const { success, data, errorCode, errorMessage, showType, message } = response;
-      
+
       if (!success) {
         // 优先使用 errorMessage，如果没有则使用 message
         const errorMsg = errorMessage || message || '操作失败';
         const error: any = new Error(errorMsg);
         error.name = 'BizError';
-        error.info = { 
-          errorCode, 
-          errorMessage: errorMsg, 
-          showType: showType || ErrorShowType.ERROR_MESSAGE, 
-          data 
+        error.info = {
+          errorCode,
+          errorMessage: errorMsg,
+          showType: showType || ErrorShowType.ERROR_MESSAGE,
+          data
         };
         throw error; // 抛出自制的错误
       }
@@ -55,7 +55,7 @@ export const errorConfig: RequestConfig = {
         if (errorInfo) {
           const { errorMessage, errorCode } = errorInfo;
           const errorMsg = errorMessage || error.message || '操作失败';
-          
+
           // 如果是认证错误，跳转到登录页
           if (errorMsg.includes('认证失败') || errorMsg.includes('未认证') || errorCode === 'AUTH_FAILED') {
             message.error(errorMsg || '认证失败，请重新登录');
@@ -66,7 +66,7 @@ export const errorConfig: RequestConfig = {
             }, 1000);
             return;
           }
-          
+
           switch (errorInfo.showType) {
             case ErrorShowType.SILENT:
               // do nothing
@@ -108,7 +108,7 @@ export const errorConfig: RequestConfig = {
         const status = error.response.status;
         const responseData = error.response.data;
         const errorMsg = responseData?.message || responseData?.errorMessage || `请求失败 (${status})`;
-        
+
         // 如果是认证错误（401），跳转到登录页
         if (status === 401 || errorMsg.includes('认证失败') || errorMsg.includes('未认证')) {
           message.error(errorMsg || '认证失败，请重新登录');
@@ -140,10 +140,10 @@ export const errorConfig: RequestConfig = {
       if (config.url?.includes('/api/login/account') || config.url?.includes('/api/login/captcha')) {
         return config;
       }
-      
+
       const token = localStorage.getItem('auth_token');
       if (token && config.headers) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
         config.headers['X-Auth-Token'] = token;
       }
       return config;
