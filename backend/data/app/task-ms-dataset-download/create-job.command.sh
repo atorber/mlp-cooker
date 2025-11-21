@@ -79,7 +79,6 @@ import sys
 os.environ['PYTHONUNBUFFERED'] = '1'
 
 # 导入 ModelScope SDK
-from modelscope.msdatasets import MsDataset
 from modelscope.hub.snapshot_download import snapshot_download
 
 # 获取环境变量
@@ -96,29 +95,14 @@ print(f'Revision: {revision or \"master\"}')
 print(f'Save path: {save_dir}')
 
 try:
-    # 使用 MsDataset.load() 加载数据集（官方推荐方式，会自动下载数据）
-    print(f'Loading dataset using MsDataset.load()...')
-    dataset = MsDataset.load(repo_id)
-    print(f'Dataset {repo_id} loaded successfully')
-    
-    # 验证数据集是否可用（尝试访问第一条数据）
-    try:
-        if len(dataset) > 0:
-            sample = dataset[0]
-            print(f'Dataset verification: Sample data available (total {len(dataset)} items)')
-        else:
-            print(f'Dataset verification: Dataset is empty')
-    except Exception as e:
-        print(f'Warning: Could not access sample data: {e}')
-        print(f'Dataset may still be downloading or processing...')
-    
     # 如果需要下载文件到指定目录，使用 snapshot_download
-    if save_dir and save_dir != '/data/datasets':
+    if save_dir:
         print(f'Downloading dataset files to {save_dir}...')
         snapshot_download(
             model_id=repo_id,
             cache_dir=save_dir,
-            revision=revision if revision else 'master'
+            revision=revision if revision else 'master',
+            repo_type='dataset'
         )
         print(f'Dataset files downloaded successfully to {save_dir}')
     
