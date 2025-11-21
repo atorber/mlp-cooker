@@ -18,6 +18,7 @@ import {
   Form,
   Input,
   Empty,
+  Tooltip,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { request, history } from '@umijs/max';
@@ -320,15 +321,48 @@ const Application: React.FC = () => {
                   ) : null
                 }
                 actions={
-                  (app.actions || []).map((action) => (
-                    <Button
-                      key={action.type}
-                      type="link"
-                      onClick={() => handleAction(app, action.type, { templateKey: action.templateKey })}
-                    >
-                      {action.label}
-                    </Button>
-                  ))
+                  (app.actions || []).map((action) => {
+                    // Find the template for this action
+                    const templateKey = action.templateKey || action.type;
+                    const template = app.templates?.[templateKey] || app.template;
+                    const accelerators = template?.accelerators;
+                    const acceleratorInfo = accelerators && Object.entries(accelerators);
+                    const hasAccelerators = acceleratorInfo && acceleratorInfo.length > 0;
+
+                    return (
+                      <div key={action.type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', padding: '2px 0' }}>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => handleAction(app, action.type, { templateKey: action.templateKey })}
+                          style={{ padding: 0, height: '20px', lineHeight: '20px' }}
+                        >
+                          {action.label}
+                        </Button>
+                        {hasAccelerators && (
+                          <Tooltip title={
+                            <div style={{ fontSize: '12px' }}>
+                              {acceleratorInfo.map(([accType, count]) => (
+                                <div key={accType}>{accType}: {count}</div>
+                              ))}
+                            </div>
+                          }>
+                            <div style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.45)', lineHeight: '14px', cursor: 'help' }}>
+                              {acceleratorInfo.map(([accType, count], index) => {
+                                const name = accType.split('/').pop();
+                                return (
+                                  <span key={accType}>
+                                    {index > 0 && ', '}
+                                    {name}{count > 0 ? `*${count}` : ''}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </Tooltip>
+                        )}
+                      </div>
+                    );
+                  })
                 }
               >
                 <Card.Meta
@@ -367,50 +401,7 @@ const Application: React.FC = () => {
                     </Space>
                   </div>
                 )}
-                {/* 显示加速卡信息 */}
-                {(() => {
-                  // 收集所有模板的加速卡信息
-                  const allAccelerators: { [key: string]: number } = {};
-                  if (app.templates) {
-                    Object.values(app.templates).forEach((template: any) => {
-                      if (template.accelerators) {
-                        Object.entries(template.accelerators).forEach((entry) => {
-                          const [accType, count] = entry as [string, number];
-                          // 合并相同型号的加速卡，取最大值
-                          if (!allAccelerators[accType] || allAccelerators[accType] < count) {
-                            allAccelerators[accType] = count;
-                          }
-                        });
-                      }
-                    });
-                  } else if (app.template?.accelerators) {
-                    Object.assign(allAccelerators, app.template.accelerators);
-                  }
 
-                  if (Object.keys(allAccelerators).length > 0) {
-                    return (
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
-                        <div style={{ fontSize: '12px', color: '#666', marginBottom: 4 }}>支持的加速卡</div>
-                        <Space wrap size={[4, 4]}>
-                          {Object.entries(allAccelerators).map(([accType, count]: [string, number]) => (
-                            <Tag key={accType} color="blue">
-                              {accType.replace('baidu.com/', '')}*{count}
-                            </Tag>
-                          ))}
-                        </Space>
-                      </div>
-                    );
-                  }
-                  if (Object.keys(allAccelerators).length === 0) {
-                    return (
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f0f0f0' }}>
-                        <div style={{ fontSize: '12px', color: '#666', marginBottom: 4 }}>支持加速卡</div>
-                        <Tag color="green">不需要加速卡</Tag>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
               </Card>
             </Col>
           ))}

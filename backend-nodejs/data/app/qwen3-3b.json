@@ -9,7 +9,7 @@
     "train": {
       "command": "python train.py",
       "accelerators": {
-        "baidu.com/a800_80g_cgpu": 8
+        "baidu.com/a800": 8
       },
       "taskParams": {
         "name": "qwen3-3b-training",
@@ -26,7 +26,7 @@
     },
     "deploy": {
       "accelerators": {
-        "baidu.com/h20_141g_cgpu": 1
+        "baidu.com/h20": 1
       },
       "taskParams": {
         "name": "qwen3-3b-service",
