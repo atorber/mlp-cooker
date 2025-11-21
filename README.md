@@ -1,4 +1,4 @@
-# 机器学习平台管理系统 (MLP Cooker)
+# MLP Cooker
 
 基于 Node.js + TypeScript + React 的现代化机器学习平台管理系统，提供完整的 AIHC 平台资源管理功能，支持部署、训练、任务、数据集、模型等全生命周期管理。
 
