@@ -1,0 +1,20 @@
+{
+  "name": "HuggingFace 数据集下载",
+  "description": "从 Hugging Face 下载数据集到存储卷",
+  "type": "batch-job",
+  "categoryType": "task",
+  "category": "数据处理",
+  "tags": [
+    "HuggingFace",
+    "Dataset",
+    "Download"
+  ],
+  "actions": [
+    {
+      "type": "create-job",
+      "label": "创建任务",
+      "description": "创建数据集下载任务",
+      "templateKey": "create-job"
+    }
+  ]
+}

@@ -19,6 +19,7 @@ import {
   Input,
   Empty,
   Tooltip,
+  Radio,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { request, history } from '@umijs/max';
@@ -76,6 +77,8 @@ const Application: React.FC = () => {
   const [actionModalVisible, setActionModalVisible] = useState(false);
   const [actionType, setActionType] = useState<'deploy' | 'train' | 'create-job' | null>(null);
   const [actionForm] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   // 获取应用模板列表
   const fetchApps = async () => {
@@ -284,6 +287,25 @@ const Application: React.FC = () => {
     setDrawerVisible(true);
   };
 
+  // 过滤应用
+  const filteredApps = apps.filter((app) => {
+    const matchesSearch =
+      app.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      (app.description?.toLowerCase().includes(searchText.toLowerCase()));
+
+    let appCategory = 'task';
+    if (app.categoryType) {
+      appCategory = app.categoryType;
+    } else {
+      if (app.type === 'training') appCategory = 'model';
+      else appCategory = 'task';
+    }
+
+    const matchesCategory = categoryFilter === 'all' || appCategory === categoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <PageContainer
       title="应用模板"
@@ -299,14 +321,35 @@ const Application: React.FC = () => {
           </Button>
         </Space>
       }
+      content={
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+          <Radio.Group
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            buttonStyle="solid"
+          >
+            <Radio.Button value="all">全部</Radio.Button>
+            <Radio.Button value="model">模型</Radio.Button>
+            <Radio.Button value="task">任务</Radio.Button>
+            <Radio.Button value="tool">工具</Radio.Button>
+          </Radio.Group>
+          <Input.Search
+            placeholder="搜索应用名称或描述"
+            allowClear
+            onSearch={(value) => setSearchText(value)}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 300 }}
+          />
+        </div>
+      }
     >
-      {apps.length === 0 && !loading ? (
+      {filteredApps.length === 0 && !loading ? (
         <Card>
           <Empty description="暂无应用模板" />
         </Card>
       ) : (
         <Row gutter={[16, 16]}>
-          {apps.map((app) => (
+          {filteredApps.map((app) => (
             <Col xs={24} sm={12} md={8} lg={6} key={app.id}>
               <Card
                 hoverable
@@ -330,7 +373,7 @@ const Application: React.FC = () => {
                     const hasAccelerators = acceleratorInfo && acceleratorInfo.length > 0;
 
                     return (
-                      <div key={action.type} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', padding: '2px 0' }}>
+                      <div key={action.type} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '2px 0' }}>
                         <Button
                           type="link"
                           size="small"
@@ -347,14 +390,13 @@ const Application: React.FC = () => {
                               ))}
                             </div>
                           }>
-                            <div style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.45)', lineHeight: '14px', cursor: 'help' }}>
-                              {acceleratorInfo.map(([accType, count], index) => {
+                            <div style={{ display: 'flex', flexDirection: 'column', marginLeft: 6, fontSize: '10px', color: '#fa8c16', lineHeight: '12px', cursor: 'help', textAlign: 'left' }}>
+                              {acceleratorInfo.map(([accType, count]) => {
                                 const name = accType.split('/').pop();
                                 return (
-                                  <span key={accType}>
-                                    {index > 0 && ', '}
+                                  <div key={accType}>
                                     {name}{count > 0 ? `*${count}` : ''}
-                                  </span>
+                                  </div>
                                 );
                               })}
                             </div>

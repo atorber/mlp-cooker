@@ -1,0 +1,16 @@
+{
+  "taskParams": {
+    "name": "example-task",
+    "jobType": "PyTorchJob",
+    "command": "python task.py",
+    "jobSpec": {
+      "replicas": 1,
+      "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+      "resources": [],
+      "envs": [],
+      "enableRDMA": false
+    },
+    "description": "示例任务"
+  }
+}
+

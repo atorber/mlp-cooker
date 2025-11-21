@@ -76,7 +76,13 @@ export default [
     component: './PresetImageDetail',
     hideInMenu: true,
   },
-    {
+  {
+    name: 'resource',
+    icon: 'database',
+    path: '/resource',
+    component: './Resource',
+  },
+  {
     name: 'settings',
     icon: 'setting',
     path: '/settings',

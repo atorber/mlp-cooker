@@ -6,6 +6,7 @@ import { ModelController } from '@/controllers/model.controller';
 import { ServiceController } from '@/controllers/service.controller';
 import { JobController } from '@/controllers/job.controller';
 import { AppController } from '@/controllers/app.controller';
+import { ResourceController } from '@/controllers/resource.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -150,5 +151,20 @@ router.get('/api/apps', authMiddleware, AppController.list);
 
 // 查询应用模板详情
 router.get('/api/apps/:appId', authMiddleware, AppController.get);
+
+/**
+ * 计算资源相关路由
+ */
+// 查询队列列表
+router.get('/api/resources/queues', authMiddleware, ResourceController.listQueues);
+
+// 查询队列详情
+router.get('/api/resources/queues/:queueId', authMiddleware, ResourceController.getQueue);
+
+// 查询资源池列表
+router.get('/api/resources/pools', authMiddleware, ResourceController.listResourcePools);
+
+// 查询资源池详情
+router.get('/api/resources/pools/:resourcePoolId', authMiddleware, ResourceController.getResourcePool);
 
 export default router;

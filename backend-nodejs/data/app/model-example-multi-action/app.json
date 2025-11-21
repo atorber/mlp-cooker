@@ -1,0 +1,22 @@
+{
+  "name": "多操作示例模型",
+  "description": "这是一个支持多种操作的模型模板示例，可以同时支持部署和训练",
+  "type": "deployment",
+  "categoryType": "model",
+  "category": "模型",
+  "tags": ["部署", "训练", "示例"],
+  "actions": [
+    {
+      "type": "deploy",
+      "label": "部署推理服务",
+      "description": "部署推理在线服务",
+      "templateKey": "deploy"
+    },
+    {
+      "type": "train",
+      "label": "创建训练任务",
+      "description": "创建训练任务",
+      "templateKey": "train"
+    }
+  ]
+}

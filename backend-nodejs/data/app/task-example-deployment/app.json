@@ -1,0 +1,16 @@
+{
+  "name": "示例任务模板",
+  "description": "这是一个示例任务模板，用于快速创建任务",
+  "type": "deployment",
+  "categoryType": "task",
+  "category": "任务",
+  "tags": ["任务", "示例"],
+  "actions": [
+    {
+      "type": "create-job",
+      "label": "创建任务",
+      "description": "创建一次任务",
+      "templateKey": "create-job"
+    }
+  ]
+}

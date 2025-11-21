@@ -1,0 +1,16 @@
+{
+  "accelerators": {
+    "baidu.com/a800": 8,
+    "baidu.com/h20": 1
+  },
+  "taskParams": {
+    "name": "multi-action-service",
+    "replicas": 1,
+    "description": "多操作示例服务",
+    "resourceSpec": {
+      "acceleratorCount": 1,
+      "acceleratorType": "baidu.com/h20_141g_cgpu"
+    }
+  }
+}
+

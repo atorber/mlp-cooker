@@ -1,0 +1,17 @@
+{
+  "accelerators": {
+    "baidu.com/h20": 1
+  },
+  "taskParams": {
+    "name": "qwen3-3b-service",
+    "replicas": 1,
+    "description": "Qwen3-3B服务",
+    "resourceSpec": {
+      "cpus": 2,
+      "memory": 4,
+      "acceleratorCount": 1,
+      "acceleratorType": "baidu.com/h20_141g_cgpu"
+    }
+  }
+}
+

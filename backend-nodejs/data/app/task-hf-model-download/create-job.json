@@ -1,0 +1,22 @@
+{
+  "taskParams": {
+    "name": "hf-model-download",
+    "jobType": "PyTorchJob",
+    "command": "",
+    "jobSpec": {
+      "replicas": 1,
+      "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+      "resources": [],
+      "envs": [
+        {
+          "name": "HF_ENDPOINT",
+          "value": "https://hf-mirror.com"
+        }
+      ],
+      "enableRDMA": false
+    },
+    "model_name": "Qwen/Qwen2.5-7B-Instruct",
+    "save_path": "/mnt/pvc/models/Qwen2.5-7B-Instruct"
+  }
+}
+

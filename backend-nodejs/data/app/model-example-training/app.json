@@ -1,0 +1,16 @@
+{
+  "name": "示例训练任务",
+  "description": "这是一个示例训练任务模板，用于快速创建训练任务",
+  "type": "training",
+  "categoryType": "model",
+  "category": "模型训练",
+  "tags": ["训练", "PyTorch", "示例"],
+  "actions": [
+    {
+      "type": "train",
+      "label": "创建训练任务",
+      "description": "创建训练任务",
+      "templateKey": "train"
+    }
+  ]
+}

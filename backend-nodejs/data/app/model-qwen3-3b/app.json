@@ -1,0 +1,22 @@
+{
+  "name": "Qwen3-3B",
+  "description": "Qwen3-3B模型",
+  "type": "training",
+  "categoryType": "model",
+  "category": "模型训练",
+  "tags": ["训练", "PyTorch", "Qwen3-3B"],
+  "actions": [
+    {
+      "type": "deploy",
+      "label": "部署推理服务",
+      "description": "部署服务",
+      "templateKey": "deploy"
+    },
+    {
+      "type": "train",
+      "label": "创建训练任务",
+      "description": "创建训练任务",
+      "templateKey": "train"
+    }
+  ]
+}

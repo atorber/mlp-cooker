@@ -1,0 +1,13 @@
+{
+  "command": "python tool.py",
+  "taskParams": {
+    "name": "example-tool-service",
+    "replicas": 1,
+    "description": "示例工具服务",
+    "resourceSpec": {
+      "acceleratorCount": 1,
+      "acceleratorType": "baidu.com/h20_141g_cgpu"
+    }
+  }
+}
+

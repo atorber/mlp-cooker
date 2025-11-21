@@ -1,0 +1,16 @@
+{
+  "command": "python train.py",
+  "taskParams": {
+    "name": "multi-action-training",
+    "jobType": "PyTorchJob",
+    "command": "python train.py",
+    "jobSpec": {
+      "replicas": 1,
+      "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+      "resources": [],
+      "envs": [],
+      "enableRDMA": false
+    }
+  }
+}
+

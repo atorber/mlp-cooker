@@ -1,0 +1,29 @@
+{
+  "command": "sleep 1d",
+  "accelerators": {
+    "baidu.com/a800": 8,
+    "baidu.com/h20": 1
+  },
+  "taskParams": {
+    "name": "example-training-job",
+    "jobType": "PyTorchJob",
+    "command": "sleep 1d",
+    "jobSpec": {
+      "replicas": 1,
+      "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
+      "resources": [],
+      "envs": [
+        {
+          "name": "NCCL_DEBUG",
+          "value": "DEBUG"
+        },
+        {
+          "name": "NCCL_IB_DISABLE",
+          "value": "0"
+        }
+      ],
+      "enableRDMA": true
+    }
+  }
+}
+

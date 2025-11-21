@@ -57,5 +57,6 @@ export default {
   'menu.model': 'Model',
   'menu.preset-image': 'Image',
   'menu.preset-image-detail': 'Image Detail',
+  'menu.resource': 'Resource',
   'menu.settings': 'Settings',
 };
