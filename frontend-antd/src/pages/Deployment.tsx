@@ -56,7 +56,7 @@ interface Service {
 
 const Deployment: React.FC = () => {
   const { message: messageApi } = App.useApp();
-  const proTableRef = useRef<ActionType>();
+  const proTableRef = useRef<ActionType>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
@@ -64,7 +64,7 @@ const Deployment: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
 
   // 获取服务状态（批量）
-  const fetchServicesStatus = async (services: Service[]): Promise<void> => {
+  const fetchServicesStatus = async (services: Service[]): Promise<Service[]> => {
     try {
       // 并发获取所有服务的状态
       const statusPromises = services.map(async (service) => {
@@ -112,14 +112,29 @@ const Deployment: React.FC = () => {
   // 获取服务列表
   const fetchServices = async (params: any) => {
     try {
+      // 构建查询参数
+      const queryParams: any = {
+        pageNumber: params.current || 1,
+        pageSize: params.pageSize || 10,
+        orderBy: params.orderBy || 'createdAt',
+        order: params.order || 'desc',
+      };
+
+      // 添加搜索参数
+      if (params.serviceId) {
+        queryParams.serviceId = params.serviceId;
+      }
+      if (params.name) {
+        queryParams.serviceName = params.name;
+      }
+      // 如果提供了keyword，也传递给后端（后端会同时搜索ID和名称）
+      if (params.keyword) {
+        queryParams.keyword = params.keyword;
+      }
+
       const response = await request('/api/services', {
         method: 'GET',
-        params: {
-          pageNumber: params.current || 1,
-          pageSize: params.pageSize || 10,
-          orderBy: params.orderBy || 'createdAt',
-          order: params.order || 'desc',
-        },
+        params: queryParams,
       });
 
       if (response.success) {
@@ -321,14 +336,14 @@ const Deployment: React.FC = () => {
       render: (text, record) => {
         // status 可能是数字（1=部署中, 2=运行中, 3=未运行, 4=异常）或字符串
         let statusValue: any = text || record.status;
-        
+
         // 如果状态是对象，尝试提取
         if (statusValue && typeof statusValue === 'object') {
           statusValue = record.status || statusValue.text || statusValue.value || statusValue.name || null;
         }
-        
+
         if (!statusValue && statusValue !== 0) return '-';
-        
+
         // 状态值映射：1=部署中, 2=运行中, 3=未运行, 4=异常
         const statusNum = typeof statusValue === 'number' ? statusValue : parseInt(String(statusValue), 10);
         const statusTextMap: Record<number, string> = {
@@ -337,7 +352,7 @@ const Deployment: React.FC = () => {
           3: '未运行',
           4: '异常',
         };
-        
+
         const displayText = record.statusText || statusTextMap[statusNum] || String(statusValue);
         const statusColorMap: Record<number, string> = {
           1: 'processing', // 部署中 - 蓝色
@@ -345,7 +360,7 @@ const Deployment: React.FC = () => {
           3: 'default',    // 未运行 - 灰色
           4: 'error',      // 异常 - 红色
         };
-        
+
         const color = statusColorMap[statusNum] || 'default';
         return <Tag color={color}>{displayText}</Tag>;
       },
@@ -358,7 +373,7 @@ const Deployment: React.FC = () => {
       ellipsis: true,
       render: (text, record) => {
         // 优先显示资源池名称，其次显示资源池ID
-        return record.resourcePoolName || text || '-';
+        return text || '-';
       },
       hideInSearch: true,
     },
@@ -408,7 +423,7 @@ const Deployment: React.FC = () => {
         try {
           // 如果是Unix时间戳（秒级），需要乘以1000转换为毫秒
           // 如果是字符串，直接解析
-          const timestamp = typeof text === 'number' ? text * 1000 : text;
+          const timestamp = typeof text === 'number' ? text * 1000 : (typeof text === 'string' ? text : String(text));
           const date = new Date(timestamp);
           if (isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
@@ -428,7 +443,7 @@ const Deployment: React.FC = () => {
         try {
           // 如果是Unix时间戳（秒级），需要乘以1000转换为毫秒
           // 如果是字符串，直接解析
-          const timestamp = typeof text === 'number' ? text * 1000 : text;
+          const timestamp = typeof text === 'number' ? text * 1000 : (typeof text === 'string' ? text : String(text));
           const date = new Date(timestamp);
           if (isNaN(date.getTime())) return '-';
           return date.toLocaleString('zh-CN');
@@ -596,7 +611,7 @@ const Deployment: React.FC = () => {
               ) : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="资源池">
-              {selectedService.resourcePoolName || selectedService.resourcePoolId || '-'}
+              {selectedService.resourcePoolId || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="队列名称">
               {selectedService.queueName || '-'}
@@ -612,17 +627,17 @@ const Deployment: React.FC = () => {
             </Descriptions.Item>
             {selectedService.endpoints && (
               <Descriptions.Item label="访问端点">
-                {typeof selectedService.endpoints === 'string' 
-                  ? selectedService.endpoints 
+                {typeof selectedService.endpoints === 'string'
+                  ? selectedService.endpoints
                   : JSON.stringify(selectedService.endpoints, null, 2)}
               </Descriptions.Item>
             )}
             <Descriptions.Item label="创建时间">
-              {selectedService.createdAt 
+              {selectedService.createdAt
                 ? (() => {
                     try {
-                      const timestamp = typeof selectedService.createdAt === 'number' 
-                        ? selectedService.createdAt * 1000 
+                      const timestamp = typeof selectedService.createdAt === 'number'
+                        ? selectedService.createdAt * 1000
                         : selectedService.createdAt;
                       const date = new Date(timestamp);
                       return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
@@ -633,11 +648,11 @@ const Deployment: React.FC = () => {
                 : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="更新时间">
-              {selectedService.updatedAt 
+              {selectedService.updatedAt
                 ? (() => {
                     try {
-                      const timestamp = typeof selectedService.updatedAt === 'number' 
-                        ? selectedService.updatedAt * 1000 
+                      const timestamp = typeof selectedService.updatedAt === 'number'
+                        ? selectedService.updatedAt * 1000
                         : selectedService.updatedAt;
                       const date = new Date(timestamp);
                       return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
@@ -649,9 +664,9 @@ const Deployment: React.FC = () => {
             </Descriptions.Item>
             {selectedService.config && (
               <Descriptions.Item label="配置信息">
-                <pre style={{ 
-                  background: '#f5f5f5', 
-                  padding: '12px', 
+                <pre style={{
+                  background: '#f5f5f5',
+                  padding: '12px',
                   borderRadius: '4px',
                   maxHeight: '300px',
                   overflow: 'auto',

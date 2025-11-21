@@ -33,7 +33,7 @@ export class ServiceController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { pageNumber = 1, pageSize = 1000, orderBy, order } = req.query;
+      const { pageNumber = 1, pageSize = 1000, orderBy, order, serviceId, serviceName, keyword } = req.query;
       
       const sdk = ServiceController.getServiceSDK();
       const result = await sdk.describeServices({
@@ -43,7 +43,61 @@ export class ServiceController {
         order: order as string,
       });
 
-      ResponseUtils.success(res, result);
+      // 处理不同的响应数据格式，提取服务列表
+      let services: any[] = [];
+      if (Array.isArray(result)) {
+        services = result;
+      } else if (result.services && Array.isArray(result.services)) {
+        services = result.services;
+      } else if (result.data && Array.isArray(result.data)) {
+        services = result.data;
+      }
+
+      // 从配置文件获取队列ID，用于过滤服务
+      const yamlConfig = YamlConfigManager.getInstance();
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
+      const configQueueId = mlResourceConfig.queueId;
+
+      // 第一步：如果配置了队列ID，则过滤服务列表
+      if (configQueueId) {
+        services = services.filter((service: any) => {
+          const serviceQueueName = service.queueName || service.queue || '';
+          return serviceQueueName === configQueueId;
+        });
+      }
+
+      // 第二步：如果提供了搜索参数，进行模糊搜索过滤
+      const searchServiceId = (serviceId as string) || keyword as string;
+      const searchServiceName = (serviceName as string) || keyword as string;
+
+      if (searchServiceId || searchServiceName) {
+        const searchKeyword = (searchServiceId || searchServiceName || '').toLowerCase().trim();
+        
+        if (searchKeyword) {
+          services = services.filter((service: any) => {
+            const serviceId = (service.id || service.serviceId || '').toLowerCase();
+            const serviceName = (service.name || '').toLowerCase();
+            
+            // 支持按服务ID或服务名称模糊匹配
+            return serviceId.includes(searchKeyword) || serviceName.includes(searchKeyword);
+          });
+        }
+      }
+
+      // 更新结果中的服务列表和总数
+      if (Array.isArray(result)) {
+        // 如果结果是数组，直接返回过滤后的数组
+        ResponseUtils.success(res, services);
+      } else {
+        // 如果结果是对象，更新其中的服务列表和总数
+        const filteredResult = {
+          ...result,
+          services: services,
+          totalCount: services.length,
+          total: services.length,
+        };
+        ResponseUtils.success(res, filteredResult);
+      }
     } catch (error) {
       console.error('查询服务列表失败:', error);
       ResponseUtils.error(res, '查询服务列表失败', {

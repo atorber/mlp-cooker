@@ -20,6 +20,7 @@ import {
   Popconfirm,
   Space,
   Tag,
+  Tabs,
   message,
 } from 'antd';
 import React, { useRef, useState } from 'react';
@@ -45,12 +46,13 @@ interface Dataset {
 
 const Dataset: React.FC = () => {
   const { message: messageApi } = App.useApp();
-  const proTableRef = useRef<ActionType>();
+  const proTableRef = useRef<ActionType>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
+  const [activeStorageType, setActiveStorageType] = useState<string>('BOS'); // 当前选择的存储类型：BOS 或 PFS
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -61,7 +63,7 @@ const Dataset: React.FC = () => {
           pageNumber: params.current || 1,
           pageSize: params.pageSize || 10,
           keyword: params.keyword,
-          storageType: params.storageType,
+          storageType: activeStorageType, // 使用当前选择的存储类型
           storageInstances: params.storageInstances,
           importFormat: params.importFormat,
         },
@@ -196,6 +198,7 @@ const Dataset: React.FC = () => {
       dataIndex: 'storageType',
       key: 'storageType',
       width: 120,
+      hideInSearch: true, // 隐藏搜索，使用Tab来过滤
       render: (text) => (text ? <Tag>{text}</Tag> : '-'),
     },
     {
@@ -264,6 +267,13 @@ const Dataset: React.FC = () => {
     },
   ];
 
+  // 处理存储类型Tab切换
+  const handleStorageTypeChange = (storageType: string) => {
+    setActiveStorageType(storageType);
+    // 切换Tab时重新加载数据
+    proTableRef.current?.reload();
+  };
+
   return (
     <PageContainer
       title="数据集列表"
@@ -286,24 +296,41 @@ const Dataset: React.FC = () => {
         </Space>
       }
     >
-      <ProTable<Dataset>
-        columns={columns}
-        actionRef={proTableRef}
-        request={fetchDatasets}
-        rowKey={(record) => record.datasetId || record.id || ''}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-        }}
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }}
-        dateFormatter="string"
-        headerTitle="数据集列表"
-        toolBarRender={() => []}
-      />
+      <Card>
+        <Tabs
+          activeKey={activeStorageType}
+          onChange={handleStorageTypeChange}
+          items={[
+            {
+              key: 'BOS',
+              label: 'BOS存储',
+            },
+            {
+              key: 'PFS',
+              label: 'PFS存储',
+            },
+          ]}
+          style={{ marginBottom: 16 }}
+        />
+        <ProTable<Dataset>
+          columns={columns}
+          actionRef={proTableRef}
+          request={fetchDatasets}
+          rowKey={(record) => record.datasetId || record.id || ''}
+          search={{
+            labelWidth: 'auto',
+            defaultCollapsed: false,
+          }}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+          dateFormatter="string"
+          headerTitle="数据集列表"
+          toolBarRender={() => []}
+        />
+      </Card>
 
       {/* 创建数据集模态框 */}
       <Modal

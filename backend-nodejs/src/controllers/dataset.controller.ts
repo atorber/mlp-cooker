@@ -15,26 +15,14 @@ export class DatasetController {
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
-    let baseURL = mlResourceConfig.baseURL;
-    if (!baseURL) {
-      const datasetConfig = yamlConfig.getDatasetConfig();
-      baseURL = datasetConfig.hostGray || datasetConfig.hostProduction?.bj || AIHC_DEFAULT_BASE_URL;
-    }
-    
-    // 确保 baseURL 有协议前缀（如果缺少协议，自动添加 http://）
-    if (baseURL && !baseURL.match(/^https?:\/\//)) {
-      baseURL = `http://${baseURL}`;
-    }
-    
-    // 使用机器学习平台资源配置创建SDK实例，如果配置为空则回退到数据集任务配置
-    const jobConfig = yamlConfig.getDatasetJobConfig();
+    const baseURL = mlResourceConfig.baseURL;
     return new AihcSDK({
-      accessKey: (mlResourceConfig.ak || jobConfig.ak) as string,
-      secretKey: (mlResourceConfig.sk || jobConfig.sk) as string,
+      accessKey: mlResourceConfig.ak,
+      secretKey: mlResourceConfig.sk,
       baseURL: baseURL,
-      defaultResourcePoolId: (mlResourceConfig.poolId || jobConfig.poolId) as string,
-      defaultQueue: (mlResourceConfig.queueId || jobConfig.queueId) as string,
-      defaultPfsInstanceId: (mlResourceConfig.pfsInstanceId || jobConfig.pfs) as string,
+      defaultResourcePoolId: mlResourceConfig.poolId,
+      defaultQueue: mlResourceConfig.queueId,
+      defaultPfsInstanceId: mlResourceConfig.pfsInstanceId,
     });
   }
 
@@ -43,15 +31,17 @@ export class DatasetController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { pageNumber = 1, pageSize = 10, keyword, storageType, storageInstances, importFormat } = req.query;
+      const { pageNumber = 1, pageSize = 10, keyword, storageType, importFormat } = req.query;
       
       const sdk = DatasetController.getDatasetSDK();
+      const yamlConfig = YamlConfigManager.getInstance();
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
       const result = await sdk.describeDatasets({
         pageNumber: Number(pageNumber),
         pageSize: Number(pageSize),
         keyword: keyword as string,
         storageType: storageType as string,
-        storageInstances: storageInstances as string,
+        storageInstances: `${mlResourceConfig.pfsInstanceId},${mlResourceConfig.bucket}`,
         importFormat: importFormat as string,
       });
 
