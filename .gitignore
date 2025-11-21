@@ -130,7 +130,7 @@ temp/
 tmp/
 *.tmp
 *.temp
-frontend/node_modules/**/*
+frontend/node_modules/*
 config.yaml
 # .doc/*
 .env.backup
