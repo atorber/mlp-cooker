@@ -57,6 +57,7 @@ const Training: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
+  const [envVariables, setEnvVariables] = useState<Array<{ name: string; value: string; placeholder?: string }>>([]);
 
   // 获取训练任务列表
   const fetchJobs = async (params: any) => {
@@ -142,6 +143,70 @@ const Training: React.FC = () => {
     }
   };
 
+  // 提取所有 envs 变量（无论是否有值）
+  const extractEnvVariables = (taskParams: any): Array<{ name: string; value: string; placeholder?: string }> => {
+    const envVars: Array<{ name: string; value: string; placeholder?: string }> = [];
+    
+    if (!taskParams || typeof taskParams !== 'object') {
+      return envVars;
+    }
+
+    // 检查 jobSpec.envs
+    const envs = taskParams.jobSpec?.envs || taskParams.envs || [];
+    if (Array.isArray(envs)) {
+      envs.forEach((env: any) => {
+        if (env && typeof env === 'object' && env.name) {
+          const value = env.value || '';
+          envVars.push({
+            name: env.name,
+            value: value,
+            placeholder: `请输入 ${env.name} 的值`,
+          });
+        }
+      });
+    }
+
+    return envVars;
+  };
+
+  // 更新 taskParams 中的 envs 值（双向联动）
+  const updateEnvInTaskParams = (taskParams: any, envName: string, envValue: string): any => {
+    if (!taskParams || typeof taskParams !== 'object') {
+      return taskParams;
+    }
+
+    // 深拷贝避免修改原对象
+    const result = JSON.parse(JSON.stringify(taskParams));
+
+    // 更新 jobSpec.envs
+    if (result.jobSpec?.envs && Array.isArray(result.jobSpec.envs)) {
+      result.jobSpec.envs = result.jobSpec.envs.map((env: any) => {
+        if (env && typeof env === 'object' && env.name === envName) {
+          return {
+            ...env,
+            value: envValue,
+          };
+        }
+        return env;
+      });
+    }
+
+    // 更新根级别的 envs
+    if (result.envs && Array.isArray(result.envs)) {
+      result.envs = result.envs.map((env: any) => {
+        if (env && typeof env === 'object' && env.name === envName) {
+          return {
+            ...env,
+            value: envValue,
+          };
+        }
+        return env;
+      });
+    }
+
+    return result;
+  };
+
   // 创建训练任务
   const handleCreate = async (values: any) => {
     try {
@@ -165,6 +230,8 @@ const Training: React.FC = () => {
       if (values.command?.trim()) {
         taskParams.command = values.command.trim();
       }
+
+      // envs 值已经在表单 onValuesChange 中实时更新到 taskParams 了，这里不需要再次处理
 
       // 发送请求，只传递 taskParams 字段
       // 后端会自动从配置文件读取 resourcePoolId 和 queueID
@@ -489,14 +556,125 @@ const Training: React.FC = () => {
         onCancel={() => {
           setCreateModalVisible(false);
           createForm.resetFields();
+          setEnvVariables([]);
         }}
         onOk={() => createForm.submit()}
         width={900}
+        afterOpenChange={(open) => {
+          // 当模态框打开时，从初始的 taskParams 中提取 envs 并初始化输入框
+          if (open) {
+            const initialTaskParams = createForm.getFieldValue('taskParams');
+            if (initialTaskParams) {
+              try {
+                let taskParams: any;
+                if (typeof initialTaskParams === 'string') {
+                  taskParams = JSON.parse(initialTaskParams);
+                } else if (typeof initialTaskParams === 'object') {
+                  taskParams = initialTaskParams;
+                } else {
+                  return;
+                }
+                
+                const envVars = extractEnvVariables(taskParams);
+                setEnvVariables(envVars);
+                
+                // 从 taskParams 中提取 env 的值，初始化环境变量输入框
+                const envInitialValues: Record<string, string> = {};
+                envVars.forEach((envVar) => {
+                  envInitialValues[`env_${envVar.name}`] = envVar.value || '';
+                });
+                
+                if (Object.keys(envInitialValues).length > 0) {
+                  createForm.setFieldsValue(envInitialValues);
+                }
+              } catch (_e) {
+                // 忽略错误
+              }
+            }
+          } else {
+            // 关闭时清空状态
+            setEnvVariables([]);
+          }
+        }}
       >
         <Form
           form={createForm}
           layout="vertical"
           onFinish={handleCreate}
+          onValuesChange={(changedValues, allValues) => {
+            // 当 taskParams 改变时，提取 envs 变量并更新环境变量输入框（双向联动）
+            if (changedValues.taskParams !== undefined) {
+              try {
+                let taskParams: any;
+                if (typeof changedValues.taskParams === 'string') {
+                  taskParams = JSON.parse(changedValues.taskParams);
+                } else if (typeof changedValues.taskParams === 'object') {
+                  taskParams = changedValues.taskParams;
+                } else {
+                  return;
+                }
+                
+                const envVars = extractEnvVariables(taskParams);
+                setEnvVariables(envVars);
+                
+                // 从 taskParams 中提取 env 的值，更新所有环境变量输入框
+                const envValues: Record<string, string> = {};
+                envVars.forEach((envVar) => {
+                  envValues[`env_${envVar.name}`] = envVar.value || '';
+                });
+                
+                // 批量更新环境变量输入框的值（避免触发循环更新）
+                if (Object.keys(envValues).length > 0) {
+                  // 使用 setTimeout 避免在 onValuesChange 中直接 setFieldsValue 导致的循环更新
+                  setTimeout(() => {
+                    createForm.setFieldsValue(envValues);
+                  }, 0);
+                }
+              } catch (_e) {
+                // JSON 解析失败时，清空 env 变量列表
+                setEnvVariables([]);
+              }
+            }
+            
+            // 当 env 输入框改变时，实时更新 taskParams 中的值（双向联动）
+            Object.keys(changedValues).forEach((key) => {
+              if (key.startsWith('env_')) {
+                const envName = key.replace('env_', '');
+                const envValue = changedValues[key] ?? '';
+                
+                try {
+                  const currentTaskParams = allValues.taskParams;
+                  let taskParams: any;
+                  if (typeof currentTaskParams === 'string') {
+                    taskParams = JSON.parse(currentTaskParams);
+                  } else if (typeof currentTaskParams === 'object') {
+                    taskParams = currentTaskParams;
+                  } else {
+                    return;
+                  }
+                  
+                  // 更新 taskParams 中的 envs 值
+                  const updatedTaskParams = updateEnvInTaskParams(taskParams, envName, envValue);
+                  
+                  // 更新表单中的 taskParams 字段（避免触发循环更新）
+                  setTimeout(() => {
+                    createForm.setFieldsValue({
+                      taskParams: JSON.stringify(updatedTaskParams, null, 2),
+                    });
+                  }, 0);
+                  
+                  // 更新 envVariables 状态
+                  setEnvVariables((prev) =>
+                    prev.map((envVar) =>
+                      envVar.name === envName ? { ...envVar, value: envValue } : envVar
+                    )
+                  );
+                } catch (_e) {
+                  // 忽略错误
+                }
+              }
+            });
+          }}
         >
           <Form.Item
             name="command"
@@ -508,6 +686,25 @@ const Training: React.FC = () => {
               placeholder="请输入启动命令，例如：sleep 1d 或 python train.py"
             />
           </Form.Item>
+          {envVariables.length > 0 && (
+            <Form.Item
+              label="环境变量"
+              tooltip="以下环境变量可以修改，修改后会实时同步到任务参数的 envs 中"
+            >
+              {envVariables.map((envVar) => (
+                <Form.Item
+                  key={envVar.name}
+                  name={`env_${envVar.name}`}
+                  label={envVar.name}
+                  style={{ marginBottom: 16 }}
+                >
+                  <Input
+                    placeholder={envVar.placeholder || `请输入 ${envVar.name} 的值`}
+                  />
+                </Form.Item>
+              ))}
+            </Form.Item>
+          )}
           <Form.Item
             name="taskParams"
             label="任务参数（JSON格式）"
@@ -546,13 +743,18 @@ const Training: React.FC = () => {
       {
         "name": "NCCL_DEBUG",
         "value": "DEBUG"
+      },
+      {
+        "name": "DATASET_URL",
+        "value": ""
       }
     ],
     "enableRDMA": true
   }
 }
 
-注意：如果上面填写了启动命令，任务参数中的 command 字段将被启动命令替换`}
+注意：如果上面填写了启动命令，任务参数中的 command 字段将被启动命令替换
+注意：任务参数中的 envs 会显示为输入框，修改时会实时同步到任务参数中`}
               style={{ fontFamily: 'monospace' }}
             />
           </Form.Item>
@@ -563,6 +765,7 @@ const Training: React.FC = () => {
             <div style={{ color: '#999', fontSize: '12px' }}>
               <div>• 任务参数必须以 JSON 格式填写，可以是 JSON 对象或 JSON 字符串</div>
               <div>• 如果填写了启动命令，将自动替换任务参数中的 command 字段</div>
+              <div>• 任务参数中的 envs 会显示为输入框，修改时会实时同步到任务参数中</div>
               <div>• 资源池ID和队列ID将从系统配置中自动读取（ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID）</div>
               <div>• queue 字段会自动设置为配置文件中的队列ID</div>
               <div>• 如果 datasources 中包含 type='pfs' 的数据源，会自动填充默认的 PFS 实例ID和路径</div>
