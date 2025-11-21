@@ -1,290 +1,482 @@
-# AIHC-MENTOR Web 应用
+# 机器学习平台管理系统 (MLP Cooker)
 
-基于 Flask + React 的现代化 Web 应用，提供RESTful API接口和React前端，实现完全的前后端分离架构。
+基于 Node.js + TypeScript + React 的现代化机器学习平台管理系统，提供完整的 AIHC 平台资源管理功能，支持部署、训练、任务、数据集、模型等全生命周期管理。
 
 ## 功能特性
 
-- 📊 上周问题统计：统计上周iCafe空间问题卡片，按卡片状态进行分类，生成Markdown格式的报告
-- 📚 KU文档创建：将本地 Markdown 文件上传到百度 KU 知识库，创建新的文档
-- 📑 KU文档创建器：通过文件上传的方式创建KU知识库文档，具有完整的步骤引导
-- 🔍 iCafe调试：用于快速测试和调试 iCafe API 调用，支持多种查询模式和详细输出
-- 🔑 AKSK验证：验证百度KU Open API的AppKey和SecretKey配置是否正确
-- 📈 2025H2需求统计：统计2025年下半年客户需求卡片，按状态分类并生成报告
-- 📋 每日报告：查询当日新增的卡片数量并统计，支持保存为Markdown格式报告文件
-- 🔍 主查询：查询icafe卡片，快速检索和筛选所需信息
+### 核心功能模块
+
+- 🚀 **部署管理**：服务部署和管理，支持在线服务的创建、查询、删除和状态监控
+- ⚡ **训练管理**：训练任务的创建、查询、停止和管理，支持分布式训练
+- 📋 **任务管理**：批量任务管理，自动筛选和管理以 "task-" 开头的任务
+- 💾 **数据集管理**：数据集的上传、查询、版本管理，支持 BOS 和 PFS 存储
+- 🤖 **模型管理**：模型的创建、查询、版本管理
+- 🐳 **镜像管理**：预置镜像的查询和管理
+- 📦 **应用模板**：丰富的应用模板库，支持一键部署、训练和任务创建
+- 🖥️ **计算资源**：队列和资源池管理，实时查看资源使用情况
+- ⚙️ **系统设置**：统一的配置管理，支持 YAML 配置文件
+
+### 技术特性
+
+#### 前端特性
+- ✅ **Ant Design Pro**：企业级中后台前端解决方案
+- ✅ **React 19 + TypeScript**：类型安全的现代 React 开发
+- ✅ **Umi 4**：企业级 React 应用框架
+- ✅ **ProComponents**：重度封装的业务组件
+- ✅ **响应式设计**：支持移动端和桌面端
+- ✅ **热重载**：开发时自动刷新
+- ✅ **国际化支持**：中英文切换
+
+#### 后端特性
+- ✅ **Node.js + Express**：高性能后端服务
+- ✅ **TypeScript**：类型安全的开发体验
+- ✅ **RESTful API**：标准化的 API 接口
+- ✅ **YAML 配置管理**：统一的配置文件管理
+- ✅ **百度云 SDK 集成**：基于 `@atorber/baiducloud-sdk` 的 AIHC 平台集成
+- ✅ **认证中间件**：基于 AK/SK 的认证机制
+- ✅ **CORS 支持**：跨域请求支持
+- ✅ **错误处理**：统一的错误处理机制
+- ✅ **日志记录**：完整的日志记录系统
 
 ## 架构说明
 
 本项目采用现代化的前后端分离架构：
 
 ### 后端架构
-- **框架**: Flask + Python 3.7+
-- **API**: RESTful API接口
-- **功能**: 提供数据服务和业务逻辑处理
-- **端口**: 5002
+- **框架**: Node.js + Express + TypeScript
+- **配置**: YAML 配置文件（`config.yaml`）
+- **SDK**: 百度云 SDK（`@atorber/baiducloud-sdk`）
+- **API**: RESTful API 接口
+- **端口**: 默认 8001（可在配置中修改）
 
 ### 前端架构
-- **框架**: React 18 + React Router 6
-- **UI库**: Bootstrap 5 + React Bootstrap
-- **HTTP客户端**: Axios
-- **特性**: 组件化开发、状态管理、热重载
-- **端口**: 3000 (开发环境)
+- **框架**: React 19 + TypeScript
+- **UI库**: Ant Design 5 + ProComponents
+- **构建工具**: Umi 4 (Max)
+- **HTTP客户端**: 内置请求库
+- **端口**: 默认 8000（开发环境）
 
 ## 环境要求
 
 ### 后端环境
-- Python 3.7+
-- Flask
-- 其他依赖项在 `requirements.txt` 中列出
+- Node.js >= 20.0.0
+- npm >= 8.0.0
+- TypeScript >= 5.0.0
 
 ### 前端环境
-- Node.js 16+
-- npm 8+
-- React 18
+- Node.js >= 20.0.0
+- npm >= 8.0.0
 
-## 安装和启动
+## 快速开始
 
-### 1. 安装后端依赖
+### 1. 克隆项目
 
 ```bash
-pip install -r requirements.txt
+git clone <repository-url>
+cd mlp-cooker
 ```
 
-### 2. 安装前端依赖
+### 2. 安装依赖
+
+#### 安装后端依赖
+
+```bash
+cd backend
+npm install
+```
+
+#### 安装前端依赖
 
 ```bash
 cd frontend
 npm install
 ```
 
-### 3. 环境变量配置
+### 3. 配置系统
 
-在运行应用之前，请确保设置了以下环境变量：
+在项目根目录创建 `config.yaml` 文件，配置机器学习平台资源信息：
 
-```bash
-# iCafe API 配置
-export ICAFE_USERNAME=your_username
-export ICAFE_PASSWORD=your_password
-
-# KU Open API 配置
-export KU_AK=your_app_key
-export KU_SK=your_secret_key
+```yaml
+ML_PLATFORM_RESOURCE_AK: your_access_key
+ML_PLATFORM_RESOURCE_SK: your_secret_key
+ML_PLATFORM_RESOURCE_BASE_URL: https://aihc.bj.baidubce.com
+ML_PLATFORM_RESOURCE_POOL_ID: your_resource_pool_id
+ML_PLATFORM_RESOURCE_QUEUE_ID: your_queue_id
+ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: your_pfs_instance_id
+ML_PLATFORM_RESOURCE_BUCKET: your_bucket_name
 ```
 
 ### 4. 启动应用
 
 #### 方式一：分别启动前后端（推荐开发环境）
 
-**启动后端服务**
+**终端 1：启动后端服务**
+
 ```bash
-# 仅启动后端API服务
-python3 scripts/start_backend.py
+cd backend
+npm run dev
 ```
 
-**启动前端服务**
+后端服务将在 `http://localhost:8001` 启动。
+
+**终端 2：启动前端服务**
+
 ```bash
-# 启动React开发服务器
 cd frontend
-npm start
+npm run start:dev
 ```
 
-#### 方式二：一体化启动（推荐开发环境）
+前端应用将在 `http://localhost:8000` 启动。
 
-**开发环境**
-```bash
-# 同时启动后端 + 前端开发服务器
-python3 scripts/start_react_app.py
-```
+#### 方式二：生产环境构建
 
-**生产环境**
+**构建前端**
+
 ```bash
-# 构建前端
 cd frontend
 npm run build
+```
 
-# 启动后端 (自动服务前端静态文件)
-python3 scripts/start_backend.py
+**启动后端（生产模式）**
+
+```bash
+cd backend
+npm run build
+npm run start:prod
 ```
 
 ## 访问应用
 
-### 开发环境访问方式
+### 开发环境
+- **前端应用**: http://localhost:8000
+- **后端API**: http://localhost:8001
 
-#### 方式一：分别启动前后端
-- **前端**: http://localhost:3000 (React开发服务器)
-- **后端API**: http://localhost:5002 (Flask API服务)
+### 登录方式
+系统使用 Access Key (AK) 和 Secret Key (SK) 进行登录认证。首次登录后，AK/SK 会自动保存到配置文件中。
 
-#### 方式二：一体化启动
-- **前端**: http://localhost:3000 (React开发服务器)
-- **后端API**: http://localhost:5002 (Flask API服务)
+## 功能模块说明
 
-### 生产环境
-- **应用**: http://localhost:5002 (Flask服务器，服务静态文件)
+### 1. 概览 (Welcome)
+平台统计概览，包括：
+- 部署服务数量
+- 训练任务数量
+- 任务数量
+- 数据集数量
+- 模型数量
+- 计算资源使用情况
 
-## API接口说明
+### 2. 应用 (Application)
+应用模板库，提供预定义的应用模板：
+- **部署模板**：一键部署推理服务
+- **训练模板**：快速创建训练任务
+- **任务模板**：批量任务模板
+- **工具模板**：工具部署模板
 
-所有API接口都以 `/api/` 开头，支持跨域调用：
+应用模板采用目录结构组织，每个应用包含：
+- `app.json`：应用元数据
+- `deploy.json`、`train.json`、`create-job.json`、`deploy-tool.json`：操作模板
+- `{action-type}.command.sh`：命令脚本
 
-### 1. 上周问题统计
-- 接口：`GET /api/icafe-lastweek`
-- 功能：统计上周iCafe空间问题卡片并生成报告
+详细文档请参考：[`backend/data/app/README.md`](backend/data/app/README.md)
 
-### 2. KU文档创建
-- 接口：`POST /api/ku-create-doc`
-- 参数：`mdContent`(Markdown内容)、`repositoryId`(知识库ID)、`creator`(创建者)、`title`(标题)
-- 功能：创建KU知识库文档
+### 3. 部署 (Deployment)
+服务部署管理：
+- 查询服务列表（支持按队列过滤、模糊搜索）
+- 查看服务详情和状态
+- 创建新服务（支持模板化配置）
+- 删除服务
 
-### 3. iCafe调试
-- 接口：`POST /api/icafe-debug`
-- 参数：`iql`(查询条件)
-- 功能：调试iCafe API调用
+### 4. 训练 (Training)
+训练任务管理：
+- 查询训练任务列表
+- 查看训练任务详情
+- 创建训练任务
+- 停止训练任务
+- 删除训练任务
 
-### 4. AKSK验证
-- 接口：`POST /api/validate-aksk`
-- 功能：验证KU Open API的AppKey和SecretKey配置
+### 5. 任务 (Task)
+批量任务管理：
+- 查询任务列表（自动过滤包含 "task-" 关键字的任务）
+- 查看任务详情
 
-### 5. 2025H2需求统计
-- 接口：`POST /api/icafe-2025h2`
-- 功能：统计2025年下半年客户需求卡片
+### 6. 数据集 (Dataset)
+数据集管理：
+- 查询数据集列表（支持 BOS 和 PFS 存储类型筛选）
+- 查看数据集详情
+- 创建数据集和版本
+- 删除数据集和版本
 
-### 6. 每日报告
-- 接口：`POST /api/daily-report`
-- 参数：`saveToFile`(是否保存为文件)
-- 功能：生成每日卡片统计报告
+### 7. 模型 (Model)
+模型管理：
+- 查询模型列表
+- 查看模型详情
+- 创建模型和版本
+- 删除模型和版本
 
-### 7. 主查询
-- 接口：`POST /api/main-query`
-- 功能：查询icafe卡片
+### 8. 镜像 (Preset Image)
+预置镜像管理：
+- 查询镜像列表
+- 查看镜像详情
+
+### 9. 计算资源 (Resource)
+计算资源监控：
+- 队列信息查询（显示配置的队列）
+- 资源池信息查询
+- 加速卡使用情况
+- CPU 和内存使用情况
+
+### 10. 系统设置 (Settings)
+系统配置管理：
+- 查看和编辑机器学习平台资源配置
+- AK/SK 配置（支持显示/隐藏）
+- 资源池、队列等资源配置
+
+## API 接口说明
+
+所有 API 接口都以 `/api/` 开头，大部分接口需要认证（通过 `authMiddleware`）。
+
+### 认证相关
+- `POST /api/login/account`：用户登录（AK/SK）
+- `POST /api/login/outLogin`：用户登出
+- `GET /api/login/captcha`：获取验证码
+- `GET /api/currentUser`：获取当前用户信息
+
+### 配置管理
+- `GET /api/config`：获取配置
+- `PUT /api/config`：更新配置
+- `POST /api/config/batch`：批量获取配置
+- `GET /api/config/:key`：获取指定配置项
+
+### 部署服务
+- `GET /api/services`：查询服务列表
+- `GET /api/services/:serviceId`：查询服务详情
+- `GET /api/services/:serviceId/status`：查询服务状态
+- `POST /api/services`：创建服务
+- `DELETE /api/services/:serviceId`：删除服务
+
+### 训练任务
+- `POST /api/jobs`：查询训练任务列表
+- `GET /api/jobs/:jobId`：查询训练任务详情
+- `POST /api/jobs/create`：创建训练任务
+- `POST /api/jobs/:jobId/stop`：停止训练任务
+- `DELETE /api/jobs/:jobId`：删除训练任务
+
+### 任务
+- `POST /api/tasks`：查询任务列表
+
+### 数据集
+- `GET /api/datasets`：查询数据集列表
+- `GET /api/datasets/:datasetId`：查询数据集详情
+- `POST /api/datasets`：创建数据集
+- `DELETE /api/datasets/:datasetId`：删除数据集
+
+### 模型
+- `GET /api/models`：查询模型列表
+- `GET /api/models/:modelId`：查询模型详情
+- `POST /api/models`：创建模型
+- `DELETE /api/models/:modelId`：删除模型
+
+### 应用模板
+- `GET /api/apps`：查询应用模板列表
+- `GET /api/apps/:appId`：查询应用模板详情
+
+### 计算资源
+- `GET /api/resources/queues`：查询队列列表
+- `GET /api/resources/queues/:queueId`：查询队列详情
+- `GET /api/resources/pools`：查询资源池列表
+- `GET /api/resources/pools/:resourcePoolId`：查询资源池详情
+
+### 健康检查
+- `GET /api/health`：健康检查
 
 ## 目录结构
 
 ```
 .
-├── app/                    # 后端主应用目录
-│   ├── api/               # API接口
-│   │   └── v1/            # API v1版本
-│   │       ├── routes/    # 路由处理
-│   │       └── schemas/   # 数据模型
-│   ├── core/              # 核心配置
-│   ├── models/            # 数据模型
-│   ├── schemas/           # 数据验证模型
-│   ├── services/          # 业务逻辑
-│   ├── utils/             # 工具函数
-│   └── web/               # Web应用
-│       └── web_app.py     # Web应用主文件
-├── frontend-antd/        # 前端应用目录（Ant Design Pro）
-│       ├── public/        # 静态资源
-│       ├── src/           # React + TypeScript 源代码
-│       │   ├── components/    # React 组件
-│       │   ├── pages/         # 页面组件
-│       │   ├── services/      # API 服务
-│       │   └── app.tsx        # 主应用组件
-│       ├── config/        # 前端配置
-│       └── package.json   # 前端依赖配置
-├── scripts/               # 独立脚本
-│   ├── icafe_lastweek.py   # 上周问题统计脚本
-│   ├── ku_create_doc_from_md.py  # KU文档创建脚本
-│   ├── icafe_debug.py      # iCafe调试脚本
-│   ├── validate_aksk.py    # AKSK验证脚本
-│   ├── icafe_2025h2.py     # 2025H2需求统计脚本
-│   ├── daily_report.py     # 每日报告脚本
-│   ├── main.py             # 主查询脚本
-│   ├── start_react_app.py  # React应用启动器
-│   ├── usage_example.md    # 使用示例文档
-│   └── examples/           # 示例脚本
-├── docs/                  # 文档
-├── config/                # 配置文件
-├── data/                  # 数据文件
-├── requirements.txt       # 后端依赖
-└── setup.py              # 项目安装配置
+├── backend/                  # 后端应用
+│   ├── src/                  # TypeScript 源代码
+│   │   ├── app.ts           # Express 应用入口
+│   │   ├── index.ts         # 服务器启动文件
+│   │   ├── config/          # 配置管理
+│   │   │   ├── environment.ts
+│   │   │   └── yaml-config.ts
+│   │   ├── controllers/     # 控制器
+│   │   │   ├── app.controller.ts
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── config.controller.ts
+│   │   │   ├── dataset.controller.ts
+│   │   │   ├── job.controller.ts
+│   │   │   ├── model.controller.ts
+│   │   │   ├── resource.controller.ts
+│   │   │   ├── service.controller.ts
+│   │   │   └── task.controller.ts
+│   │   ├── middleware/      # 中间件
+│   │   │   ├── auth.middleware.ts
+│   │   │   ├── cors.middleware.ts
+│   │   │   └── error.middleware.ts
+│   │   ├── routes/          # 路由定义
+│   │   │   └── index.ts
+│   │   ├── types/           # TypeScript 类型定义
+│   │   │   └── api.ts
+│   │   └── utils/           # 工具函数
+│   │       ├── logger.ts
+│   │       ├── response.utils.ts
+│   │       └── sdk/         # SDK 封装
+│   │           ├── aihc.sdk.ts
+│   │           └── base.service.ts
+│   ├── data/                # 数据文件
+│   │   └── app/             # 应用模板
+│   │       ├── README.md    # 应用模板开发文档
+│   │       └── */           # 各个应用模板目录
+│   ├── dist/                # TypeScript 编译输出
+│   ├── logs/                # 日志文件
+│   ├── package.json         # 后端依赖配置
+│   └── tsconfig.json        # TypeScript 配置
+├── frontend/                # 前端应用
+│   ├── src/                 # React 源代码
+│   │   ├── pages/           # 页面组件
+│   │   │   ├── Welcome.tsx
+│   │   │   ├── Application.tsx
+│   │   │   ├── Deployment.tsx
+│   │   │   ├── Training.tsx
+│   │   │   ├── Task.tsx
+│   │   │   ├── Dataset.tsx
+│   │   │   ├── Model.tsx
+│   │   │   ├── PresetImage.tsx
+│   │   │   ├── Resource.tsx
+│   │   │   └── Settings.tsx
+│   │   ├── components/      # React 组件
+│   │   ├── services/        # API 服务
+│   │   │   └── aihc-mentor/
+│   │   │       └── api.ts
+│   │   ├── locales/         # 国际化文件
+│   │   │   ├── zh-CN/
+│   │   │   └── en-US/
+│   │   └── app.tsx          # 主应用组件
+│   ├── config/              # 前端配置
+│   │   ├── config.ts
+│   │   ├── routes.ts        # 路由配置
+│   │   └── proxy.ts         # 代理配置
+│   ├── dist/                # 前端构建输出
+│   ├── package.json         # 前端依赖配置
+│   └── tsconfig.json        # TypeScript 配置
+├── config.yaml              # 系统配置文件
+└── README.md                # 项目说明文档
 ```
-
-## 技术特性
-
-### 前端特性
-- ✅ **Ant Design Pro**: 企业级中后台前端解决方案
-- ✅ **React 18 + TypeScript**: 类型安全的现代React开发
-- ✅ **Umi**: 企业级React应用框架
-- ✅ **ProComponents**: 重度封装的业务组件
-- ✅ **响应式设计**: 支持移动端和桌面端
-- ✅ **热重载**: 开发时自动刷新
-- ✅ **现代工具链**: Umi + npm
-
-### 后端特性
-- ✅ **Flask**: 轻量级Python Web框架
-- ✅ **RESTful API**: 标准化的API接口
-- ✅ **CORS支持**: 跨域请求支持
-- ✅ **统一配置**: 环境变量配置管理
-- ✅ **错误处理**: 统一的错误处理机制
-- ✅ **日志记录**: 完整的日志记录系统
 
 ## 开发指南
 
-### 开发环境设置
-
-#### 推荐开发方式：分别启动前后端
-```bash
-# 终端1: 启动后端API服务
-python3 scripts/start_backend.py
-
-# 终端2: 启动前端开发服务器
-cd frontend-antd
-npm start
-```
-
-**优势**:
-- 前端热重载，代码修改后自动刷新
-- 后端API独立运行，便于调试
-- 前后端分离，开发效率更高
-
-#### 一体化开发方式
-```bash
-# 同时启动后端 + 前端开发服务器
-python3 scripts/start_antd_app.py
-```
-
-**优势**:
-- 单命令启动，操作简单
-- 自动管理前后端进程
-- 适合快速测试和演示
-- 按Ctrl+C可同时停止所有服务
-
 ### 添加新页面
-1. 在 `frontend-antd/src/pages/` 中创建新的React组件
-2. 在 `frontend-antd/config/routes.ts` 中添加路由配置
-3. 在 `frontend-antd/src/locales/zh-CN/menu.ts` 中添加菜单项
 
-### 添加新API
-1. 在 `app/api/v1/routes/` 中创建新的API路由
-2. 在 `frontend-antd/src/services/` 中添加API调用函数
-3. 在相应的React组件中调用API
+1. 在 `frontend/src/pages/` 中创建新的 React 组件
+2. 在 `frontend/config/routes.ts` 中添加路由配置
+3. 在 `frontend/src/locales/zh-CN/menu.ts` 和 `frontend/src/locales/en-US/menu.ts` 中添加菜单项
+
+### 添加新 API
+
+1. 在 `backend/src/controllers/` 中创建新的控制器
+2. 在 `backend/src/routes/index.ts` 中添加路由
+3. 在 `frontend/src/services/aihc-mentor/api.ts` 中添加 API 调用函数
+4. 在相应的 React 组件中调用 API
+
+### 添加应用模板
+
+1. 在 `backend/data/app/` 目录下创建应用目录
+2. 创建 `app.json` 定义应用元数据
+3. 创建操作模板文件（`deploy.json`、`train.json` 等）
+4. 创建命令脚本文件（`{action-type}.command.sh`）
+
+详细步骤请参考：[`backend/data/app/README.md`](backend/data/app/README.md)
 
 ### 样式开发
-- 全局样式: `frontend-antd/src/global.less`
+
+- 全局样式: `frontend/src/global.less`
 - 组件样式: 每个组件对应的 `.less` 文件
 - UI框架: Ant Design + ProComponents
 
+## 配置说明
+
+### 系统配置
+
+系统配置文件位于项目根目录的 `config.yaml`，包含以下配置项：
+
+- `ML_PLATFORM_RESOURCE_AK`：Access Key
+- `ML_PLATFORM_RESOURCE_SK`：Secret Key
+- `ML_PLATFORM_RESOURCE_BASE_URL`：AIHC 平台基础 URL（支持 `https://` 前缀）
+- `ML_PLATFORM_RESOURCE_POOL_ID`：资源池 ID
+- `ML_PLATFORM_RESOURCE_QUEUE_ID`：队列 ID
+- `ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID`：PFS 实例 ID
+- `ML_PLATFORM_RESOURCE_BUCKET`：对象存储桶名称
+
+配置可以通过前端系统设置页面进行修改，修改后会自动保存到 `config.yaml` 文件。
+
 ## 注意事项
 
-1. 确保所有环境变量已正确配置
-2. 确保网络连接正常，能够访问iCafe和KU API
-3. 开发环境需要同时运行前端和后端服务
-4. 生产环境前端构建后由后端服务静态文件
-5. 确保Node.js和Python版本符合要求
+1. **首次使用**：首次登录需要使用有效的 AK/SK，登录成功后会自动保存到配置文件
+2. **配置文件**：确保 `config.yaml` 文件存在且配置正确
+3. **网络连接**：确保网络连接正常，能够访问 AIHC 平台 API
+4. **Node.js 版本**：确保 Node.js 版本 >= 20.0.0
+5. **端口占用**：确保后端端口（8001）和前端端口（8000）未被占用
 
 ## 故障排除
 
 ### 前端问题
-- 检查Node.js版本是否 >= 16
-- 检查npm依赖是否正确安装
-- 检查React开发服务器是否正常启动
+
+- **检查 Node.js 版本**：确保 Node.js >= 20.0.0
+- **检查依赖安装**：运行 `npm install` 确保所有依赖已正确安装
+- **检查端口占用**：确保端口 8000 未被占用
+- **清除缓存**：删除 `node_modules` 和 `package-lock.json`，重新安装依赖
 
 ### 后端问题
-- 检查Python版本是否 >= 3.7
-- 检查环境变量是否正确设置
-- 检查Flask服务器是否正常启动
 
-### API调用问题
-- 检查CORS配置是否正确
-- 检查API接口路径是否正确
-- 检查网络连接是否正常
+- **检查 Node.js 版本**：确保 Node.js >= 20.0.0
+- **检查配置文件**：确保 `config.yaml` 存在且配置正确
+- **检查端口占用**：确保端口 8001 未被占用
+- **检查编译**：运行 `npm run build` 确保 TypeScript 编译成功
+
+### API 调用问题
+
+- **检查 CORS 配置**：确保后端 CORS 配置正确
+- **检查认证**：确保已正确登录，AK/SK 有效
+- **检查网络连接**：确保能够访问 AIHC 平台 API
+- **查看日志**：检查后端日志文件 `backend/logs/access.log`
+
+### 登录问题
+
+- **检查 AK/SK**：确保输入的 AK/SK 正确
+- **检查配置保存**：登录成功后检查 `config.yaml` 是否已更新
+- **检查 API 连接**：确保能够访问 AIHC 平台数据集接口（用于验证 AK/SK）
+
+## 技术栈
+
+### 后端
+- Node.js 20+
+- Express 5
+- TypeScript 5
+- js-yaml (YAML 配置管理)
+- @atorber/baiducloud-sdk (百度云 SDK)
+
+### 前端
+- React 19
+- TypeScript 5
+- Ant Design 5
+- ProComponents
+- Umi 4 (Max)
+- @biomejs/biome (代码格式化)
+
+## 许可证
+
+ISC
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+## 更新日志
+
+### v1.0.0
+- 初始版本发布
+- 支持部署、训练、任务、数据集、模型管理
+- 支持应用模板系统
+- 支持计算资源监控
+- 基于 AK/SK 的认证机制
