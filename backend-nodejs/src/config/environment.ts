@@ -16,23 +16,11 @@ export interface AppConfig {
     path: string;
   };
   external: {
-    icafe: {
-      baseUrl: string;
-      username: string;
-      password: string;
-      spacePrefixCode?: string;
-    };
-        aihc: {
+    aihc: {
       datasetBaseUrl: string;
       environment: 'gray' | 'production';
     };
-    im: {
-      baseUrl: string;
-    };
-    fastapp: {
-      baseUrl: string;
-    };
-    };
+  };
   logging: {
     level: string;
     format: string;
@@ -89,20 +77,9 @@ export class ConfigManager {
         path: process.env.DB_PATH || './data',
       },
       external: {
-        icafe: {
-          baseUrl: process.env.ICAFE_BASE_URL || 'https://console.cloud.baidu-int.com',
-          username: process.env.ICAFE_USERNAME || '',
-          password: process.env.ICAFE_PASSWORD || '',
-        },
-                aihc: {
+        aihc: {
           datasetBaseUrl: process.env.AIHC_DATASET_BASE_URL || '',
           environment: (process.env.AIHC_ENVIRONMENT as 'gray' | 'production') || 'gray',
-        },
-        im: {
-          baseUrl: process.env.IM_BASE_URL || 'https://api-in.baidu-int.com',
-        },
-        fastapp: {
-          baseUrl: process.env.FASTAPP_BASE_URL || '',
         },
       },
       logging: {
@@ -116,7 +93,7 @@ export class ConfigManager {
 
   /**
    * 验证配置完整性
-   * 注意：旧的配置项（如 ICAFE_USERNAME）已经不再使用，只验证基本的服务器配置
+   * 只验证基本的服务器配置
    */
   public validateConfig(): { isValid: boolean; errors: string[]; warnings: string[] } {
     const errors: string[] = [];

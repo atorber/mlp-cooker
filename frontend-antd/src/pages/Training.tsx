@@ -30,16 +30,22 @@ interface Job {
   jobId?: string;
   name?: string;
   description?: string;
-  status?: string;
+  status?: string; // 状态是字符串，如 "Running", "ManualTermination"
   resourcePoolId?: string;
   queue?: string;
   queueID?: string;
   owner?: string;
   ownerName?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  startTime?: string;
-  endTime?: string;
+  userId?: string; // 用户ID
+  createdAt?: string; // ISO 8601格式，如 "2025-11-20T14:13:56Z"
+  finishedAt?: string; // 完成时间，ISO 8601格式，可能为空字符串 ""
+  updatedAt?: string | number;
+  updateTime?: string | number;
+  updatedTime?: string | number;
+  modifiedAt?: string | number;
+  startTime?: string | number;
+  endTime?: string | number;
+  labels?: Array<{ key: string; value: string }>; // 标签数组，可能包含用户名信息
   [key: string]: any;
 }
 
@@ -216,21 +222,28 @@ const Training: React.FC = () => {
   // 获取状态标签颜色
   const getStatusColor = (status?: string | number | null) => {
     if (!status) return 'default';
-    // 确保 status 是字符串类型
-    const statusStr = String(status);
-    const statusLower = statusStr.toLowerCase();
-    if (statusLower.includes('running') || statusLower.includes('active') || statusLower.includes('pending')) {
+    const statusStr = String(status).toLowerCase();
+    
+    // 运行中状态
+    if (statusStr === 'running' || statusStr.includes('running') || statusStr === 'pending') {
       return 'processing';
     }
-    if (statusLower.includes('stopped') || statusLower.includes('inactive') || statusLower.includes('completed')) {
+    
+    // 已完成/已停止状态
+    if (statusStr === 'completed' || statusStr === 'stopped' || statusStr === 'manualtermination' || statusStr.includes('termination')) {
       return 'success';
     }
-    if (statusLower.includes('error') || statusLower.includes('failed')) {
+    
+    // 错误状态
+    if (statusStr === 'error' || statusStr === 'failed' || statusStr.includes('error') || statusStr.includes('failed')) {
       return 'error';
     }
-    if (statusLower.includes('creating')) {
+    
+    // 创建中状态
+    if (statusStr === 'creating' || statusStr.includes('creating')) {
       return 'processing';
     }
+    
     return 'default';
   };
 
@@ -256,19 +269,45 @@ const Training: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 120,
-      render: (text) => {
-        if (!text && text !== 0) return '-';
-        const statusStr = String(text);
-        return <Tag color={getStatusColor(statusStr)}>{statusStr}</Tag>;
-      },
       valueType: 'select',
       valueEnum: {
         Running: { text: '运行中', status: 'Processing' },
         Pending: { text: '等待中', status: 'Processing' },
         Stopped: { text: '已停止', status: 'Success' },
         Completed: { text: '已完成', status: 'Success' },
+        ManualTermination: { text: '手动终止', status: 'Success' },
         Error: { text: '错误', status: 'Error' },
         Failed: { text: '失败', status: 'Error' },
+      },
+      render: (text, record) => {
+        // status 可能是字符串或对象（ProTable 的 valueEnum 可能会转换）
+        let statusValue: any = text || record.status;
+        
+        // 如果是对象，尝试提取状态值
+        if (statusValue && typeof statusValue === 'object') {
+          // valueEnum 返回的对象可能是 { text: '运行中', status: 'Processing' } 格式
+          // 或者需要从 record.status 中获取原始值
+          statusValue = record.status || statusValue.text || statusValue.value || statusValue.name || null;
+        }
+        
+        if (!statusValue) return '-';
+        
+        // 确保是字符串类型
+        const statusStr = String(statusValue);
+        
+        // 状态文本映射
+        const statusTextMap: Record<string, string> = {
+          Running: '运行中',
+          Pending: '等待中',
+          Stopped: '已停止',
+          Completed: '已完成',
+          ManualTermination: '手动终止',
+          Error: '错误',
+          Failed: '失败',
+        };
+        
+        const displayText = statusTextMap[statusStr] || statusStr;
+        return <Tag color={getStatusColor(statusStr)}>{displayText}</Tag>;
       },
     },
     {
@@ -290,10 +329,22 @@ const Training: React.FC = () => {
     },
     {
       title: '所有者',
-      dataIndex: 'ownerName',
-      key: 'ownerName',
+      dataIndex: 'userId',
+      key: 'userId',
       width: 120,
       ellipsis: true,
+      render: (text, record) => {
+        // 优先从 labels 中提取用户名，其次使用 userId
+        if (record.labels && Array.isArray(record.labels)) {
+          const usernameLabel = record.labels.find(
+            (label: any) => label.key === 'aihc.baidubce.com/username'
+          );
+          if (usernameLabel?.value) {
+            return usernameLabel.value;
+          }
+        }
+        return text || record.ownerName || record.owner || '-';
+      },
       hideInSearch: true,
     },
     {
@@ -302,15 +353,34 @@ const Training: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => {
+        if (!text) return '-';
+        try {
+          const date = new Date(text);
+          if (isNaN(date.getTime())) return '-';
+          return date.toLocaleString('zh-CN');
+        } catch (e) {
+          return '-';
+        }
+      },
     },
     {
       title: '更新时间',
-      dataIndex: 'updatedAt',
-      key: 'updatedAt',
+      dataIndex: 'finishedAt',
+      key: 'finishedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => {
+        // finishedAt 是完成时间，ISO 8601格式，可能为空字符串 ""
+        if (!text || text === '') return '-';
+        try {
+          const date = new Date(text);
+          if (isNaN(date.getTime())) return '-';
+          return date.toLocaleString('zh-CN');
+        } catch (e) {
+          return '-';
+        }
+      },
     },
     {
       title: '操作',
@@ -476,10 +546,8 @@ const Training: React.FC = () => {
               {selectedJob.name || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="状态">
-              {(selectedJob.status || selectedJob.status === 0) ? (
-                <Tag color={getStatusColor(selectedJob.status)}>
-                  {String(selectedJob.status)}
-                </Tag>
+              {selectedJob.status ? (
+                <Tag color={getStatusColor(selectedJob.status)}>{selectedJob.status}</Tag>
               ) : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="资源池ID">
@@ -489,29 +557,47 @@ const Training: React.FC = () => {
               {selectedJob.queue || selectedJob.queueID || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="所有者">
-              {selectedJob.ownerName || selectedJob.owner || '-'}
+              {(() => {
+                // 优先从 labels 中提取用户名
+                if (selectedJob.labels && Array.isArray(selectedJob.labels)) {
+                  const usernameLabel = selectedJob.labels.find(
+                    (label: any) => label.key === 'aihc.baidubce.com/username'
+                  );
+                  if (usernameLabel?.value) {
+                    return usernameLabel.value;
+                  }
+                }
+                return selectedJob.userId || selectedJob.ownerName || selectedJob.owner || '-';
+              })()}
             </Descriptions.Item>
             <Descriptions.Item label="描述">
               {selectedJob.description || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="开始时间">
-              {selectedJob.startTime 
-                ? new Date(selectedJob.startTime).toLocaleString() 
-                : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="结束时间">
-              {selectedJob.endTime 
-                ? new Date(selectedJob.endTime).toLocaleString() 
-                : '-'}
+            <Descriptions.Item label="任务类型">
+              {selectedJob.jobType || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="创建时间">
               {selectedJob.createdAt 
-                ? new Date(selectedJob.createdAt).toLocaleString() 
+                ? (() => {
+                    try {
+                      const date = new Date(selectedJob.createdAt);
+                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (e) {
+                      return '-';
+                    }
+                  })()
                 : '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="更新时间">
-              {selectedJob.updatedAt 
-                ? new Date(selectedJob.updatedAt).toLocaleString() 
+            <Descriptions.Item label="完成时间">
+              {selectedJob.finishedAt && selectedJob.finishedAt !== ''
+                ? (() => {
+                    try {
+                      const date = new Date(selectedJob.finishedAt);
+                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (e) {
+                      return '-';
+                    }
+                  })()
                 : '-'}
             </Descriptions.Item>
             {selectedJob.config && (

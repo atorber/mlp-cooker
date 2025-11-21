@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
       style={{
         background: 'none',
       }}
-      copyright="Powered by AIHC"
+      copyright="Powered by atorber"
       links={[
         {
           key: 'MLP COOKER',

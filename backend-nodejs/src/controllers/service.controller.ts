@@ -15,26 +15,16 @@ export class ServiceController {
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
-    let baseURL = mlResourceConfig.baseURL;
-    if (!baseURL) {
-      const datasetConfig = yamlConfig.getDatasetConfig();
-      baseURL = datasetConfig.hostGray || datasetConfig.hostProduction?.bj || AIHC_DEFAULT_BASE_URL;
-    }
-    
-    // 确保 baseURL 有协议前缀（如果缺少协议，自动添加 http://）
-    if (baseURL && !baseURL.match(/^https?:\/\//)) {
-      baseURL = `http://${baseURL}`;
-    }
+    const baseURL = mlResourceConfig.baseURL
     
     // 使用机器学习平台资源配置创建SDK实例，如果配置为空则回退到数据集任务配置
-    const jobConfig = yamlConfig.getDatasetJobConfig();
     return new AihcSDK({
-      accessKey: (mlResourceConfig.ak || jobConfig.ak) as string,
-      secretKey: (mlResourceConfig.sk || jobConfig.sk) as string,
+      accessKey: mlResourceConfig.ak,
+      secretKey: mlResourceConfig.sk,
       baseURL: baseURL,
-      defaultResourcePoolId: (mlResourceConfig.poolId || jobConfig.poolId) as string,
-      defaultQueue: (mlResourceConfig.queueId || jobConfig.queueId) as string,
-      defaultPfsInstanceId: (mlResourceConfig.pfsInstanceId || jobConfig.pfs) as string,
+      defaultResourcePoolId: mlResourceConfig.poolId,
+      defaultQueue: mlResourceConfig.queueId,
+      defaultPfsInstanceId: mlResourceConfig.pfsInstanceId,
     });
   }
 
@@ -43,7 +33,7 @@ export class ServiceController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { pageNumber = 1, pageSize = 10, orderBy, order } = req.query;
+      const { pageNumber = 1, pageSize = 1000, orderBy, order } = req.query;
       
       const sdk = ServiceController.getServiceSDK();
       const result = await sdk.describeServices({
@@ -81,6 +71,38 @@ export class ServiceController {
     } catch (error) {
       console.error('查询服务详情失败:', error);
       ResponseUtils.error(res, '查询服务详情失败', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  /**
+   * 查询服务状态
+   */
+  public static async getStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { serviceId } = req.params;
+      
+      if (!serviceId) {
+        ResponseUtils.error(res, '服务ID不能为空');
+        return;
+      }
+
+      const sdk = ServiceController.getServiceSDK();
+      const result = await sdk.describeServiceStatus(serviceId);
+
+      // 提取对应serviceId的状态信息
+      if (result && result.service && result.service[serviceId]) {
+        ResponseUtils.success(res, {
+          serviceId,
+          ...result.service[serviceId],
+        });
+      } else {
+        ResponseUtils.error(res, '未找到服务状态信息');
+      }
+    } catch (error) {
+      console.error('查询服务状态失败:', error);
+      ResponseUtils.error(res, '查询服务状态失败', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

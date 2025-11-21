@@ -16,10 +16,10 @@ export const AIHC_DEFAULT_BASE_URL = 'http://aihc.bj.baidubce.com';
 export interface AihcConfig {
   accessKey: string;
   secretKey: string;
-  baseURL?: string;
-  defaultResourcePoolId?: string;
-  defaultQueue?: string;
-  defaultPfsInstanceId?: string;
+  baseURL: string;
+  defaultResourcePoolId: string;
+  defaultQueue: string;
+  defaultPfsInstanceId: string;
 }
 
 /**
@@ -49,35 +49,15 @@ export class AihcSDK extends BaseService {
     
     // 优先使用传入的配置，其次使用机器学习平台资源配置，最后使用数据集配置
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
-    const datasetConfig = yamlConfig.getDatasetConfig();
-    const jobConfig = yamlConfig.getDatasetJobConfig();
     
-    // 获取 baseURL：优先使用传入配置，其次使用机器学习平台配置，再次使用数据集管理配置，最后使用默认地址
-    let baseURL = config?.baseURL;
-    if (!baseURL) {
-      baseURL = mlResourceConfig.baseURL || datasetConfig.hostGray || datasetConfig.hostProduction?.bj || AIHC_DEFAULT_BASE_URL;
-    }
-    
-    // 确保 baseURL 有协议前缀（如果缺少协议，自动添加 http://）
-    // 如果配置中已经包含 https:// 或 http://，则保留；否则添加 http://
-    if (baseURL && !baseURL.match(/^https?:\/\//)) {
-      // 如果是 IP 地址或域名，自动添加 http:// 前缀
-      baseURL = `http://${baseURL}`;
-    }
-    
-    // 优先使用机器学习平台资源配置，如果为空则回退到数据集配置
     this.config = {
-      accessKey: config?.accessKey || mlResourceConfig.ak || datasetConfig.ak || '',
-      secretKey: config?.secretKey || mlResourceConfig.sk || datasetConfig.sk || '',
-      baseURL: baseURL,
-      defaultResourcePoolId: config?.defaultResourcePoolId || mlResourceConfig.poolId || jobConfig.poolId || '',
-      defaultQueue: config?.defaultQueue || mlResourceConfig.queueId || jobConfig.queueId || '',
-      defaultPfsInstanceId: config?.defaultPfsInstanceId || mlResourceConfig.pfsInstanceId || jobConfig.pfs || '',
+      accessKey: config?.accessKey || mlResourceConfig.ak,
+      secretKey: config?.secretKey || mlResourceConfig.sk,
+      baseURL: config?.baseURL || mlResourceConfig.baseURL,
+      defaultResourcePoolId: config?.defaultResourcePoolId || mlResourceConfig.poolId,
+      defaultQueue: config?.defaultQueue || mlResourceConfig.queueId,
+      defaultPfsInstanceId: config?.defaultPfsInstanceId || mlResourceConfig.pfsInstanceId,
     };
-
-    if (!this.config.accessKey || !this.config.secretKey) {
-      throw new Error('AIHC SDK 初始化失败: 缺少 Access Key 或 Secret Key，请在 YAML 配置文件中配置 ML_PLATFORM_RESOURCE_AK 和 ML_PLATFORM_RESOURCE_SK（或 AIHC_DATASET_MANAGEMENT_AK 和 AIHC_DATASET_MANAGEMENT_SK）');
-    }
 
     this.client = this.createClient();
   }
@@ -87,16 +67,8 @@ export class AihcSDK extends BaseService {
    * 使用 BceBaseClient 进行签名认证，自动处理百度云 API 的签名逻辑
    */
   private createClient(): BceBaseClient {
-    let baseURL = this.config.baseURL || AIHC_DEFAULT_BASE_URL;
-    
-    // 确保 baseURL 有协议前缀（如果缺少协议，自动添加 http://）
-    // 如果配置中已经包含 https:// 或 http://，则保留；否则添加 http://
-    if (baseURL && !baseURL.match(/^https?:\/\//)) {
-      baseURL = `http://${baseURL}`;
-    }
-    
     const bceConfig = {
-      endpoint: baseURL,
+      endpoint: this.config.baseURL,
       credentials: {
         ak: this.config.accessKey,
         sk: this.config.secretKey,
@@ -285,13 +257,15 @@ export class AihcSDK extends BaseService {
   /**
    * 查询训练任务列表
    */
-  async describeJobs(resourcePoolId?: string, requestBody?: RequestBody): Promise<any> {
+  async describeJobs(resourcePoolId: string = '',queueID: string = '', requestBody: RequestBody = {}): Promise<any> {
+    if (queueID){
+        requestBody.queue = queueID;
+    }
+
     return this.withRetry(async () => {
-      if (requestBody) {
-        requestBody.queueID = this.config.defaultQueue || '';
-      }
       return this.sendRequest('POST', 'DescribeJobs', {
-        resourcePoolId: resourcePoolId || this.config.defaultResourcePoolId,
+        resourcePoolId: resourcePoolId,
+        queueID: queueID,
       }, requestBody);
     });
   }
@@ -759,6 +733,20 @@ export class AihcSDK extends BaseService {
   async describeService(serviceId: string): Promise<any> {
     return this.withRetry(async () => {
       return this.sendRequest('GET', 'DescribeService', {
+        serviceId,
+      });
+    });
+  }
+
+  /**
+   * 查询服务状态
+   * @param serviceId 服务ID
+   * @returns 服务状态信息 { status: 1|2|3|4, availableIns: number, totalIns: number, reason?: string }
+   * status: 1=部署中, 2=运行中, 3=未运行, 4=异常
+   */
+  async describeServiceStatus(serviceId: string): Promise<any> {
+    return this.withRetry(async () => {
+      return this.sendRequest('GET', 'DescribeServiceStatus', {
         serviceId,
       });
     });

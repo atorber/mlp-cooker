@@ -64,52 +64,6 @@ export interface KuDocCreateParams {
   creator: string;
 }
 
-// iCafe调试参数
-export interface IcafeDebugParams {
-  iql: string;
-}
-
-// 每日报告参数
-export interface DailyReportParams {
-  saveToFile: boolean;
-}
-
-
-// 获取上周问题统计
-export async function getIcafeLastweek(): Promise<ApiResponse> {
-  return request('/api/icafe-lastweek', {
-    method: 'GET',
-  });
-}
-
-// 获取2025H2需求统计
-export async function getIcafe2025h2(): Promise<ApiResponse> {
-  return request('/api/icafe-2025h2', {
-    method: 'GET',
-  });
-}
-
-// 获取每日报告
-export async function getDailyReport(saveToFile: boolean = false): Promise<ApiResponse> {
-  return request(`/api/daily-report?saveToFile=${saveToFile}`, {
-    method: 'GET',
-  });
-}
-
-// 主查询
-export async function getMainQuery(): Promise<ApiResponse> {
-  return request('/api/main-query', {
-    method: 'POST',
-  });
-}
-
-// iCafe调试
-export async function debugIcafe(params: IcafeDebugParams): Promise<ApiResponse> {
-  return request('/api/icafe-debug', {
-    method: 'POST',
-    data: params,
-  });
-}
 
 // 创建KU文档
 export async function createKuDoc(params: KuDocCreateParams): Promise<ApiResponse> {
@@ -119,79 +73,6 @@ export async function createKuDoc(params: KuDocCreateParams): Promise<ApiRespons
   });
 }
 
-// 卡片规范性检测相关API
-export async function checkCardCompliance(
-  cardType: 'customer_demand' | 'customer_issue',
-  immediate: boolean = false
-): Promise<ApiResponse<CheckResult>> {
-  return request('/api/card-compliance/check', {
-    method: 'POST',
-    data: { cardType, immediate },
-  });
-}
-
-export async function getCards(
-  type: 'customer_demand' | 'customer_issue',
-  checkStatus: 'all' | 'compliant' | 'non_compliant' = 'all'
-): Promise<ApiResponse<CardItem[]>> {
-  return request(`/api/card-compliance/cards`, {
-    method: 'GET',
-    params: { type, checkStatus },
-  });
-}
-
-export async function manualCheck(
-  cardType: 'customer_demand' | 'customer_issue',
-  notify: boolean = true
-): Promise<ApiResponse<CheckResult>> {
-  return request('/api/card-compliance/check-manual', {
-    method: 'POST',
-    data: { cardType, notify },
-  });
-}
-
-export async function getCheckHistory(
-  type: 'customer_demand' | 'customer_issue',
-  limit: number = 10
-): Promise<ApiResponse<CheckHistory[]>> {
-  return request('/api/card-compliance/check-history', {
-    method: 'GET',
-    params: { type, limit },
-  });
-}
-
-export async function sendNotification(
-  cardId: string,
-  notificationType: 'private_message' | 'group_announcement',
-  recipientUsername?: string,
-  complianceIssues?: string[]
-): Promise<ApiResponse<any>> {
-  const data: any = { cardId, notificationType };
-  if (recipientUsername) {
-    data.recipientUsername = recipientUsername;
-  }
-  if (complianceIssues) {
-    data.complianceIssues = complianceIssues;
-  }
-  return request('/api/card-compliance/notifications/send', {
-    method: 'POST',
-    data,
-  });
-}
-
-// 获取单张卡片详情
-export async function getCardDetails(sequence: number) {
-  return request<ApiResponse>(`/api/icafe/card/${sequence}`, {
-    method: 'GET',
-  });
-}
-
-// 获取卡片历史
-export async function getCardHistory(sequence: number) {
-  return request<ApiResponse>(`/api/icafe/card/${sequence}/history`, {
-    method: 'GET',
-  });
-}
 
 // =============================================================================
 // 配置管理相关 API

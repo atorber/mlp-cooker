@@ -33,18 +33,11 @@ export class AuthController {
         const mlResourceConfig = yamlConfig.getMLResourceConfig();
         
         // 获取baseURL：优先使用机器学习平台配置，其次使用默认地址
-        let baseURL = mlResourceConfig.baseURL || AIHC_DEFAULT_BASE_URL;
-        
-        // 确保 baseURL 有协议前缀
-        if (baseURL && !baseURL.match(/^https?:\/\//)) {
-          baseURL = `http://${baseURL}`;
-        }
-
         // 使用提供的AK/SK创建SDK实例
         const sdk = new AihcSDK({
           accessKey: ak,
           secretKey: sk,
-          baseURL: baseURL,
+          baseURL: 'https://aihc.bj.baidubce.com',
         });
 
         // 调用模型列表接口验证AK/SK（比数据集接口更轻量，更通用）
@@ -73,9 +66,9 @@ export class AuthController {
           };
           
           // 如果baseURL为空或未配置，也自动设置
-          if (!mlResourceConfig.baseURL && baseURL) {
+          if (!mlResourceConfig.baseURL) {
             // 保存时保留协议前缀，支持 http:// 和 https://
-            updatedConfig.ML_PLATFORM_RESOURCE_BASE_URL = baseURL;
+            updatedConfig.ML_PLATFORM_RESOURCE_BASE_URL = 'https://aihc.bj.baidubce.com';
           }
           
           // 保存配置到文件（saveConfig是同步方法，不需要await）

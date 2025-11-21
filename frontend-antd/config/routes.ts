@@ -65,38 +65,6 @@ export default [
     component: './PresetImage',
   },
   {
-    name: 'customer-issues',
-    icon: 'user',
-    path: '/customer-issues',
-    hideInMenu: true,
-    routes: [
-      {
-        name: 'icafe-lastweek',
-        icon: 'barChart',
-        path: '/customer-issues/lastweek',
-        component: './IcafeLastweek',
-      },
-      {
-        name: 'icafe-2025h2',
-        icon: 'lineChart',
-        path: '/customer-issues/2025h2',
-        component: './Icafe2025h2',
-      },
-      {
-        name: 'daily-report',
-        icon: 'calendar',
-        path: '/customer-issues/daily-report',
-        component: './DailyReport',
-      },
-      {
-        name: 'card-compliance',
-        icon: 'audit',
-        path: '/customer-issues/card-compliance',
-        component: './CardCompliance',
-      },
-    ],
-  },
-  {
     name: 'preset-image-detail',
     path: '/preset-image/detail/:id',
     component: './PresetImageDetail',

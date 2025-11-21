@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { AuthController } from '@/controllers/auth.controller';
-import { IcafeController } from '@/controllers/icafe.controller';
 import { ConfigController } from '@/controllers/config.controller';
 import { DatasetController } from '@/controllers/dataset.controller';
 import { ModelController } from '@/controllers/model.controller';
@@ -51,21 +50,6 @@ router.get('/api/health', (req, res) => {
     version: process.env.npm_package_version || '1.0.0',
   });
 });
-
-// TODO: 添加调试路由（暂时移除以简化）
-
-/**
- * iCafe集成相关路由
- */
-router.post('/api/icafe-debug', IcafeController.debugIcafe);
-router.get('/api/icafe-lastweek', IcafeController.getLastWeekStats);
-router.get('/api/icafe-2025h2', IcafeController.get2025H2Stats);
-router.get('/api/icafe/card/:sequence', IcafeController.getCardDetails);
-router.get('/api/icafe/card/:sequence/history', IcafeController.getCardHistory);
-router.post('/api/icafe/query', IcafeController.queryCards);
-router.post('/api/icafe/statistics', IcafeController.getStatistics);
-router.post('/api/icafe/validate-connection', IcafeController.validateConnection);
-router.get('/api/icafe/config', IcafeController.getConfigInfo);
 
 /**
  * 数据集相关路由
@@ -123,6 +107,9 @@ router.get('/api/services', authMiddleware, ServiceController.list);
 
 // 查询服务详情
 router.get('/api/services/:serviceId', authMiddleware, ServiceController.get);
+
+// 查询服务状态
+router.get('/api/services/:serviceId/status', authMiddleware, ServiceController.getStatus);
 
 // 创建服务
 router.post('/api/services', authMiddleware, ServiceController.create);

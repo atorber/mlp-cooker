@@ -62,15 +62,6 @@ export interface KuDocCreateParams {
   creator: string;
 }
 
-// iCafe调试参数
-export interface IcafeDebugParams {
-  iql: string;
-}
-
-// 每日报告参数
-export interface DailyReportParams {
-  saveToFile: boolean;
-}
 
 // 当前用户信息
 export interface CurrentUser {

@@ -29,15 +29,28 @@ interface Service {
   serviceId?: string;
   name?: string;
   description?: string;
-  status?: string;
+  status?: string | number; // 状态：字符串或数字（1=部署中, 2=运行中, 3=未运行, 4=异常）
+  statusText?: string; // 状态文本（中文）
+  resourcePoolId?: string;
+  resourcePoolName?: string;
   resourcePool?: any;
   queueName?: string;
   owner?: string;
   ownerName?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  creator?: string; // 创建者
+  createdAt?: string | number; // Unix时间戳（秒级）或ISO字符串
+  updatedAt?: string | number; // Unix时间戳（秒级）或ISO字符串
   endpoints?: any;
   replicas?: number;
+  availableIns?: number; // 可用实例数
+  totalIns?: number; // 总实例数
+  reason?: string; // 异常信息
+  resourceSpec?: {
+    cpus?: number;
+    memory?: number;
+    acceleratorCount?: number;
+    acceleratorType?: string;
+  };
   [key: string]: any;
 }
 
@@ -49,6 +62,52 @@ const Deployment: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
+
+  // 获取服务状态（批量）
+  const fetchServicesStatus = async (services: Service[]): Promise<void> => {
+    try {
+      // 并发获取所有服务的状态
+      const statusPromises = services.map(async (service) => {
+        try {
+          const serviceId = service.id || service.serviceId;
+          if (!serviceId) return service;
+
+          const statusResponse = await request(`/api/services/${serviceId}/status`, {
+            method: 'GET',
+          });
+
+          if (statusResponse.success && statusResponse.data) {
+            const statusData = statusResponse.data;
+            const status = statusData.status; // 1=部署中, 2=运行中, 3=未运行, 4=异常
+            const statusTextMap: Record<number, string> = {
+              1: '部署中',
+              2: '运行中',
+              3: '未运行',
+              4: '异常',
+            };
+
+            return {
+              ...service,
+              status,
+              statusText: statusTextMap[status] || '未知',
+              availableIns: statusData.availableIns,
+              totalIns: statusData.totalIns,
+              reason: statusData.reason,
+            };
+          }
+          return service;
+        } catch (error) {
+          console.error(`获取服务 ${service.id} 状态失败:`, error);
+          return service;
+        }
+      });
+
+      return Promise.all(statusPromises) as any;
+    } catch (error) {
+      console.error('批量获取服务状态失败:', error);
+      return services;
+    }
+  };
 
   // 获取服务列表
   const fetchServices = async (params: any) => {
@@ -83,8 +142,11 @@ const Deployment: React.FC = () => {
           total = data.totalCount || data.total || data.data.length;
         }
 
+        // 获取服务状态
+        const servicesWithStatus = await fetchServicesStatus(services);
+
         return {
-          data: services,
+          data: servicesWithStatus || services,
           success: true,
           total: total,
         };
@@ -111,15 +173,44 @@ const Deployment: React.FC = () => {
   const fetchServiceDetail = async (serviceId: string) => {
     setDetailLoading(true);
     try {
-      const response = await request(`/api/services/${serviceId}`, {
-        method: 'GET',
-      });
+      // 并行获取服务详情和状态
+      const [detailResponse, statusResponse] = await Promise.all([
+        request(`/api/services/${serviceId}`, {
+          method: 'GET',
+        }),
+        request(`/api/services/${serviceId}/status`, {
+          method: 'GET',
+        }).catch(() => null), // 状态获取失败不影响详情显示
+      ]);
 
-      if (response.success) {
-        setSelectedService(response.data);
+      if (detailResponse.success) {
+        let serviceData = detailResponse.data;
+
+        // 如果成功获取状态，合并状态信息
+        if (statusResponse?.success && statusResponse.data) {
+          const statusData = statusResponse.data;
+          const status = statusData.status;
+          const statusTextMap: Record<number, string> = {
+            1: '部署中',
+            2: '运行中',
+            3: '未运行',
+            4: '异常',
+          };
+
+          serviceData = {
+            ...serviceData,
+            status,
+            statusText: statusTextMap[status] || '未知',
+            availableIns: statusData.availableIns,
+            totalIns: statusData.totalIns,
+            reason: statusData.reason,
+          };
+        }
+
+        setSelectedService(serviceData);
         setDrawerVisible(true);
       } else {
-        messageApi.error(response.message || '获取服务详情失败');
+        messageApi.error(detailResponse.message || '获取服务详情失败');
       }
     } catch (error) {
       console.error('获取服务详情失败:', error);
@@ -208,11 +299,11 @@ const Deployment: React.FC = () => {
   const columns: ProColumns<Service>[] = [
     {
       title: '服务ID',
-      dataIndex: 'serviceId',
-      key: 'serviceId',
+      dataIndex: 'id',
+      key: 'id',
       width: 200,
       ellipsis: true,
-      render: (text, record) => record.serviceId || record.id,
+      render: (text, record) => text || record.serviceId || record.id || '-',
     },
     {
       title: '服务名称',
@@ -226,25 +317,49 @@ const Deployment: React.FC = () => {
       dataIndex: 'status',
       key: 'status',
       width: 120,
-      render: (text) => {
-        if (!text && text !== 0) return '-';
-        const statusStr = String(text);
-        return <Tag color={getStatusColor(statusStr)}>{statusStr}</Tag>;
-      },
-      valueType: 'select',
-      valueEnum: {
-        Running: { text: '运行中', status: 'Success' },
-        Stopped: { text: '已停止', status: 'Default' },
-        Creating: { text: '创建中', status: 'Processing' },
-        Error: { text: '错误', status: 'Error' },
+      hideInSearch: true,
+      render: (text, record) => {
+        // status 可能是数字（1=部署中, 2=运行中, 3=未运行, 4=异常）或字符串
+        let statusValue: any = text || record.status;
+        
+        // 如果状态是对象，尝试提取
+        if (statusValue && typeof statusValue === 'object') {
+          statusValue = record.status || statusValue.text || statusValue.value || statusValue.name || null;
+        }
+        
+        if (!statusValue && statusValue !== 0) return '-';
+        
+        // 状态值映射：1=部署中, 2=运行中, 3=未运行, 4=异常
+        const statusNum = typeof statusValue === 'number' ? statusValue : parseInt(String(statusValue), 10);
+        const statusTextMap: Record<number, string> = {
+          1: '部署中',
+          2: '运行中',
+          3: '未运行',
+          4: '异常',
+        };
+        
+        const displayText = record.statusText || statusTextMap[statusNum] || String(statusValue);
+        const statusColorMap: Record<number, string> = {
+          1: 'processing', // 部署中 - 蓝色
+          2: 'success',    // 运行中 - 绿色
+          3: 'default',    // 未运行 - 灰色
+          4: 'error',      // 异常 - 红色
+        };
+        
+        const color = statusColorMap[statusNum] || 'default';
+        return <Tag color={color}>{displayText}</Tag>;
       },
     },
     {
       title: '资源池',
-      dataIndex: ['resourcePool', 'resourcePoolId'],
+      dataIndex: 'resourcePoolId',
       key: 'resourcePoolId',
       width: 150,
       ellipsis: true,
+      render: (text, record) => {
+        // 优先显示资源池名称，其次显示资源池ID
+        return record.resourcePoolName || text || '-';
+      },
       hideInSearch: true,
     },
     {
@@ -264,11 +379,15 @@ const Deployment: React.FC = () => {
       render: (text) => (text !== undefined ? text : '-'),
     },
     {
-      title: '所有者',
-      dataIndex: 'ownerName',
-      key: 'ownerName',
+      title: '创建者',
+      dataIndex: 'creator',
+      key: 'creator',
       width: 120,
       ellipsis: true,
+      render: (text, record) => {
+        // 优先使用creator，其次使用ownerName或owner
+        return text || record.ownerName || record.owner || '-';
+      },
       hideInSearch: true,
     },
     {
@@ -284,7 +403,19 @@ const Deployment: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => {
+        if (!text) return '-';
+        try {
+          // 如果是Unix时间戳（秒级），需要乘以1000转换为毫秒
+          // 如果是字符串，直接解析
+          const timestamp = typeof text === 'number' ? text * 1000 : text;
+          const date = new Date(timestamp);
+          if (isNaN(date.getTime())) return '-';
+          return date.toLocaleString('zh-CN');
+        } catch (e) {
+          return '-';
+        }
+      },
     },
     {
       title: '更新时间',
@@ -292,7 +423,19 @@ const Deployment: React.FC = () => {
       key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text) => {
+        if (!text) return '-';
+        try {
+          // 如果是Unix时间戳（秒级），需要乘以1000转换为毫秒
+          // 如果是字符串，直接解析
+          const timestamp = typeof text === 'number' ? text * 1000 : text;
+          const date = new Date(timestamp);
+          if (isNaN(date.getTime())) return '-';
+          return date.toLocaleString('zh-CN');
+        } catch (e) {
+          return '-';
+        }
+      },
     },
     {
       title: '操作',
@@ -427,20 +570,33 @@ const Deployment: React.FC = () => {
         {selectedService && (
           <Descriptions column={1} bordered>
             <Descriptions.Item label="服务ID">
-              {selectedService.serviceId || selectedService.id || '-'}
+              {selectedService.id || selectedService.serviceId || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="服务名称">
               {selectedService.name || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="状态">
-              {(selectedService.status || selectedService.status === 0) ? (
-                <Tag color={getStatusColor(selectedService.status)}>
-                  {String(selectedService.status)}
-                </Tag>
+              {selectedService.status ? (
+                (() => {
+                  let statusValue: any = selectedService.status;
+                  if (statusValue && typeof statusValue === 'object') {
+                    statusValue = statusValue.text || statusValue.value || statusValue.name || null;
+                  }
+                  if (!statusValue && statusValue !== 0) return '-';
+                  const statusStr = String(statusValue);
+                  const statusTextMap: Record<string, string> = {
+                    Running: '运行中',
+                    Stopped: '已停止',
+                    Creating: '创建中',
+                    Error: '错误',
+                  };
+                  const displayText = statusTextMap[statusStr] || statusStr;
+                  return <Tag color={getStatusColor(statusStr)}>{displayText}</Tag>;
+                })()
               ) : '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="资源池ID">
-              {selectedService.resourcePool?.resourcePoolId || '-'}
+            <Descriptions.Item label="资源池">
+              {selectedService.resourcePoolName || selectedService.resourcePoolId || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="队列名称">
               {selectedService.queueName || '-'}
@@ -448,8 +604,8 @@ const Deployment: React.FC = () => {
             <Descriptions.Item label="副本数">
               {selectedService.replicas !== undefined ? selectedService.replicas : '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="所有者">
-              {selectedService.ownerName || selectedService.owner || '-'}
+            <Descriptions.Item label="创建者">
+              {selectedService.creator || selectedService.ownerName || selectedService.owner || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="描述">
               {selectedService.description || '-'}
@@ -463,12 +619,32 @@ const Deployment: React.FC = () => {
             )}
             <Descriptions.Item label="创建时间">
               {selectedService.createdAt 
-                ? new Date(selectedService.createdAt).toLocaleString() 
+                ? (() => {
+                    try {
+                      const timestamp = typeof selectedService.createdAt === 'number' 
+                        ? selectedService.createdAt * 1000 
+                        : selectedService.createdAt;
+                      const date = new Date(timestamp);
+                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (e) {
+                      return '-';
+                    }
+                  })()
                 : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="更新时间">
               {selectedService.updatedAt 
-                ? new Date(selectedService.updatedAt).toLocaleString() 
+                ? (() => {
+                    try {
+                      const timestamp = typeof selectedService.updatedAt === 'number' 
+                        ? selectedService.updatedAt * 1000 
+                        : selectedService.updatedAt;
+                      const date = new Date(timestamp);
+                      return isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                    } catch (e) {
+                      return '-';
+                    }
+                  })()
                 : '-'}
             </Descriptions.Item>
             {selectedService.config && (

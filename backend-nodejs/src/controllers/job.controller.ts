@@ -15,26 +15,15 @@ export class JobController {
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
-    let baseURL = mlResourceConfig.baseURL;
-    if (!baseURL) {
-      const datasetConfig = yamlConfig.getDatasetConfig();
-      baseURL = datasetConfig.hostGray || datasetConfig.hostProduction?.bj || AIHC_DEFAULT_BASE_URL;
-    }
-    
-    // 确保 baseURL 有协议前缀（如果缺少协议，自动添加 http://）
-    if (baseURL && !baseURL.match(/^https?:\/\//)) {
-      baseURL = `http://${baseURL}`;
-    }
     
     // 使用机器学习平台资源配置创建SDK实例，如果配置为空则回退到数据集任务配置
-    const jobConfig = yamlConfig.getDatasetJobConfig();
     return new AihcSDK({
-      accessKey: (mlResourceConfig.ak || jobConfig.ak) as string,
-      secretKey: (mlResourceConfig.sk || jobConfig.sk) as string,
-      baseURL: baseURL,
-      defaultResourcePoolId: (mlResourceConfig.poolId || jobConfig.poolId) as string,
-      defaultQueue: (mlResourceConfig.queueId || jobConfig.queueId) as string,
-      defaultPfsInstanceId: (mlResourceConfig.pfsInstanceId || jobConfig.pfs) as string,
+      accessKey: mlResourceConfig.ak,
+      secretKey: mlResourceConfig.sk,
+      baseURL: mlResourceConfig.baseURL || 'https://aihc.bj.baidubce.com',
+      defaultResourcePoolId: mlResourceConfig.poolId || '',
+      defaultQueue: mlResourceConfig.queueId || '',
+      defaultPfsInstanceId: mlResourceConfig.pfsInstanceId || '',
     });
   }
 
@@ -43,23 +32,19 @@ export class JobController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { resourcePoolId, keyword, status, owner } = req.query;
+      const { keyword, status, owner } = req.query;
       const requestBody: any = {};
       
       if (keyword) requestBody.keyword = keyword;
       if (status) requestBody.status = status;
       if (owner) requestBody.owner = owner;
       
-      // 如果没有指定资源池ID，从配置文件读取
-      let finalResourcePoolId = resourcePoolId as string;
-      if (!finalResourcePoolId) {
-        const yamlConfig = YamlConfigManager.getInstance();
-        const mlResourceConfig = yamlConfig.getMLResourceConfig();
-        finalResourcePoolId = mlResourceConfig.poolId;
-      }
+      // 从配置文件读取poolId/queueId
+      const yamlConfig = YamlConfigManager.getInstance();
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
       
       const sdk = JobController.getJobSDK();
-      const result = await sdk.describeJobs(finalResourcePoolId || undefined, Object.keys(requestBody).length > 0 ? requestBody : undefined);
+      const result = await sdk.describeJobs(mlResourceConfig.poolId, mlResourceConfig.queueId, requestBody);
 
       ResponseUtils.success(res, result);
     } catch (error) {

@@ -276,16 +276,6 @@ export class YamlConfigManager {
     };
   }
 
-  /**
-   * 获取iCafe配置（已废弃，返回空对象）
-   * @deprecated
-   */
-  public getIcafeConfig() {
-    return {
-      username: '',
-      password: '',
-    };
-  }
 
   /**
    * 获取IM配置（已废弃，返回空对象）
