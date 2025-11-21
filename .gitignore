@@ -130,11 +130,10 @@ temp/
 tmp/
 *.tmp
 *.temp
-frontend-antd/node_modules/**/*
+frontend/node_modules/**/*
 config.yaml
 # .doc/*
 .env.backup
 
-frontend-baige/node_modules/**/*
-backend-nodejs/node_modules/*
+backend/node_modules/*
 .docs/*
