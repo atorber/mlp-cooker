@@ -183,7 +183,7 @@ npm run start:prod
 - `deploy.json`、`train.json`、`create-job.json`、`deploy-tool.json`：操作模板
 - `{action-type}.command.sh`：命令脚本
 
-详细文档请参考：[`backend/data/app/README.md`](backend/data/app/README.md)
+详细文档请参考：[`backend/data/app/README.md`](https://github.com/atorber/mlp-cooker/blob/main/backend/data/app/README.md)
 
 ### 3. 部署 (Deployment)
 服务部署管理：
@@ -392,7 +392,7 @@ npm run start:prod
 3. 创建操作模板文件（`deploy.json`、`train.json` 等）
 4. 创建命令脚本文件（`{action-type}.command.sh`）
 
-详细步骤请参考：[`backend/data/app/README.md`](backend/data/app/README.md)
+详细步骤请参考：[`backend/data/app/README.md`](https://github.com/atorber/mlp-cooker/blob/main/backend/data/app/README.md)
 
 ### 样式开发
 
