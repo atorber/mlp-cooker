@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
 import { AihcSDK, AIHC_DEFAULT_BASE_URL } from '@/utils/sdk/aihc.sdk';
 import { YamlConfigManager } from '@/config/yaml-config';
+import { TaskConverter } from '@/utils/task-converter';
 
 /**
  * 服务部署控制器
@@ -13,10 +14,10 @@ export class ServiceController {
   private static getServiceSDK(): AihcSDK {
     const yamlConfig = YamlConfigManager.getInstance();
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
-    
+
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
     const baseURL = mlResourceConfig.baseURL
-    
+
     // 使用机器学习平台资源配置创建SDK实例，如果配置为空则回退到数据集任务配置
     return new AihcSDK({
       accessKey: mlResourceConfig.ak,
@@ -34,7 +35,7 @@ export class ServiceController {
   public static async list(req: Request, res: Response): Promise<void> {
     try {
       const { pageNumber = 1, pageSize = 1000, orderBy, order, serviceId, serviceName, keyword } = req.query;
-      
+
       const sdk = ServiceController.getServiceSDK();
       const result = await sdk.describeServices({
         pageNumber: Number(pageNumber),
@@ -72,12 +73,12 @@ export class ServiceController {
 
       if (searchServiceId || searchServiceName) {
         const searchKeyword = (searchServiceId || searchServiceName || '').toLowerCase().trim();
-        
+
         if (searchKeyword) {
           services = services.filter((service: any) => {
             const serviceId = (service.id || service.serviceId || '').toLowerCase();
             const serviceName = (service.name || '').toLowerCase();
-            
+
             // 支持按服务ID或服务名称模糊匹配
             return serviceId.includes(searchKeyword) || serviceName.includes(searchKeyword);
           });
@@ -112,7 +113,7 @@ export class ServiceController {
   public static async get(req: Request, res: Response): Promise<void> {
     try {
       const { serviceId } = req.params;
-      
+
       if (!serviceId) {
         ResponseUtils.error(res, '服务ID不能为空');
         return;
@@ -136,7 +137,7 @@ export class ServiceController {
   public static async getStatus(req: Request, res: Response): Promise<void> {
     try {
       const { serviceId } = req.params;
-      
+
       if (!serviceId) {
         ResponseUtils.error(res, '服务ID不能为空');
         return;
@@ -171,7 +172,7 @@ export class ServiceController {
     try {
       const { taskParams } = req.body;
       const { clientToken } = req.query;
-      
+
       if (!taskParams) {
         ResponseUtils.error(res, '任务参数字段不能为空');
         return;
@@ -195,28 +196,35 @@ export class ServiceController {
         return;
       }
 
-      // 从配置文件读取资源池ID和队列ID
       const yamlConfig = YamlConfigManager.getInstance();
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
-      
+
       const resourcePoolId = mlResourceConfig.poolId;
       const queueName = mlResourceConfig.queueId;
 
-      if (!resourcePoolId || !queueName) {
-        ResponseUtils.error(res, '配置文件中缺少资源池ID或队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID');
-        return;
+      // 检查是否为新版统一数据结构
+      if (TaskConverter.isUnifiedServiceParams(requestBody)) {
+        requestBody = TaskConverter.toServiceSDKParams(requestBody);
+      } else {
+
+        if (!resourcePoolId || !queueName) {
+          ResponseUtils.error(res, '配置文件中缺少资源池ID或队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID');
+          return;
+        }
+
+        // 确保请求体中的 queue 字段和配置的 queueID 一致
+        if (!requestBody.resourcePool) requestBody.resourcePool = {};
+        requestBody.resourcePool.queueName = queueName;
+        requestBody.resourcePool.resourcePoolId = resourcePoolId;
       }
 
-      // 确保请求体中的 queue 字段和配置的 queueID 一致
-      requestBody.queue = queueName;
+      if (resourcePoolId === 'aihc-serverless') {
+        if (!requestBody.resourcePool) requestBody.resourcePool = {};
+        requestBody.resourcePool.resourcePoolType = 'serverless';
+      }
 
       const sdk = ServiceController.getServiceSDK();
-      const result = await sdk.createService(
-        requestBody,
-        resourcePoolId,
-        queueName,
-        clientToken as string
-      );
+      const result = await sdk.createService(requestBody, clientToken as string);
 
       ResponseUtils.success(res, result, '服务创建成功');
     } catch (error) {
@@ -233,7 +241,7 @@ export class ServiceController {
   public static async delete(req: Request, res: Response): Promise<void> {
     try {
       const { serviceId } = req.params;
-      
+
       if (!serviceId) {
         ResponseUtils.error(res, '服务ID不能为空');
         return;

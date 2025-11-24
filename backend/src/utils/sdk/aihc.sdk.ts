@@ -47,10 +47,10 @@ export class AihcSDK extends BaseService {
   constructor(config?: Partial<AihcConfig>) {
     super('AihcSDK');
     const yamlConfig = YamlConfigManager.getInstance();
-    
+
     // 优先使用传入的配置，其次使用机器学习平台资源配置，最后使用数据集配置
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
-    
+
     this.config = {
       accessKey: config?.accessKey || mlResourceConfig.ak,
       secretKey: config?.secretKey || mlResourceConfig.sk,
@@ -200,7 +200,7 @@ export class AihcSDK extends BaseService {
           // POST/PUT 请求如果没有提供 body，使用空对象
           bodyToSend = {};
         }
-        
+
         // 将 body 序列化为 JSON 字符串，确保 Content-Length 可以被正确计算
         // 即使 BceBaseClient 会自动处理，显式序列化可以避免 Content-Length 计算问题
         requestOptions.body = JSON.stringify(bodyToSend);
@@ -259,9 +259,9 @@ export class AihcSDK extends BaseService {
   /**
    * 查询训练任务列表
    */
-  async describeJobs(resourcePoolId: string = '',queueID: string = '', requestBody: RequestBody = {}): Promise<any> {
-    if (queueID){
-        requestBody.queue = queueID;
+  async describeJobs(resourcePoolId: string = '', queueID: string = '', requestBody: RequestBody = {}): Promise<any> {
+    if (queueID) {
+      requestBody.queue = queueID;
     }
 
     return this.withRetry(async () => {
@@ -659,12 +659,12 @@ export class AihcSDK extends BaseService {
   ): Promise<any> {
     return this.withRetry(async () => {
       const body = { ...requestBody };
-      
+
       // 如果设置了资源池ID、队列名称，替换请求体中的对应值
       if (resourcePoolId || queueName) {
         if (!body.conf) body.conf = {};
         if (!(body.conf as any).resourcePool) (body.conf as any).resourcePool = {};
-        
+
         const resourcePool = (body.conf as any).resourcePool;
         if (resourcePoolId) resourcePool.resourcePoolId = resourcePoolId;
         if (queueName) resourcePool.queueName = queueName;
@@ -749,20 +749,12 @@ export class AihcSDK extends BaseService {
    */
   async createService(
     requestBody: RequestBody,
-    resourcePoolId?: string,
-    queueName?: string,
     clientToken?: string
   ): Promise<any> {
     return this.withRetry(async () => {
+      // 浅拷贝 requestBody，并确保 resourcePool 也是新对象，避免副作用
       const body = { ...requestBody };
-      
-      // 如果设置了资源池ID、队列名称，替换请求体中的对应值
-      if (resourcePoolId || queueName) {
-        if (!body.resourcePool) body.resourcePool = {};
-        const resourcePool = body.resourcePool as any;
-        if (resourcePoolId) resourcePool.resourcePoolId = resourcePoolId;
-        if (queueName) resourcePool.queueName = queueName;
-      }
+      body.resourcePool = { ...(body.resourcePool || {}) };
 
       const params: QueryParams = {};
       if (clientToken) params.clientToken = clientToken;

@@ -16,9 +16,11 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Radio,
   Space,
   Tag,
 } from 'antd';
+import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
 import React, { useRef, useState } from 'react';
 import { request, history } from '@umijs/max';
 
@@ -58,6 +60,7 @@ const Training: React.FC = () => {
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
   const [envVariables, setEnvVariables] = useState<Array<{ name: string; value: string; placeholder?: string }>>([]);
+  const [paramFormat, setParamFormat] = useState<'unified' | 'native'>('unified');
 
   // 获取训练任务列表
   const fetchJobs = async (params: any) => {
@@ -146,13 +149,13 @@ const Training: React.FC = () => {
   // 提取所有 envs 变量（无论是否有值）
   const extractEnvVariables = (taskParams: any): Array<{ name: string; value: string; placeholder?: string }> => {
     const envVars: Array<{ name: string; value: string; placeholder?: string }> = [];
-    
+
     if (!taskParams || typeof taskParams !== 'object') {
       return envVars;
     }
 
-    // 检查 jobSpec.envs
-    const envs = taskParams.jobSpec?.envs || taskParams.envs || [];
+    // 检查 jobSpec.envs (原生结构) 或 container.envs (统一结构)
+    const envs = taskParams.jobSpec?.envs || taskParams.container?.envs || taskParams.envs || [];
     if (Array.isArray(envs)) {
       envs.forEach((env: any) => {
         if (env && typeof env === 'object' && env.name) {
@@ -178,9 +181,22 @@ const Training: React.FC = () => {
     // 深拷贝避免修改原对象
     const result = JSON.parse(JSON.stringify(taskParams));
 
-    // 更新 jobSpec.envs
+    // 更新 jobSpec.envs (原生结构)
     if (result.jobSpec?.envs && Array.isArray(result.jobSpec.envs)) {
       result.jobSpec.envs = result.jobSpec.envs.map((env: any) => {
+        if (env && typeof env === 'object' && env.name === envName) {
+          return {
+            ...env,
+            value: envValue,
+          };
+        }
+        return env;
+      });
+    }
+
+    // 更新 container.envs (统一结构)
+    if (result.container?.envs && Array.isArray(result.container.envs)) {
+      result.container.envs = result.container.envs.map((env: any) => {
         if (env && typeof env === 'object' && env.name === envName) {
           return {
             ...env,
@@ -574,16 +590,16 @@ const Training: React.FC = () => {
                 } else {
                   return;
                 }
-                
+
                 const envVars = extractEnvVariables(taskParams);
                 setEnvVariables(envVars);
-                
+
                 // 从 taskParams 中提取 env 的值，初始化环境变量输入框
                 const envInitialValues: Record<string, string> = {};
                 envVars.forEach((envVar) => {
                   envInitialValues[`env_${envVar.name}`] = envVar.value || '';
                 });
-                
+
                 if (Object.keys(envInitialValues).length > 0) {
                   createForm.setFieldsValue(envInitialValues);
                 }
@@ -613,16 +629,16 @@ const Training: React.FC = () => {
                 } else {
                   return;
                 }
-                
+
                 const envVars = extractEnvVariables(taskParams);
                 setEnvVariables(envVars);
-                
+
                 // 从 taskParams 中提取 env 的值，更新所有环境变量输入框
                 const envValues: Record<string, string> = {};
                 envVars.forEach((envVar) => {
                   envValues[`env_${envVar.name}`] = envVar.value || '';
                 });
-                
+
                 // 批量更新环境变量输入框的值（避免触发循环更新）
                 if (Object.keys(envValues).length > 0) {
                   // 使用 setTimeout 避免在 onValuesChange 中直接 setFieldsValue 导致的循环更新
@@ -635,13 +651,13 @@ const Training: React.FC = () => {
                 setEnvVariables([]);
               }
             }
-            
+
             // 当 env 输入框改变时，实时更新 taskParams 中的值（双向联动）
             Object.keys(changedValues).forEach((key) => {
               if (key.startsWith('env_')) {
                 const envName = key.replace('env_', '');
                 const envValue = changedValues[key] ?? '';
-                
+
                 try {
                   const currentTaskParams = allValues.taskParams;
                   let taskParams: any;
@@ -652,17 +668,17 @@ const Training: React.FC = () => {
                   } else {
                     return;
                   }
-                  
+
                   // 更新 taskParams 中的 envs 值
                   const updatedTaskParams = updateEnvInTaskParams(taskParams, envName, envValue);
-                  
+
                   // 更新表单中的 taskParams 字段（避免触发循环更新）
                   setTimeout(() => {
                     createForm.setFieldsValue({
                       taskParams: JSON.stringify(updatedTaskParams, null, 2),
                     });
                   }, 0);
-                  
+
                   // 更新 envVariables 状态
                   setEnvVariables((prev) =>
                     prev.map((envVar) =>
@@ -705,7 +721,37 @@ const Training: React.FC = () => {
               ))}
             </Form.Item>
           )}
+
+          <Form.Item label="参数格式">
+            <Radio.Group
+              value={paramFormat}
+              onChange={(e) => {
+                const format = e.target.value;
+                setParamFormat(format);
+                createForm.setFieldsValue({
+                  taskParams: format === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS,
+                });
+                // 触发 envs 重新提取
+                const params = format === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS;
+                try {
+                  const parsed = JSON.parse(params);
+                  const envVars = extractEnvVariables(parsed);
+                  setEnvVariables(envVars);
+                  const envInitialValues: Record<string, string> = {};
+                  envVars.forEach((envVar) => {
+                    envInitialValues[`env_${envVar.name}`] = envVar.value || '';
+                  });
+                  createForm.setFieldsValue(envInitialValues);
+                } catch (e) { }
+              }}
+            >
+              <Radio.Button value="unified">统一结构 (推荐)</Radio.Button>
+              <Radio.Button value="native">原生结构 (AIHC)</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+
           <Form.Item
+
             name="taskParams"
             label="任务参数（JSON格式）"
             rules={[
@@ -727,31 +773,12 @@ const Training: React.FC = () => {
                 },
               },
             ]}
+            initialValue={UNIFIED_JOB_PARAMS}
           >
             <TextArea
               rows={15}
               placeholder={`请输入任务参数（JSON格式），例如：
-{
-  "name": "test-job",
-  "command": "sleep 1d",
-  "jobType": "PyTorchJob",
-  "jobSpec": {
-    "replicas": 1,
-    "image": "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release",
-    "resources": [],
-    "envs": [
-      {
-        "name": "NCCL_DEBUG",
-        "value": "DEBUG"
-      },
-      {
-        "name": "DATASET_URL",
-        "value": ""
-      }
-    ],
-    "enableRDMA": true
-  }
-}
+${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
 
 注意：如果上面填写了启动命令，任务参数中的 command 字段将被启动命令替换
 注意：任务参数中的 envs 会显示为输入框，修改时会实时同步到任务参数中`}

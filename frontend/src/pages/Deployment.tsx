@@ -15,9 +15,11 @@ import {
   Input,
   Modal,
   Popconfirm,
+  Radio,
   Space,
   Tag,
 } from 'antd';
+import { UNIFIED_TASK_PARAMS, NATIVE_TASK_PARAMS } from './Deployment_constants';
 import React, { useRef, useState } from 'react';
 import { request } from '@umijs/max';
 
@@ -54,6 +56,8 @@ interface Service {
   [key: string]: any;
 }
 
+
+
 const Deployment: React.FC = () => {
   const { message: messageApi } = App.useApp();
   const proTableRef = useRef<ActionType>(null);
@@ -63,6 +67,7 @@ const Deployment: React.FC = () => {
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
   const [envVariables, setEnvVariables] = useState<Array<{ name: string; value: string; placeholder?: string }>>([]);
+  const [paramFormat, setParamFormat] = useState<'unified' | 'native'>('unified');
 
   // 获取服务状态（批量）
   const fetchServicesStatus = async (services: Service[]): Promise<Service[]> => {
@@ -762,7 +767,25 @@ const Deployment: React.FC = () => {
               ))}
             </Form.Item>
           )}
+
+          <Form.Item label="参数格式">
+            <Radio.Group
+              value={paramFormat}
+              onChange={(e) => {
+                const format = e.target.value;
+                setParamFormat(format);
+                createForm.setFieldsValue({
+                  taskParams: format === 'unified' ? UNIFIED_TASK_PARAMS : NATIVE_TASK_PARAMS,
+                });
+              }}
+            >
+              <Radio.Button value="unified">统一结构 (推荐)</Radio.Button>
+              <Radio.Button value="native">原生结构 (AIHC)</Radio.Button>
+            </Radio.Group>
+          </Form.Item>
+
           <Form.Item
+
             name="taskParams"
             label="任务参数（JSON格式）"
             rules={[
@@ -784,19 +807,12 @@ const Deployment: React.FC = () => {
                 },
               },
             ]}
+            initialValue={UNIFIED_TASK_PARAMS}
           >
             <TextArea
-              rows={15}
+              rows={25}
               placeholder={`请输入任务参数（JSON格式），例如：
-{
-  "name": "test-service",
-  "command": "sleep 1d",
-  "replicas": 1,
-  "resourceSpec": {
-    "cpus": 2,
-    "memory": 4
-  }
-}
+${paramFormat === 'unified' ? UNIFIED_TASK_PARAMS : NATIVE_TASK_PARAMS}
 
 注意：如果上面填写了启动命令，任务参数中的 command 字段将被启动命令替换
 注意：任务参数中的 envs 会显示为输入框，修改时会实时同步到任务参数中`}
@@ -882,31 +898,31 @@ const Deployment: React.FC = () => {
             <Descriptions.Item label="创建时间">
               {selectedService.createdAt
                 ? (() => {
-                    try {
-                      const timestamp = typeof selectedService.createdAt === 'number'
-                        ? selectedService.createdAt * 1000
-                        : selectedService.createdAt;
-                      const date = new Date(timestamp);
-                      return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (_e) {
-                      return '-';
-                    }
-                  })()
+                  try {
+                    const timestamp = typeof selectedService.createdAt === 'number'
+                      ? selectedService.createdAt * 1000
+                      : selectedService.createdAt;
+                    const date = new Date(timestamp);
+                    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                  } catch (_e) {
+                    return '-';
+                  }
+                })()
                 : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="更新时间">
               {selectedService.updatedAt
                 ? (() => {
-                    try {
-                      const timestamp = typeof selectedService.updatedAt === 'number'
-                        ? selectedService.updatedAt * 1000
-                        : selectedService.updatedAt;
-                      const date = new Date(timestamp);
-                      return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
-                    } catch (_e) {
-                      return '-';
-                    }
-                  })()
+                  try {
+                    const timestamp = typeof selectedService.updatedAt === 'number'
+                      ? selectedService.updatedAt * 1000
+                      : selectedService.updatedAt;
+                    const date = new Date(timestamp);
+                    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('zh-CN');
+                  } catch (_e) {
+                    return '-';
+                  }
+                })()
                 : '-'}
             </Descriptions.Item>
             {selectedService.config && (

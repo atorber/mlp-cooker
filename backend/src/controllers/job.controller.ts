@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
 import { AihcSDK, AIHC_DEFAULT_BASE_URL } from '@/utils/sdk/aihc.sdk';
 import { YamlConfigManager } from '@/config/yaml-config';
+import { TaskConverter } from '@/utils/task-converter';
 
 /**
  * 训练任务控制器
@@ -13,9 +14,9 @@ export class JobController {
   private static getJobSDK(): AihcSDK {
     const yamlConfig = YamlConfigManager.getInstance();
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
-    
+
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
-    
+
     // 使用机器学习平台资源配置创建SDK实例，如果配置为空则回退到数据集任务配置
     return new AihcSDK({
       accessKey: mlResourceConfig.ak,
@@ -34,15 +35,15 @@ export class JobController {
     try {
       const { keyword, status, owner } = req.query;
       const requestBody: any = {};
-      
+
       if (keyword) requestBody.keyword = keyword;
       if (status) requestBody.status = status;
       if (owner) requestBody.owner = owner;
-      
+
       // 从配置文件读取poolId/queueId
       const yamlConfig = YamlConfigManager.getInstance();
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
-      
+
       const sdk = JobController.getJobSDK();
       const result = await sdk.describeJobs(mlResourceConfig.poolId, mlResourceConfig.queueId, requestBody);
 
@@ -62,7 +63,7 @@ export class JobController {
     try {
       const { jobId } = req.params;
       const { resourcePoolId, queueID, needDetail } = req.query;
-      
+
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
@@ -93,7 +94,7 @@ export class JobController {
   public static async create(req: Request, res: Response): Promise<void> {
     try {
       const { taskParams } = req.body;
-      
+
       if (!taskParams) {
         ResponseUtils.error(res, '任务参数字段不能为空');
         return;
@@ -120,7 +121,7 @@ export class JobController {
       // 从配置文件读取资源池ID和队列ID
       const yamlConfig = YamlConfigManager.getInstance();
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
-      
+
       const resourcePoolId = mlResourceConfig.poolId;
       const queueID = mlResourceConfig.queueId;
 
@@ -129,37 +130,36 @@ export class JobController {
         return;
       }
 
-      // 确保请求体中的 queue 字段和配置的 queueID 一致
-      requestBody.queue = queueID;
+      // 检查是否为新版统一数据结构
+      if (TaskConverter.isUnifiedJobParams(requestBody)) {
+        requestBody = TaskConverter.toJobSDKParams(requestBody);
+      } else {
+        // 旧版逻辑
+        // 确保请求体中的 queue 字段和配置的 queueID 一致
+        requestBody.queue = queueID;
 
-      // 处理 datasources 数组，确保符合接口文档要求
-      // 接口文档要求字段名为 datasources（复数）
-      // DataSource 字段定义：
-      // - type: String, 必选，枚举值：pfs/hostPath/dataset/bos
-      // - name: String, 必选，数据源名称（type为pfs时填写pfs实例id，type为bos时默认为空）
-      // - sourcePath: String, 必选，源路径（type为pfs时默认为/）
-      // - mountPath: String, 必选，容器内挂载路径
-      // - options: Option, 可选，数据源参数
-      if (Array.isArray(requestBody.datasources)) {
-        requestBody.datasources = requestBody.datasources.map((ds: any) => {
-          const processedDs: any = { ...ds };
-          
-          // 处理 type === 'pfs' 的情况
-          if (processedDs.type === 'pfs') {
-            processedDs.name = mlResourceConfig.pfsInstanceId;
-            processedDs.sourcePath = '/';
-            processedDs.mountPath = '/data';
-          }
-          
-          // 处理 type === 'bos' 的情况（name 默认为空）
-          if (processedDs.type === 'bos') {
-            processedDs.name = '';
-            processedDs.sourcePath = `${mlResourceConfig.bucket}/`;
-            processedDs.mountPath = '/data';
-          }
-          
-          return processedDs;
-        });
+        // 处理 datasources 数组，确保符合接口文档要求
+        if (Array.isArray(requestBody.datasources)) {
+          requestBody.datasources = requestBody.datasources.map((ds: any) => {
+            const processedDs: any = { ...ds };
+
+            // 处理 type === 'pfs' 的情况
+            if (processedDs.type === 'pfs') {
+              processedDs.name = mlResourceConfig.pfsInstanceId;
+              processedDs.sourcePath = '/';
+              processedDs.mountPath = '/data';
+            }
+
+            // 处理 type === 'bos' 的情况（name 默认为空）
+            if (processedDs.type === 'bos') {
+              processedDs.name = '';
+              processedDs.sourcePath = `${mlResourceConfig.bucket}/`;
+              processedDs.mountPath = '/data';
+            }
+
+            return processedDs;
+          });
+        }
       }
 
       const sdk = JobController.getJobSDK();
@@ -185,7 +185,7 @@ export class JobController {
     try {
       const { jobId } = req.params;
       const { resourcePoolId } = req.query;
-      
+
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
@@ -210,7 +210,7 @@ export class JobController {
     try {
       const { jobId } = req.params;
       const { resourcePoolId } = req.query;
-      
+
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
@@ -235,7 +235,7 @@ export class JobController {
     try {
       const { jobId } = req.params;
       const { resourcePoolId, startTime, endTime } = req.query;
-      
+
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
@@ -265,7 +265,7 @@ export class JobController {
     try {
       const { jobId, podName } = req.params;
       const { resourcePoolId, keywords, startTime, endTime, maxLines, chunkSize, marker } = req.query;
-      
+
       if (!jobId || !podName) {
         ResponseUtils.error(res, '训练任务ID和Pod名称不能为空');
         return;
