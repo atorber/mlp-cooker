@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkpages=globalThis.webpackChunkpages||[]).push([[1903],{1912:o=>{o.exports=JSON.parse('{"blogBasePath":"/mlp-cooker/blog","blogTitle":"Blog","authorsListPath":"/mlp-cooker/blog/authors"}')}}]);
