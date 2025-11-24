@@ -5,14 +5,14 @@
             "name": "Start Backend",
             "type": "node-terminal",
             "request": "launch",
-            "command": "cd backend-nodejs && npm run dev",
+            "command": "cd backend && npm run dev",
             "cwd": "${workspaceFolder}"
         },
         {
             "name": "Start Frontend",
             "type": "node-terminal",
             "request": "launch",
-            "command": "cd frontend-antd && npm run start",
+            "command": "cd frontend && npm run start",
             "cwd": "${workspaceFolder}"
         }
     ],
