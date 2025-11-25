@@ -9,12 +9,14 @@ import {
   ProCard,
   ProForm,
   ProFormDigit,
+  ProFormSelect,
   ProFormSwitch,
   ProFormText,
   ProFormTextArea,
 } from '@ant-design/pro-components';
 import { Alert, App, Button, Space, Spin, Typography } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { request } from '@umijs/max';
 import {
   getConfig,
   updateConfig,
@@ -35,6 +37,76 @@ const Settings: React.FC = () => {
   const [configData, setConfigData] = useState<ConfigData>({});
   const [configFileExists, setConfigFileExists] = useState(false);
   const [configFilePath, setConfigFilePath] = useState('');
+  const [queueList, setQueueList] = useState<Array<{ label: string; value: string }>>([]);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [formRef, setFormRef] = useState<any>(null);
+
+  // 查询队列列表
+  const fetchQueueList = async (resourcePoolId: string) => {
+    if (!resourcePoolId || !resourcePoolId.trim()) {
+      setQueueList([]);
+      return;
+    }
+
+    setQueueLoading(true);
+    try {
+      const response = await request('/api/resources/queues', {
+        method: 'GET',
+        params: {
+          resourcePoolId: resourcePoolId.trim(),
+          pageSize: 100, // 使用较大的 pageSize 以获取更多队列
+          pageNumber: 1,
+        },
+      });
+
+      if (response.success) {
+        // 处理响应数据格式
+        let queues: any[] = [];
+        const data = response.data;
+
+        if (Array.isArray(data)) {
+          queues = data;
+        } else if (data?.queues && Array.isArray(data.queues)) {
+          queues = data.queues;
+        } else if (data?.data && Array.isArray(data.data)) {
+          queues = data.data;
+        } else if (data?.result && Array.isArray(data.result)) {
+          queues = data.result;
+        }
+
+        // 提取所有 children 下的队列（扁平化处理）
+        const childQueues: any[] = [];
+        queues.forEach((queue: any) => {
+          if (queue.children && Array.isArray(queue.children) && queue.children.length > 0) {
+            // 添加所有子队列
+            childQueues.push(...queue.children);
+          }
+        });
+
+        // 转换为下拉选项格式
+        const queueOptions = childQueues.map((queue: any) => {
+          const queueId = queue.queueId || queue.id || queue.queue_id || '';
+          const queueName = queue.queueName || queue.name || queue.queue_name || queueId;
+          return {
+            label: `${queueName} (${queueId})`,
+            value: queueId,
+          };
+        });
+
+        setQueueList(queueOptions);
+      } else {
+        message.error(response.message || '获取队列列表失败');
+        setQueueList([]);
+      }
+    } catch (error: any) {
+      console.error('获取队列列表失败:', error);
+      const errorMessage = error?.info?.errorMessage || error?.message || '获取队列列表失败';
+      message.error(errorMessage);
+      setQueueList([]);
+    } finally {
+      setQueueLoading(false);
+    }
+  };
 
   // 加载配置数据
   const loadConfig = async () => {
@@ -42,9 +114,18 @@ const Settings: React.FC = () => {
     try {
       const response = await getConfig();
       if (response.success && response.data) {
-        setConfigData(response.data.config || {});
+        const newConfigData = response.data.config || {};
+        setConfigData(newConfigData);
         setConfigFileExists(response.data.config_file_exists);
         setConfigFilePath(response.data.config_file_path);
+        
+        // 如果配置中有资源池ID，自动查询队列列表
+        const resourcePoolId = newConfigData['ML_PLATFORM_RESOURCE_POOL_ID'];
+        if (resourcePoolId && resourcePoolId.trim()) {
+          fetchQueueList(resourcePoolId);
+        } else {
+          setQueueList([]);
+        }
       } else {
         message.error(response.message || '加载配置失败');
       }
@@ -128,6 +209,7 @@ const Settings: React.FC = () => {
     loadConfig();
   }, []);
 
+
   // 获取配置项的友好标签和说明
   const getConfigLabel = (key: string) => {
     const labelMap: { [key: string]: { label: string; tooltip?: string } } = {
@@ -183,11 +265,74 @@ const Settings: React.FC = () => {
       // AK 直接显示，SK 使用密码输入框（带显示/隐藏按钮）
       const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK';
       const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK';
+      const isQueueId = key === 'ML_PLATFORM_RESOURCE_QUEUE_ID';
+      const isResourcePoolId = key === 'ML_PLATFORM_RESOURCE_POOL_ID';
       const isOtherPassword =
         (key.toLowerCase().includes('password') ||
          key.toLowerCase().includes('secret') ||
          key.toLowerCase().includes('token')) &&
         !isSecretKey && !isAccessKey;
+
+      // 队列ID使用下拉选择
+      if (isQueueId) {
+        return (
+          <ProFormSelect
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value || undefined}
+            options={queueList}
+            fieldProps={{
+              placeholder: configData['ML_PLATFORM_RESOURCE_POOL_ID'] 
+                ? '请选择队列' 
+                : '请先设置资源池ID',
+              loading: queueLoading,
+              disabled: !configData['ML_PLATFORM_RESOURCE_POOL_ID'] || queueLoading,
+              showSearch: true,
+              filterOption: (input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
+            }}
+          />
+        );
+      }
+
+      // 资源池ID变化时重新查询队列列表
+      if (isResourcePoolId) {
+        return (
+          <ProFormText
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value || ''}
+            fieldProps={{
+              placeholder: `请输入${label}`,
+            }}
+            dependencies={['ML_PLATFORM_RESOURCE_QUEUE_ID']}
+            onValuesChange={(changedValues) => {
+              if (changedValues[key]) {
+                // 资源池ID改变时，查询新的队列列表
+                fetchQueueList(changedValues[key]);
+                // 清空队列ID选择
+                if (formRef) {
+                  formRef.setFieldsValue({
+                    'ML_PLATFORM_RESOURCE_QUEUE_ID': undefined,
+                  });
+                }
+              } else {
+                // 如果资源池ID被清空，清空队列列表和队列ID
+                setQueueList([]);
+                if (formRef) {
+                  formRef.setFieldsValue({
+                    'ML_PLATFORM_RESOURCE_QUEUE_ID': undefined,
+                  });
+                }
+              }
+            }}
+          />
+        );
+      }
 
       if (typeof value === 'boolean') {
         return (
@@ -324,6 +469,7 @@ const Settings: React.FC = () => {
 
           <ProCard title="机器学习平台资源配置">
             <ProForm
+              formRef={(ref) => setFormRef(ref)}
               onFinish={handleSaveConfig}
               submitter={{
                 render: (props, _doms) => [
