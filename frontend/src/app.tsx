@@ -10,6 +10,7 @@ import {
   AvatarName,
   Footer,
   Question,
+  QueueInfo,
   SelectLang,
 } from '@/components';
 import { currentUser as queryCurrentUser } from '@/services/ant-design-pro/api';
@@ -68,6 +69,7 @@ export const layout: RunTimeLayoutConfig = ({
 }) => {
   return {
     actionsRender: () => [
+      <QueueInfo key="queue-info" />,
       <Question key="doc" />,
       <SelectLang key="SelectLang" />,
     ],

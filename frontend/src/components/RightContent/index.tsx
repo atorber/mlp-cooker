@@ -30,3 +30,5 @@ export const Question: React.FC = () => {
     </a>
   );
 };
+
+export { QueueInfo } from './QueueInfo';
