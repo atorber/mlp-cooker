@@ -77,6 +77,13 @@ export default [
     hideInMenu: true,
   },
   {
+    name: 'terminal',
+    path: '/terminal',
+    component: './Terminal',
+    hideInMenu: true,
+    layout: false,
+  },
+  {
     name: 'resource',
     icon: 'database',
     path: '/resource',

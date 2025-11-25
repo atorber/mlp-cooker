@@ -21,10 +21,12 @@ import {
   Space,
   Table,
   Tag,
+  Tabs,
 } from 'antd';
 import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
 import React, { useRef, useState } from 'react';
 import { request, history } from '@umijs/max';
+import WebShellProxyWithProps from '@/pages/WebShellProxy/WebShellProxyWithProps';
 
 const { TextArea } = Input;
 
@@ -63,6 +65,9 @@ const Training: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [envVariables, setEnvVariables] = useState<Array<{ name: string; value: string; placeholder?: string }>>([]);
   const [paramFormat, setParamFormat] = useState<'unified' | 'native'>('unified');
+  const [terminalUrl, setTerminalUrl] = useState<string | null>(null);
+  const [selectedPodForTerminal, setSelectedPodForTerminal] = useState<{jobId: string; podName: string} | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('detail');
 
   // 获取训练任务列表
   const fetchJobs = async (params: any) => {
@@ -138,7 +143,7 @@ const Training: React.FC = () => {
         // 处理响应数据格式
         const data = response.data;
         let job: Job | null = null;
-        
+
         if (data?.job) {
           job = data.job;
         } else if (data?.data) {
@@ -146,7 +151,7 @@ const Training: React.FC = () => {
         } else if (typeof data === 'object') {
           job = data as Job;
         }
-        
+
         setSelectedJob(job);
         setDrawerVisible(true);
       } else {
@@ -164,15 +169,24 @@ const Training: React.FC = () => {
   const handleConnectTerminal = async (jobId: string, podName: string) => {
     try {
       messageApi.loading({ content: '正在获取终端地址...', key: 'terminal', duration: 0 });
-      
+
       const response = await request(`/api/jobs/${jobId}/pods/${podName}/webterminal`, {
         method: 'GET',
       });
 
-      if (response.success && response.data?.WebTerminalUrl) {
-        messageApi.success({ content: '终端地址获取成功', key: 'terminal' });
-        // 在新窗口中打开 Web Terminal
-        window.open(response.data.WebTerminalUrl, '_blank', 'width=1200,height=800');
+      if (response.success) {
+        // 支持两种字段名（WebTerminalUrl 和 webTerminalUrl）
+        const url = response.data?.WebTerminalUrl || response.data?.webTerminalUrl;
+
+        if (url) {
+          messageApi.success({ content: '终端地址获取成功', key: 'terminal' });
+          // 保存终端 URL 和 Pod 信息，并切换到终端标签页
+          setTerminalUrl(url);
+          setSelectedPodForTerminal({ jobId, podName });
+          setActiveTab('terminal');
+        } else {
+          messageApi.error({ content: '返回数据中未找到终端地址', key: 'terminal' });
+        }
       } else {
         messageApi.error({ content: response.message || '获取终端地址失败', key: 'terminal' });
       }
@@ -841,16 +855,28 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
       {/* 训练任务详情抽屉 */}
       <Drawer
         title="训练任务详情"
-        width={800}
+        width={1200}
         open={drawerVisible}
         onClose={() => {
           setDrawerVisible(false);
           setSelectedJob(null);
+          setTerminalUrl(null);
+          setSelectedPodForTerminal(null);
+          setActiveTab('detail');
         }}
         loading={detailLoading}
       >
         {selectedJob && (
-          <Descriptions column={1} bordered>
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              {
+                key: 'detail',
+                label: '任务详情',
+                children: (
+                  <>
+                    <Descriptions column={1} bordered>
             <Descriptions.Item label="任务ID">
               {selectedJob.jobId || selectedJob.id || '-'}
             </Descriptions.Item>
@@ -925,21 +951,19 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
                 </pre>
               </Descriptions.Item>
             )}
-          </Descriptions>
-        )}
+                    </Descriptions>
 
-        {/* Pod 列表 */}
-        {selectedJob && (
-          <div style={{ marginTop: 24 }}>
-            <h3 style={{ marginBottom: 16 }}>Pod 列表</h3>
+                    {/* Pod 列表 */}
+                    <div style={{ marginTop: 24 }}>
+                      <h3 style={{ marginBottom: 16 }}>Pod 列表</h3>
             {(() => {
               // 尝试从不同路径获取 Pod 列表
-              const pods = selectedJob.pods || 
-                          selectedJob.podList || 
-                          selectedJob.replicas || 
-                          selectedJob.jobSpec?.replicas || 
+              const pods = selectedJob.pods ||
+                          selectedJob.podList ||
+                          selectedJob.replicas ||
+                          selectedJob.jobSpec?.replicas ||
                           [];
-              
+
               if (!Array.isArray(pods) || pods.length === 0) {
                 return <div style={{ color: '#999' }}>暂无 Pod 信息</div>;
               }
@@ -960,7 +984,7 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
               });
 
               const jobId = selectedJob.jobId || selectedJob.id || '';
-              
+
               return (
                 <Table
                   columns={[
@@ -977,7 +1001,7 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
                       render: (status: string) => {
                         if (!status) return '-';
                         const statusLower = String(status).toLowerCase();
-                        const color = 
+                        const color =
                           statusLower === 'running' ? 'success' :
                           statusLower === 'pending' ? 'warning' :
                           statusLower === 'failed' || statusLower === 'error' ? 'error' :
@@ -1012,9 +1036,31 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
                   pagination={false}
                   size="small"
                 />
-              );
-            })()}
-          </div>
+                    );
+                  })()}
+                    </div>
+                  </>
+                ),
+              },
+              {
+                key: 'terminal',
+                label: 'Web Terminal',
+                children: terminalUrl && selectedPodForTerminal ? (
+                  <div style={{ height: 'calc(100vh - 250px)', minHeight: 600, position: 'relative' }}>
+                    <WebShellProxyWithProps
+                      socketUrl={terminalUrl}
+                      jobId={selectedPodForTerminal.jobId}
+                      podName={selectedPodForTerminal.podName}
+                    />
+                  </div>
+                ) : (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
+                    请在 Pod 列表中点击"连接终端"按钮来打开终端
+                  </div>
+                ),
+              },
+            ]}
+          />
         )}
       </Drawer>
     </PageContainer>
