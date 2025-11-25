@@ -349,15 +349,17 @@ export class AihcSDK extends BaseService {
    * 获取训练任务 WebTerminal 地址
    */
   async describeJobWebterminal(
+    resourcePoolId: string,
     jobId: string,
     podName: string,
-    resourcePoolId?: string,
     handshakeTimeoutSecond: number = 30,
-    pingTimeoutSecond: number = 900
+    pingTimeoutSecond: number = 900,
+    queueID?: string
   ): Promise<any> {
     return this.withRetry(async () => {
       return this.sendRequest('POST', 'DescribeJobWebterminal', {
-        resourcePoolId: resourcePoolId || this.config.defaultResourcePoolId,
+        resourcePoolId,
+        queueID,
       }, {
         jobId,
         podName,

@@ -294,5 +294,47 @@ export class JobController {
       });
     }
   }
+
+  /**
+   * 获取训练任务 Web Terminal 地址
+   */
+  public static async getWebTerminal(req: Request, res: Response): Promise<void> {
+    try {
+      const { jobId, podName } = req.params;
+      const { handshakeTimeoutSecond, pingTimeoutSecond } = req.query;
+
+      if (!jobId || !podName) {
+        ResponseUtils.error(res, '训练任务ID和Pod名称不能为空');
+        return;
+      }
+
+      const sdk = JobController.getJobSDK();
+      
+      // 从配置文件读取资源池ID（如果查询参数中未提供）
+      const yamlConfig = YamlConfigManager.getInstance();
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
+      
+      const finalResourcePoolId = mlResourceConfig.poolId;
+      const handshakeTimeout = handshakeTimeoutSecond ? Number(handshakeTimeoutSecond) : 30;
+      const pingTimeout = pingTimeoutSecond ? Number(pingTimeoutSecond) : 900;
+      const finalQueueID = mlResourceConfig.queueId;
+
+      const result = await sdk.describeJobWebterminal(
+        finalResourcePoolId,
+        jobId,
+        podName,
+        handshakeTimeout,
+        pingTimeout,
+        finalQueueID,
+      );
+
+      ResponseUtils.success(res, result);
+    } catch (error) {
+      console.error('获取训练任务 Web Terminal 地址失败:', error);
+      ResponseUtils.error(res, '获取训练任务 Web Terminal 地址失败', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
 

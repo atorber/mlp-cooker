@@ -1,4 +1,4 @@
-import { ReloadOutlined } from '@ant-design/icons';
+import { ReloadOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { request } from '@umijs/max';
 import {
@@ -13,6 +13,7 @@ import {
   Table,
   Tag,
   Typography,
+  Alert,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 
@@ -128,6 +129,9 @@ const Resource: React.FC = () => {
     useState<ResourcePoolDetail | null>(null);
   const [resourcePoolLoading, setResourcePoolLoading] = useState(false);
   const [configQueueId, setConfigQueueId] = useState<string>('');
+  const [mlpCookerJob, setMlpCookerJob] = useState<any | null>(null);
+  const [mlpCookerJobLoading, setMlpCookerJobLoading] = useState(false);
+  const [initializing, setInitializing] = useState(false);
 
   // 获取配置中的队列ID
   useEffect(() => {
@@ -235,12 +239,103 @@ const Resource: React.FC = () => {
   useEffect(() => {
     if (configQueueId) {
       fetchQueueDetail();
+      fetchMlpCookerJob();
     }
   }, [configQueueId]);
+
+  // 查询 mlp-cooker job
+  const fetchMlpCookerJob = async () => {
+    if (!configQueueId) {
+      return;
+    }
+
+    setMlpCookerJobLoading(true);
+    try {
+      const response = await request('/api/jobs', {
+        method: 'POST',
+        data: {
+          keyword: 'mlp-cooker',
+        },
+      });
+
+      if (response.success && response.data) {
+        // 查找名称为 mlp-cooker 的 job
+        const jobs = response.data?.jobs || response.data?.data || [];
+        const job = jobs.find((j: any) => j.name === 'mlp-cooker');
+        setMlpCookerJob(job || null);
+      } else {
+        setMlpCookerJob(null);
+      }
+    } catch (error: any) {
+      console.error('查询 mlp-cooker job 失败:', error);
+      setMlpCookerJob(null);
+    } finally {
+      setMlpCookerJobLoading(false);
+    }
+  };
+
+  // 初始化 mlp-cooker job
+  const handleInitializeMlpCooker = async () => {
+    setInitializing(true);
+    try {
+      // 从配置文件读取资源池ID和队列ID（需要从队列详情中获取）
+      if (!actualQueueDetail?.resourcePoolId || !configQueueId) {
+        messageApi.error('缺少必要的配置信息，无法创建任务');
+        return;
+      }
+
+      // 构建任务参数
+      const taskParams = {
+        name: 'mlp-cooker',
+        queue: configQueueId,
+        jobType: 'PyTorchJob',
+        command: 'sleep 10000d',
+        jobSpec: {
+          replicas: 1,
+          image: 'registry.baidubce.com/inference/aibox-ubuntu:v2.0-22.04',
+          resources: [],
+          envs: [],
+          enableRDMA: false,
+        },
+        labels: [],
+        datasources: [
+          {
+            type: 'pfs',
+            name: '', // 后端会自动填充 PFS 实例 ID
+            sourcePath: '/',
+            mountPath: '/data',
+          },
+        ],
+      };
+
+      const response = await request('/api/jobs/create', {
+        method: 'POST',
+        data: {
+          taskParams: JSON.stringify(taskParams),
+        },
+      });
+
+      if (response.success) {
+        messageApi.success('mlp-cooker 任务创建成功');
+        // 重新查询 job 列表
+        await fetchMlpCookerJob();
+      } else {
+        messageApi.error(response.message || '创建 mlp-cooker 任务失败');
+      }
+    } catch (error: any) {
+      console.error('创建 mlp-cooker job 失败:', error);
+      const errorMessage =
+        error?.info?.errorMessage || error?.message || '创建 mlp-cooker 任务失败';
+      messageApi.error(errorMessage);
+    } finally {
+      setInitializing(false);
+    }
+  };
 
   // 刷新
   const handleRefresh = () => {
     fetchQueueDetail();
+    fetchMlpCookerJob();
   };
 
   // 计算加速卡使用率
@@ -476,6 +571,95 @@ const Resource: React.FC = () => {
         <Spin spinning={loading}>
           {actualQueueDetail ? (
             <>
+              {/* mlp-cooker 初始化卡片 */}
+              <Card style={{ marginBottom: 16 }}>
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                  <Title level={5} style={{ margin: 0 }}>
+                    MLP Cooker 常驻任务
+                  </Title>
+                  <Spin spinning={mlpCookerJobLoading}>
+                    {mlpCookerJob ? (
+                      <Alert
+                        message={
+                          <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                            <div>
+                              <Text strong>任务名称：</Text>
+                              <Text>{mlpCookerJob.name || '-'}</Text>
+                            </div>
+                            <div>
+                              <Text strong>任务ID：</Text>
+                              <Text code>{mlpCookerJob.jobId || mlpCookerJob.id || '-'}</Text>
+                            </div>
+                            <div>
+                              <Text strong>任务状态：</Text>
+                              {(() => {
+                                const status = mlpCookerJob.status
+                                  ? String(mlpCookerJob.status).toLowerCase()
+                                  : '';
+                                const statusTextMap: Record<string, string> = {
+                                  running: '运行中',
+                                  pending: '等待中',
+                                  stopped: '已停止',
+                                  completed: '已完成',
+                                  manualtermination: '手动终止',
+                                  error: '错误',
+                                  failed: '失败',
+                                };
+                                const displayText =
+                                  statusTextMap[status] ||
+                                  mlpCookerJob.status ||
+                                  '未知';
+                                const color =
+                                  status === 'running'
+                                    ? 'success'
+                                    : status === 'pending'
+                                      ? 'warning'
+                                      : status === 'stopped' ||
+                                          status === 'completed'
+                                        ? 'default'
+                                        : status === 'error' ||
+                                            status === 'failed'
+                                          ? 'error'
+                                          : 'default';
+                                return <Tag color={color}>{displayText}</Tag>;
+                              })()}
+                            </div>
+                            {mlpCookerJob.createdAt && (
+                              <div>
+                                <Text strong>创建时间：</Text>
+                                <Text>
+                                  {new Date(mlpCookerJob.createdAt).toLocaleString('zh-CN')}
+                                </Text>
+                              </div>
+                            )}
+                          </Space>
+                        }
+                        type="info"
+                        showIcon
+                        description="这是一个常驻任务，用于通过 WebShell 连接集群。"
+                      />
+                    ) : (
+                      <Alert
+                        message="未找到 mlp-cooker 任务"
+                        description="点击下方按钮初始化一个常驻任务，该任务将运行 sleep 10000d 命令，用于后续通过 WebShell 连接集群。"
+                        type="warning"
+                        showIcon
+                        action={
+                          <Button
+                            type="primary"
+                            icon={<ThunderboltOutlined />}
+                            onClick={handleInitializeMlpCooker}
+                            loading={initializing}
+                          >
+                            初始化
+                          </Button>
+                        }
+                      />
+                    )}
+                  </Spin>
+                </Space>
+              </Card>
+
               {/* 统计卡片 */}
               <Card style={{ marginBottom: 16 }}>
                 <Space size="large">

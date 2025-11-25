@@ -144,6 +144,9 @@ router.get('/api/jobs/:jobId/events', authMiddleware, JobController.getEvents);
 // 查询训练任务日志
 router.get('/api/jobs/:jobId/pods/:podName/logs', authMiddleware, JobController.getLogs);
 
+// 获取训练任务 Web Terminal 地址
+router.get('/api/jobs/:jobId/pods/:podName/webterminal', authMiddleware, JobController.getWebTerminal);
+
 /**
  * 任务相关路由（批量任务，自动过滤包含 task- 关键字的 job）
  */

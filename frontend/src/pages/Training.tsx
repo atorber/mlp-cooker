@@ -1,4 +1,5 @@
 import {
+  CodeOutlined,
   DeleteOutlined,
   EyeOutlined,
   PlusOutlined,
@@ -18,6 +19,7 @@ import {
   Popconfirm,
   Radio,
   Space,
+  Table,
   Tag,
 } from 'antd';
 import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
@@ -133,7 +135,19 @@ const Training: React.FC = () => {
       });
 
       if (response.success) {
-        setSelectedJob(response.data);
+        // 处理响应数据格式
+        const data = response.data;
+        let job: Job | null = null;
+        
+        if (data?.job) {
+          job = data.job;
+        } else if (data?.data) {
+          job = data.data;
+        } else if (typeof data === 'object') {
+          job = data as Job;
+        }
+        
+        setSelectedJob(job);
         setDrawerVisible(true);
       } else {
         messageApi.error(response.message || '获取训练任务详情失败');
@@ -143,6 +157,29 @@ const Training: React.FC = () => {
       messageApi.error('获取训练任务详情失败');
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  // 连接 Web Terminal
+  const handleConnectTerminal = async (jobId: string, podName: string) => {
+    try {
+      messageApi.loading({ content: '正在获取终端地址...', key: 'terminal', duration: 0 });
+      
+      const response = await request(`/api/jobs/${jobId}/pods/${podName}/webterminal`, {
+        method: 'GET',
+      });
+
+      if (response.success && response.data?.WebTerminalUrl) {
+        messageApi.success({ content: '终端地址获取成功', key: 'terminal' });
+        // 在新窗口中打开 Web Terminal
+        window.open(response.data.WebTerminalUrl, '_blank', 'width=1200,height=800');
+      } else {
+        messageApi.error({ content: response.message || '获取终端地址失败', key: 'terminal' });
+      }
+    } catch (error: any) {
+      console.error('获取终端地址失败:', error);
+      const errorMessage = error?.info?.errorMessage || error?.message || '获取终端地址失败';
+      messageApi.error({ content: errorMessage, key: 'terminal' });
     }
   };
 
@@ -889,6 +926,95 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
               </Descriptions.Item>
             )}
           </Descriptions>
+        )}
+
+        {/* Pod 列表 */}
+        {selectedJob && (
+          <div style={{ marginTop: 24 }}>
+            <h3 style={{ marginBottom: 16 }}>Pod 列表</h3>
+            {(() => {
+              // 尝试从不同路径获取 Pod 列表
+              const pods = selectedJob.pods || 
+                          selectedJob.podList || 
+                          selectedJob.replicas || 
+                          selectedJob.jobSpec?.replicas || 
+                          [];
+              
+              if (!Array.isArray(pods) || pods.length === 0) {
+                return <div style={{ color: '#999' }}>暂无 Pod 信息</div>;
+              }
+
+              // 处理 Pod 数据，确保每个 Pod 都有名称
+              const podList = pods.map((pod: any, index: number) => {
+                if (typeof pod === 'string') {
+                  return { name: pod };
+                } else if (pod && typeof pod === 'object') {
+                  return {
+                    name: pod.name || pod.podName || `pod-${index}`,
+                    status: pod.status || pod.phase,
+                    nodeName: pod.nodeName,
+                    ...pod,
+                  };
+                }
+                return { name: `pod-${index}` };
+              });
+
+              const jobId = selectedJob.jobId || selectedJob.id || '';
+              
+              return (
+                <Table
+                  columns={[
+                    {
+                      title: 'Pod 名称',
+                      dataIndex: 'name',
+                      key: 'name',
+                      render: (text: string) => <code>{text}</code>,
+                    },
+                    {
+                      title: '状态',
+                      dataIndex: 'status',
+                      key: 'status',
+                      render: (status: string) => {
+                        if (!status) return '-';
+                        const statusLower = String(status).toLowerCase();
+                        const color = 
+                          statusLower === 'running' ? 'success' :
+                          statusLower === 'pending' ? 'warning' :
+                          statusLower === 'failed' || statusLower === 'error' ? 'error' :
+                          'default';
+                        return <Tag color={color}>{status}</Tag>;
+                      },
+                    },
+                    {
+                      title: '节点名称',
+                      dataIndex: 'nodeName',
+                      key: 'nodeName',
+                      render: (text: string) => text || '-',
+                    },
+                    {
+                      title: '操作',
+                      key: 'action',
+                      width: 120,
+                      render: (_: any, record: any) => (
+                        <Button
+                          type="link"
+                          icon={<CodeOutlined />}
+                          onClick={() => handleConnectTerminal(jobId, record.name)}
+                          disabled={!jobId || !record.name}
+                        >
+                          连接终端
+                        </Button>
+                      ),
+                    },
+                  ]}
+                  dataSource={podList}
+                  rowKey="name"
+                  pagination={false}
+                  size="small"
+                />
+              );
+            })()}
+          </div>
         )}
       </Drawer>
     </PageContainer>
