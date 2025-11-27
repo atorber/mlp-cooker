@@ -322,7 +322,7 @@ const Welcome: React.FC = () => {
       title: '镜像',
       description: '管理预设镜像，支持查看和管理',
       icon: <CloudOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
-      path: '/preset-image',
+      path: '/image',
     },
   ];
 

@@ -88,14 +88,21 @@ const Task: React.FC = () => {
         };
       }
 
+      // 如果响应不成功，错误消息应该已经在 errorHandler 中处理
       return {
         data: [],
         success: false,
         total: 0,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取任务列表失败:', error);
-      messageApi.error('获取任务列表失败');
+      // 错误消息应该已经在全局 errorHandler 中显示，这里只记录日志
+      // 如果需要显示额外的错误信息，可以从 error.info 中获取
+      const errorMessage = error?.info?.errorMessage || error?.message || '获取任务列表失败';
+      if (!error?.info) {
+        // 如果错误没有被全局处理器处理，则显示错误
+        messageApi.error(errorMessage);
+      }
       return {
         data: [],
         success: false,

@@ -40,23 +40,43 @@ export class TaskController {
       const yamlConfig = YamlConfigManager.getInstance();
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       
+      // 验证必要的配置是否存在
+      if (!mlResourceConfig.ak || !mlResourceConfig.sk) {
+        ResponseUtils.error(res, '配置文件中缺少访问密钥（AK/SK），请在系统设置中配置 ML_PLATFORM_RESOURCE_AK 和 ML_PLATFORM_RESOURCE_SK', {
+          error: 'Missing access key or secret key'
+        });
+        return;
+      }
+
+      const resourcePoolId = mlResourceConfig.poolId || '';
+      const queueId = mlResourceConfig.queueId || '';
+
+      if (!resourcePoolId || !queueId) {
+        ResponseUtils.error(res, '配置文件中缺少资源池ID或队列ID，请在系统设置中配置 ML_PLATFORM_RESOURCE_POOL_ID 和 ML_PLATFORM_RESOURCE_QUEUE_ID', {
+          error: 'Missing resource pool ID or queue ID'
+        });
+        return;
+      }
+      
       // 获取任务SDK实例（使用机器学习平台资源配置）
       const sdk = new AihcSDK({
         accessKey: mlResourceConfig.ak,
         secretKey: mlResourceConfig.sk,
         baseURL: mlResourceConfig.baseURL || 'https://aihc.bj.baidubce.com',
-        defaultResourcePoolId: mlResourceConfig.poolId || '',
-        defaultQueue: mlResourceConfig.queueId || '',
+        defaultResourcePoolId: resourcePoolId,
+        defaultQueue: queueId,
         defaultPfsInstanceId: mlResourceConfig.pfsInstanceId || '',
       });
       
-      const result = await sdk.describeJobs(mlResourceConfig.poolId, mlResourceConfig.queueId, requestBody);
+      const result = await sdk.describeJobs('aihc-serverless', queueId, requestBody);
 
       ResponseUtils.success(res, result);
     } catch (error) {
       console.error('查询任务列表失败:', error);
-      ResponseUtils.error(res, '查询任务列表失败', {
-        error: error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      ResponseUtils.error(res, `查询任务列表失败: ${errorMessage}`, {
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
       });
     }
   }

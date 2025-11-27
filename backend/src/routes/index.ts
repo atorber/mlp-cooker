@@ -8,6 +8,7 @@ import { JobController } from '@/controllers/job.controller';
 import { AppController } from '@/controllers/app.controller';
 import { ResourceController } from '@/controllers/resource.controller';
 import { TaskController } from '@/controllers/task.controller';
+import { ImageController } from '@/controllers/image.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -176,5 +177,32 @@ router.get('/api/resources/pools', authMiddleware, ResourceController.listResour
 
 // 查询资源池详情
 router.get('/api/resources/pools/:resourcePoolId', authMiddleware, ResourceController.getResourcePool);
+
+/**
+ * 镜像相关路由 - 需要认证
+ */
+// 查询镜像列表
+router.get('/api/images', authMiddleware, ImageController.list);
+
+// 创建镜像
+router.post('/api/images', authMiddleware, ImageController.create);
+
+// 查询镜像详情
+router.get('/api/images/:id', authMiddleware, ImageController.get);
+
+// 更新镜像
+router.put('/api/images/:id', authMiddleware, ImageController.update);
+
+// 删除镜像
+router.delete('/api/images/:id', authMiddleware, ImageController.delete);
+
+// 更新镜像状态
+router.put('/api/images/:id/status', authMiddleware, ImageController.updateStatus);
+
+// 查询镜像版本列表
+router.get('/api/images/:id/versions', authMiddleware, ImageController.listVersions);
+
+// 创建镜像版本
+router.post('/api/images/:id/versions', authMiddleware, ImageController.createVersion);
 
 export default router;

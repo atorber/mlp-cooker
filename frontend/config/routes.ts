@@ -65,15 +65,15 @@ export default [
     component: './Model',
   },
   {
-    name: 'preset-image',
+    name: 'image',
     icon: 'cloud',
-    path: '/preset-image',
-    component: './PresetImage',
+    path: '/image',
+    component: './Image',
   },
   {
-    name: 'preset-image-detail',
-    path: '/preset-image/detail/:id',
-    component: './PresetImageDetail',
+    name: 'image-detail',
+    path: '/image/detail/:id',
+    component: './ImageDetail',
     hideInMenu: true,
   },
   {

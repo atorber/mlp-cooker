@@ -33,8 +33,8 @@ import { request } from '@umijs/max';
 const { Title, Paragraph, Text, Link } = Typography;
 const { Option } = Select;
 
-// 预置镜像数据类型
-interface PresetImage {
+// 镜像数据类型
+interface Image {
   id: string;
   name: string;
   imageId: string;
@@ -64,13 +64,13 @@ interface ImageVersion {
   createTime: string;
 }
 
-const PresetImageDetail: React.FC = () => {
+const ImageDetail: React.FC = () => {
   const params = useParams<{ id: string }>();
   const { id } = params;
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [versionLoading, setVersionLoading] = useState(false);
-  const [imageDetail, setImageDetail] = useState<PresetImage | null>(null);
+  const [imageDetail, setImageDetail] = useState<Image | null>(null);
   const [versions, setVersions] = useState<ImageVersion[]>([]);
   const [activeTab, setActiveTab] = useState('intro');
   const [versionModalVisible, setVersionModalVisible] = useState(false);
@@ -82,7 +82,7 @@ const PresetImageDetail: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await request(`/api/preset-images/${id}`, {
+      const response = await request(`/api/images/${id}`, {
         method: 'GET',
       });
 
@@ -105,7 +105,7 @@ const PresetImageDetail: React.FC = () => {
 
     setVersionLoading(true);
     try {
-      const response = await request(`/api/preset-images/${id}/versions`, {
+      const response = await request(`/api/images/${id}/versions`, {
         method: 'GET',
       });
 
@@ -146,7 +146,7 @@ const PresetImageDetail: React.FC = () => {
         imageAddress: imageDetail?.imageAddress || '',
       };
 
-      const response = await request(`/api/preset-images/${id}/versions`, {
+      const response = await request(`/api/images/${id}/versions`, {
         method: 'POST',
         data: versionData,
       });
@@ -232,7 +232,7 @@ const PresetImageDetail: React.FC = () => {
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}
-          onClick={() => history.push('/preset-image/manage')}
+          onClick={() => history.push('/image')}
         >
           返回 {imageDetail.name}
         </Button>
@@ -539,4 +539,4 @@ address = {Atlanta, USA}
   );
 };
 
-export default PresetImageDetail;
+export default ImageDetail;

@@ -38,8 +38,8 @@ import { request } from '@umijs/max';
 const { Option } = Select;
 const { TextArea } = Input;
 
-// 预置镜像数据类型
-interface PresetImage {
+// 镜像数据类型
+interface Image {
   id: string;
   name: string;
   imageId: string;
@@ -58,42 +58,22 @@ interface PresetImage {
   license?: string;
 }
 
-const PresetImage: React.FC = () => {
+const Image: React.FC = () => {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
-  const [statistics, setStatistics] = useState<{ [key: string]: number }>({
-    total: 0,
-  });
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<PresetImage | null>(null);
+  const [selectedImage, setSelectedImage] = useState<Image | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingImage, setEditingImage] = useState<PresetImage | null>(null);
+  const [editingImage, setEditingImage] = useState<Image | null>(null);
   const [form] = Form.useForm();
   const proTableRef = useRef<ActionType>(null);
 
-  // 获取统计数据
-  const fetchStatistics = async () => {
-    try {
-      const response = await request('/api/preset-images', {
-        method: 'GET',
-        params: { pageNo: 1, pageSize: 10 },
-      });
-
-      if (response.success) {
-        const total = response.data?.total || 0;
-        setStatistics({ total });
-      }
-    } catch (error) {
-      console.error('获取统计数据失败:', error);
-    }
-  };
-
-  // 获取预置镜像列表
-  const fetchPresetImages = async (params: any = {}) => {
+  // 获取镜像列表
+  const fetchImages = async (params: any = {}) => {
     setLoading(true);
     try {
-      const response = await request('/api/preset-images', {
+      const response = await request('/api/images', {
         method: 'GET',
         params: {
           pageNo: params.current || params.pageNo || 1,
@@ -115,7 +95,7 @@ const PresetImage: React.FC = () => {
           total: total,
         };
       } else {
-        message.error(response.message || '获取预置镜像列表失败');
+        message.error(response.message || '获取镜像列表失败');
         return {
           data: [],
           success: false,
@@ -123,7 +103,7 @@ const PresetImage: React.FC = () => {
         };
       }
     } catch (error: any) {
-      console.error('获取预置镜像列表失败:', error);
+      console.error('获取镜像列表失败:', error);
       message.error(`无法连接到后端服务: ${error.message}`);
       return {
         data: [],
@@ -135,89 +115,82 @@ const PresetImage: React.FC = () => {
     }
   };
 
-  // 组件加载时获取统计数据
-  useEffect(() => {
-    fetchStatistics();
-  }, []);
-
-  // 创建预置镜像
+  // 创建镜像
   const handleCreate = async (values: any) => {
     try {
-      const response = await request('/api/preset-images', {
+      const response = await request('/api/images', {
         method: 'POST',
         data: values,
       });
 
       if (response.success) {
-        message.success('创建预置镜像成功');
+        message.success('创建镜像成功');
         setCreateModalVisible(false);
         form.resetFields();
-        fetchStatistics();
         proTableRef.current?.reload();
       } else {
-        message.error(response.message || '创建预置镜像失败');
+        message.error(response.message || '创建镜像失败');
       }
     } catch (error: any) {
-      console.error('创建预置镜像失败:', error);
-      message.error(`创建预置镜像失败: ${error.message}`);
+      console.error('创建镜像失败:', error);
+      message.error(`创建镜像失败: ${error.message}`);
     }
   };
 
-  // 编辑预置镜像
+  // 编辑镜像
   const handleEdit = async (values: any) => {
     if (!editingImage) return;
 
     try {
-      const response = await request(`/api/preset-images/${editingImage.id}`, {
+      const response = await request(`/api/images/${editingImage.id}`, {
         method: 'PUT',
         data: values,
       });
 
       if (response.success) {
-        message.success('更新预置镜像成功');
+        message.success('更新镜像成功');
         setEditModalVisible(false);
         setEditingImage(null);
         form.resetFields();
         proTableRef.current?.reload();
       } else {
-        message.error(response.message || '更新预置镜像失败');
+        message.error(response.message || '更新镜像失败');
       }
     } catch (error: any) {
-      console.error('更新预置镜像失败:', error);
-      message.error(`更新预置镜像失败: ${error.message}`);
+      console.error('更新镜像失败:', error);
+      message.error(`更新镜像失败: ${error.message}`);
     }
   };
 
-  // 删除预置镜像
-  const handleDelete = async (image: PresetImage) => {
+  // 删除镜像
+  const handleDelete = async (image: Image) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除预置镜像 "${image.name}" 吗？`,
+      content: `确定要删除镜像 "${image.name}" 吗？`,
       onOk: async () => {
         try {
-          const response = await request(`/api/preset-images/${image.id}`, {
+          const response = await request(`/api/images/${image.id}`, {
             method: 'DELETE',
           });
 
           if (response.success) {
-            message.success('删除预置镜像成功');
-            fetchStatistics();
+            message.success('删除镜像成功');
             proTableRef.current?.reload();
           } else {
-            message.error(response.message || '删除预置镜像失败');
+            message.error(response.message || '删除镜像失败');
           }
         } catch (error: any) {
-          console.error('删除预置镜像失败:', error);
-          message.error(`删除预置镜像失败: ${error.message}`);
+          console.error('删除镜像失败:', error);
+          message.error(`删除镜像失败: ${error.message}`);
         }
       },
     });
   };
 
   // 更新状态
-  const _handleStatusChange = async (image: PresetImage, newStatus: string) => {
+  const _handleStatusChange = async (image: Image, newStatus: string) => {
     try {
-      const response = await request(`/api/preset-images/${image.id}/status`, {
+      const response = await request(`/api/images/${image.id}/status`, {
         method: 'PUT',
         data: { status: newStatus },
       });
@@ -235,9 +208,9 @@ const PresetImage: React.FC = () => {
   };
 
   // 查看镜像详情
-  const handleViewImage = async (record: PresetImage) => {
+  const handleViewImage = async (record: Image) => {
     try {
-      const response = await request(`/api/preset-images/${record.id}`, {
+      const response = await request(`/api/images/${record.id}`, {
         method: 'GET',
       });
 
@@ -257,17 +230,17 @@ const PresetImage: React.FC = () => {
   };
 
   // 查看镜像简介
-  const handleViewIntroduction = (record: PresetImage) => {
-    history.push(`/preset-image/detail/${record.id}?tab=intro`);
+  const handleViewIntroduction = (record: Image) => {
+    history.push(`/image/detail/${record.id}?tab=intro`);
   };
 
   // 查看镜像版本
-  const handleViewVersions = (record: PresetImage) => {
-    history.push(`/preset-image/detail/${record.id}?tab=versions`);
+  const handleViewVersions = (record: Image) => {
+    history.push(`/image/detail/${record.id}?tab=versions`);
   };
 
   // 上架镜像
-  const handleOnline = async (record: PresetImage) => {
+  const handleOnline = async (record: Image) => {
     Modal.confirm({
       title: '确认上架',
       content: `确定要将镜像"${record.name}"上架吗？`,
@@ -276,7 +249,7 @@ const PresetImage: React.FC = () => {
       okType: 'primary',
       onOk: async () => {
         try {
-          const response = await request(`/api/preset-images/${record.id}/status`, {
+          const response = await request(`/api/images/${record.id}/status`, {
             method: 'PUT',
             data: { status: 'online' },
           });
@@ -296,7 +269,7 @@ const PresetImage: React.FC = () => {
   };
 
   // 下架镜像
-  const handleOffline = async (record: PresetImage) => {
+  const handleOffline = async (record: Image) => {
     Modal.confirm({
       title: '确认下架',
       content: `确定要将镜像"${record.name}"下架吗？`,
@@ -305,7 +278,7 @@ const PresetImage: React.FC = () => {
       okType: 'danger',
       onOk: async () => {
         try {
-          const response = await request(`/api/preset-images/${record.id}/status`, {
+          const response = await request(`/api/images/${record.id}/status`, {
             method: 'PUT',
             data: { status: 'offline' },
           });
@@ -325,7 +298,7 @@ const PresetImage: React.FC = () => {
   };
 
   // 打开编辑模态框
-  const openEditModal = (image: PresetImage) => {
+  const openEditModal = (image: Image) => {
     setEditingImage(image);
     form.setFieldsValue(image);
     setEditModalVisible(true);
@@ -355,7 +328,7 @@ const PresetImage: React.FC = () => {
       width: 250,
       ellipsis: true,
       copyable: true,
-      render: (text: any, record: PresetImage) => (
+      render: (text: any, record: Image) => (
         <div>
           <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{text}</div>
           <div style={{ fontSize: '12px', color: '#666' }}>{record.imageId}</div>
@@ -366,7 +339,7 @@ const PresetImage: React.FC = () => {
       title: '框架',
       dataIndex: 'frameworks',
       width: 200,
-      render: (_: any, record: PresetImage) => (
+      render: (_: any, record: Image) => (
         <Space wrap>
           {record.frameworks?.map((framework: string) => (
             <Tag key={framework} color="blue">{framework}</Tag>
@@ -378,7 +351,7 @@ const PresetImage: React.FC = () => {
       title: '适用范围',
       dataIndex: 'applicableScopes',
       width: 200,
-      render: (_: any, record: PresetImage) => (
+      render: (_: any, record: Image) => (
         <Space wrap>
           {record.applicableScopes?.map((scope: string) => (
             <Tag key={scope} color="purple">{scope}</Tag>
@@ -390,7 +363,7 @@ const PresetImage: React.FC = () => {
       title: '芯片类型',
       dataIndex: 'chipType',
       width: 100,
-      render: (_: any, record: PresetImage) => {
+      render: (_: any, record: Image) => {
         const color = record.chipType === 'GPU' ? 'blue' : record.chipType === 'CPU' ? 'green' : 'purple';
         return <Tag color={color}>{record.chipType}</Tag>;
       },
@@ -399,7 +372,7 @@ const PresetImage: React.FC = () => {
       title: '预置CUDA',
       dataIndex: 'presetCuda',
       width: 100,
-      render: (_: any, record: PresetImage) => (
+      render: (_: any, record: Image) => (
         <Tag color={record.presetCuda ? 'green' : 'default'}>
           {record.presetCuda ? '是' : '否'}
         </Tag>
@@ -409,7 +382,7 @@ const PresetImage: React.FC = () => {
       title: '状态',
       dataIndex: 'status',
       width: 100,
-      render: (_: any, record: PresetImage) => renderStatusTag(record.status),
+      render: (_: any, record: Image) => renderStatusTag(record.status),
     },
     {
       title: '最后更新时间',
@@ -421,7 +394,7 @@ const PresetImage: React.FC = () => {
       title: '操作',
       width: 360,
       fixed: 'right' as const,
-      render: (_: any, record: PresetImage) => (
+      render: (_: any, record: Image) => (
         <Space wrap>
           <Button
             type="text"
@@ -496,8 +469,8 @@ const PresetImage: React.FC = () => {
 
   return (
     <PageContainer
-      title="预置镜像列表"
-      subTitle="查看AIHC预置镜像，支持创建、查看和管理"
+      title="镜像列表"
+      subTitle="管理镜像，支持创建、查看和管理"
       extra={
         <Space>
           <Button
@@ -505,7 +478,7 @@ const PresetImage: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => setCreateModalVisible(true)}
           >
-            创建预置镜像
+            创建镜像
           </Button>
           <Button
             icon={<ReloadOutlined />}
@@ -516,44 +489,6 @@ const PresetImage: React.FC = () => {
         </Space>
       }
     >
-      {/* 统计区域 */}
-      <Card style={{ marginBottom: 24 }}>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={6}>
-            <Statistic
-              title="总镜像数"
-              value={statistics.total}
-              prefix={<CloudOutlined />}
-              valueStyle={{ fontSize: '24px', fontWeight: 'bold' }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Statistic
-              title="上架镜像"
-              value={0}
-              prefix={<CloudOutlined />}
-              valueStyle={{ color: '#52c41a', fontSize: '24px', fontWeight: 'bold' }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Statistic
-              title="下架镜像"
-              value={0}
-              prefix={<CloudServerOutlined />}
-              valueStyle={{ color: '#ff4d4f', fontSize: '24px', fontWeight: 'bold' }}
-            />
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Statistic
-              title="待上线镜像"
-              value={0}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#faad14', fontSize: '24px', fontWeight: 'bold' }}
-            />
-          </Col>
-        </Row>
-      </Card>
-
       {/* 数据表格区域 */}
       <Card>
         <div
@@ -569,7 +504,7 @@ const PresetImage: React.FC = () => {
           </h4>
         </div>
 
-        <ProTable<PresetImage>
+        <ProTable<Image>
           actionRef={proTableRef}
           columns={columns}
           loading={loading}
@@ -585,7 +520,7 @@ const PresetImage: React.FC = () => {
           search={{
             labelWidth: 'auto',
           }}
-          request={fetchPresetImages}
+          request={fetchImages}
           scroll={{ x: 1200 }}
           size="middle"
         />
@@ -593,7 +528,7 @@ const PresetImage: React.FC = () => {
 
       {/* 创建模态框 */}
       <Modal
-        title="创建预置镜像"
+            title="创建镜像"
         open={createModalVisible}
         onCancel={() => {
           setCreateModalVisible(false);
@@ -705,7 +640,7 @@ const PresetImage: React.FC = () => {
 
       {/* 编辑模态框 */}
       <Modal
-        title="编辑预置镜像"
+            title="编辑镜像"
         open={editModalVisible}
         onCancel={() => {
           setEditModalVisible(false);
@@ -900,7 +835,7 @@ const PresetImage: React.FC = () => {
                   type="primary"
                   onClick={() => {
                     setDrawerVisible(false);
-                    history.push(`/preset-image/detail/${selectedImage.id}`);
+                    history.push(`/image/detail/${selectedImage.id}`);
                   }}
                 >
                   查看详情
@@ -931,4 +866,4 @@ const PresetImage: React.FC = () => {
   );
 };
 
-export default PresetImage;
+export default Image;

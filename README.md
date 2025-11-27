@@ -344,7 +344,7 @@ npm run start:prod
 │   │   │   ├── Task.tsx
 │   │   │   ├── Dataset.tsx
 │   │   │   ├── Model.tsx
-│   │   │   ├── PresetImage.tsx
+│   │   │   ├── Image.tsx
 │   │   │   ├── Resource.tsx
 │   │   │   └── Settings.tsx
 │   │   ├── components/      # React 组件

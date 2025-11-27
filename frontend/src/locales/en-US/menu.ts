@@ -55,8 +55,8 @@ export default {
   'menu.task': 'Task',
   'menu.dataset': 'Dataset',
   'menu.model': 'Model',
-  'menu.preset-image': 'Image',
-  'menu.preset-image-detail': 'Image Detail',
+  'menu.image': 'Image',
+  'menu.image-detail': 'Image Detail',
   'menu.resource': 'Resource',
   'menu.settings': 'Settings',
 };

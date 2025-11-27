@@ -55,8 +55,8 @@ export default {
   'menu.task': '任务',
   'menu.dataset': '数据集',
   'menu.model': '模型',
-  'menu.preset-image': '镜像',
-  'menu.preset-image-detail': '镜像详情',
+  'menu.image': '镜像',
+  'menu.image-detail': '镜像详情',
   'menu.resource': '计算资源',
   'menu.settings': '系统设置',
 };
