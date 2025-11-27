@@ -3,6 +3,7 @@ import {
   EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -52,6 +53,11 @@ const Model: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
+  const [versionDrawerVisible, setVersionDrawerVisible] = useState(false);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [selectedModelId, setSelectedModelId] = useState<string>('');
+  const [selectedModelName, setSelectedModelName] = useState<string>('');
+  const [versions, setVersions] = useState<any[]>([]);
 
   // 获取模型列表
   const fetchModels = async (params: any) => {
@@ -191,6 +197,46 @@ const Model: React.FC = () => {
     }
   };
 
+  // 查看模型版本
+  const handleViewVersions = async (record: Model) => {
+    const modelId = record.modelId || record.id || '';
+    setSelectedModelId(modelId);
+    setSelectedModelName(record.name || '');
+    setVersionDrawerVisible(true);
+    setVersionLoading(true);
+    try {
+      const response = await request(`/api/models/${modelId}/versions`, {
+        method: 'GET',
+      });
+
+      if (response.success) {
+        const data = response.data;
+        let versionList: any[] = [];
+        
+        if (Array.isArray(data)) {
+          versionList = data;
+        } else if (data?.versions && Array.isArray(data.versions)) {
+          versionList = data.versions;
+        } else if (data?.result && Array.isArray(data.result)) {
+          versionList = data.result;
+        } else if (data?.data && Array.isArray(data.data)) {
+          versionList = data.data;
+        } else if (data?.list && Array.isArray(data.list)) {
+          versionList = data.list;
+        }
+        
+        setVersions(versionList);
+      } else {
+        messageApi.error(response.message || '获取版本列表失败');
+      }
+    } catch (error) {
+      console.error('获取版本列表失败:', error);
+      messageApi.error('获取版本列表失败');
+    } finally {
+      setVersionLoading(false);
+    }
+  };
+
   // 表格列定义
   const columns: ProColumns<Model>[] = [
     {
@@ -265,16 +311,27 @@ const Model: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
-      fixed: 'right',
+      width: 240,
+      fixed: 'right' as const,
       render: (_: any, record: Model) => (
-        <Space>
+        <Space wrap>
           <Button
-            type="link"
+            type="text"
+            size="small"
             icon={<EyeOutlined />}
             onClick={() => fetchModelDetail(record.modelId || record.id || '')}
+            style={{ color: '#1890ff' }}
           >
             详情
+          </Button>
+          <Button
+            type="text"
+            size="small"
+            icon={<BranchesOutlined />}
+            onClick={() => handleViewVersions(record)}
+            style={{ color: '#722ed1' }}
+          >
+            版本
           </Button>
           <Popconfirm
             title="确定要删除这个模型吗？"
@@ -282,7 +339,7 @@ const Model: React.FC = () => {
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
               删除
             </Button>
           </Popconfirm>
@@ -515,6 +572,78 @@ const Model: React.FC = () => {
             )}
           </>
         )}
+      </Drawer>
+
+      {/* 版本列表抽屉 */}
+      <Drawer
+        title={`模型版本列表 - ${selectedModelName || ''}`}
+        placement="right"
+        width={1000}
+        open={versionDrawerVisible}
+        onClose={() => {
+          setVersionDrawerVisible(false);
+          setVersions([]);
+          setSelectedModelId('');
+          setSelectedModelName('');
+        }}
+        loading={versionLoading}
+        destroyOnClose
+      >
+        <ProTable
+          rowKey={(record) => record.id || record.versionId || record.version || ''}
+          columns={[
+            {
+              title: '版本号',
+              dataIndex: 'version',
+              width: 150,
+            },
+            {
+              title: '版本ID',
+              dataIndex: 'id',
+              width: 200,
+              ellipsis: true,
+              render: (text, record) => text || record.versionId || '-',
+            },
+            {
+              title: '来源',
+              dataIndex: 'source',
+              width: 150,
+              render: (text) => text ? <Tag>{text}</Tag> : '-',
+            },
+            {
+              title: '存储桶',
+              dataIndex: 'storageBucket',
+              width: 150,
+              ellipsis: true,
+            },
+            {
+              title: '存储路径',
+              dataIndex: 'storagePath',
+              ellipsis: true,
+            },
+            {
+              title: '创建时间',
+              dataIndex: 'createdAt',
+              width: 180,
+              render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+            },
+            {
+              title: '创建用户',
+              dataIndex: 'createUserName',
+              width: 120,
+              render: (text, record) => text || record.createUser || '-',
+            },
+          ]}
+          dataSource={versions}
+          loading={versionLoading}
+          search={false}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+          }}
+          options={false}
+          toolBarRender={false}
+        />
       </Drawer>
     </PageContainer>
   );

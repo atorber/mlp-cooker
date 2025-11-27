@@ -1,0 +1,282 @@
+[
+  {
+    "id": "preset-pytorch-gpu-001",
+    "name": "PyTorch GPU",
+    "imageId": "pytorch-gpu-base",
+    "frameworks": ["PyTorch"],
+    "applicableScopes": ["开发机", "分布式训练", "在线服务部署"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "基于PyTorch的GPU训练镜像，预置CUDA和cuDNN，适用于深度学习模型训练和推理",
+    "imageAddress": "registry.example.com/pytorch/pytorch-gpu:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "PyTorch是Facebook开源的深度学习框架，本镜像包含PyTorch最新稳定版本，支持CUDA加速，适用于GPU训练和推理任务。",
+    "license": "BSD-3-Clause",
+    "versions": [
+      {
+        "version": "2.1.0",
+        "imageAddress": "registry.example.com/pytorch/pytorch-gpu:2.1.0",
+        "size": "8.5GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "PyTorch 2.1.0版本，支持CUDA 11.8，包含最新的优化和bug修复",
+        "createTime": "2024-01-10T10:00:00.000Z"
+      },
+      {
+        "version": "2.0.1",
+        "imageAddress": "registry.example.com/pytorch/pytorch-gpu:2.0.1",
+        "size": "8.2GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "11.7",
+        "description": "PyTorch 2.0.1稳定版本，兼容性良好",
+        "createTime": "2023-12-15T10:00:00.000Z"
+      },
+      {
+        "version": "1.13.1",
+        "imageAddress": "registry.example.com/pytorch/pytorch-gpu:1.13.1",
+        "size": "7.8GB",
+        "pythonVersion": "3.8",
+        "cudaVersion": "11.6",
+        "description": "PyTorch 1.13.1长期支持版本",
+        "createTime": "2023-11-20T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-tensorflow-gpu-001",
+    "name": "TensorFlow GPU",
+    "imageId": "tensorflow-gpu-base",
+    "frameworks": ["TensorFlow"],
+    "applicableScopes": ["开发机", "分布式训练", "在线服务部署"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "基于TensorFlow的GPU训练镜像，预置CUDA和TensorRT，适用于大规模深度学习训练",
+    "imageAddress": "registry.example.com/tensorflow/tensorflow-gpu:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "TensorFlow是Google开源的机器学习框架，本镜像包含TensorFlow GPU版本，支持分布式训练和模型部署。",
+    "license": "Apache-2.0",
+    "versions": [
+      {
+        "version": "2.15.0",
+        "imageAddress": "registry.example.com/tensorflow/tensorflow-gpu:2.15.0",
+        "size": "9.2GB",
+        "pythonVersion": "3.11",
+        "cudaVersion": "12.0",
+        "description": "TensorFlow 2.15.0最新版本，支持CUDA 12.0和TensorRT 8.6",
+        "createTime": "2024-01-12T10:00:00.000Z"
+      },
+      {
+        "version": "2.13.0",
+        "imageAddress": "registry.example.com/tensorflow/tensorflow-gpu:2.13.0",
+        "size": "8.9GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "TensorFlow 2.13.0稳定版本，广泛使用",
+        "createTime": "2023-12-10T10:00:00.000Z"
+      },
+      {
+        "version": "2.10.1",
+        "imageAddress": "registry.example.com/tensorflow/tensorflow-gpu:2.10.1",
+        "size": "8.5GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "11.7",
+        "description": "TensorFlow 2.10.1长期支持版本",
+        "createTime": "2023-11-05T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-pytorch-cpu-001",
+    "name": "PyTorch CPU",
+    "imageId": "pytorch-cpu-base",
+    "frameworks": ["PyTorch"],
+    "applicableScopes": ["开发机", "在线服务部署"],
+    "chipType": "CPU",
+    "presetCuda": false,
+    "description": "基于PyTorch的CPU推理镜像，轻量级，适用于CPU推理和开发测试",
+    "imageAddress": "registry.example.com/pytorch/pytorch-cpu:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "PyTorch CPU版本镜像，体积小，启动快，适合CPU推理和开发环境使用。",
+    "license": "BSD-3-Clause",
+    "versions": [
+      {
+        "version": "2.1.0",
+        "imageAddress": "registry.example.com/pytorch/pytorch-cpu:2.1.0",
+        "size": "2.3GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "",
+        "description": "PyTorch 2.1.0 CPU版本，轻量级，适合CPU推理",
+        "createTime": "2024-01-08T10:00:00.000Z"
+      },
+      {
+        "version": "2.0.1",
+        "imageAddress": "registry.example.com/pytorch/pytorch-cpu:2.0.1",
+        "size": "2.1GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "",
+        "description": "PyTorch 2.0.1 CPU稳定版本",
+        "createTime": "2023-12-12T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-deepspeed-001",
+    "name": "DeepSpeed",
+    "imageId": "deepspeed-base",
+    "frameworks": ["PyTorch", "DeepSpeed"],
+    "applicableScopes": ["分布式训练"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "集成DeepSpeed的分布式训练镜像，支持大模型训练和ZeRO优化",
+    "imageAddress": "registry.example.com/deepspeed/deepspeed:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "DeepSpeed是微软开源的深度学习优化库，支持大规模模型训练。本镜像预置DeepSpeed和PyTorch，适用于大模型分布式训练。",
+    "license": "Apache-2.0",
+    "versions": [
+      {
+        "version": "0.12.0",
+        "imageAddress": "registry.example.com/deepspeed/deepspeed:0.12.0",
+        "size": "10.5GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "DeepSpeed 0.12.0版本，支持ZeRO-3优化，适用于超大模型训练",
+        "createTime": "2024-01-14T10:00:00.000Z"
+      },
+      {
+        "version": "0.11.0",
+        "imageAddress": "registry.example.com/deepspeed/deepspeed:0.11.0",
+        "size": "10.2GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "11.7",
+        "description": "DeepSpeed 0.11.0稳定版本，支持ZeRO-2和ZeRO-3",
+        "createTime": "2023-12-20T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-paddlepaddle-gpu-001",
+    "name": "PaddlePaddle GPU",
+    "imageId": "paddlepaddle-gpu-base",
+    "frameworks": ["PaddlePaddle"],
+    "applicableScopes": ["开发机", "分布式训练", "在线服务部署"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "基于PaddlePaddle的GPU训练镜像，预置CUDA，适用于百度飞桨框架训练",
+    "imageAddress": "registry.example.com/paddlepaddle/paddlepaddle-gpu:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "PaddlePaddle是百度开源的深度学习框架，本镜像包含PaddlePaddle GPU版本，支持模型训练和推理。",
+    "license": "Apache-2.0",
+    "versions": [
+      {
+        "version": "2.6.0",
+        "imageAddress": "registry.example.com/paddlepaddle/paddlepaddle-gpu:2.6.0",
+        "size": "7.8GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "PaddlePaddle 2.6.0最新版本，支持动态图和静态图",
+        "createTime": "2024-01-11T10:00:00.000Z"
+      },
+      {
+        "version": "2.5.2",
+        "imageAddress": "registry.example.com/paddlepaddle/paddlepaddle-gpu:2.5.2",
+        "size": "7.5GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "11.7",
+        "description": "PaddlePaddle 2.5.2稳定版本",
+        "createTime": "2023-12-08T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-jupyter-gpu-001",
+    "name": "Jupyter GPU",
+    "imageId": "jupyter-gpu-dev",
+    "frameworks": ["PyTorch", "TensorFlow"],
+    "applicableScopes": ["开发机"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "集成Jupyter Notebook的GPU开发环境，包含常用深度学习库和工具",
+    "imageAddress": "registry.example.com/jupyter/jupyter-gpu:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "Jupyter GPU开发环境镜像，预置Jupyter Notebook、PyTorch、TensorFlow等常用工具，适合数据科学和机器学习开发。",
+    "license": "BSD-3-Clause",
+    "versions": [
+      {
+        "version": "2024.01",
+        "imageAddress": "registry.example.com/jupyter/jupyter-gpu:2024.01",
+        "size": "12.5GB",
+        "pythonVersion": "3.11",
+        "cudaVersion": "12.0",
+        "description": "2024年1月版本，包含JupyterLab 4.0、PyTorch 2.1、TensorFlow 2.15等最新工具",
+        "createTime": "2024-01-13T10:00:00.000Z"
+      },
+      {
+        "version": "2023.12",
+        "imageAddress": "registry.example.com/jupyter/jupyter-gpu:2023.12",
+        "size": "11.8GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "2023年12月版本，包含JupyterLab 3.6、PyTorch 2.0、TensorFlow 2.13",
+        "createTime": "2023-12-15T10:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "preset-transformers-001",
+    "name": "Transformers",
+    "imageId": "transformers-base",
+    "frameworks": ["PyTorch"],
+    "applicableScopes": ["开发机", "在线服务部署"],
+    "chipType": "GPU",
+    "presetCuda": true,
+    "description": "集成Hugging Face Transformers库的镜像，支持预训练模型推理和微调",
+    "imageAddress": "registry.example.com/transformers/transformers:latest",
+    "lastUpdateTime": "2024-01-15T10:00:00.000Z",
+    "status": "online",
+    "type": "public",
+    "introduction": "Transformers是Hugging Face开源的NLP库，本镜像预置Transformers和相关依赖，支持BERT、GPT等预训练模型的使用。",
+    "license": "Apache-2.0",
+    "versions": [
+      {
+        "version": "4.36.0",
+        "imageAddress": "registry.example.com/transformers/transformers:4.36.0",
+        "size": "6.8GB",
+        "pythonVersion": "3.10",
+        "cudaVersion": "11.8",
+        "description": "Transformers 4.36.0版本，支持最新的预训练模型（GPT-4、LLaMA等）",
+        "createTime": "2024-01-09T10:00:00.000Z"
+      },
+      {
+        "version": "4.35.0",
+        "imageAddress": "registry.example.com/transformers/transformers:4.35.0",
+        "size": "6.5GB",
+        "pythonVersion": "3.9",
+        "cudaVersion": "11.7",
+        "description": "Transformers 4.35.0稳定版本，支持BERT、GPT-2、T5等模型",
+        "createTime": "2023-12-18T10:00:00.000Z"
+      },
+      {
+        "version": "4.30.0",
+        "imageAddress": "registry.example.com/transformers/transformers:4.30.0",
+        "size": "6.2GB",
+        "pythonVersion": "3.8",
+        "cudaVersion": "11.6",
+        "description": "Transformers 4.30.0长期支持版本",
+        "createTime": "2023-11-25T10:00:00.000Z"
+      }
+    ]
+  }
+]
+

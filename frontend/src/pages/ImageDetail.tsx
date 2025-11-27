@@ -46,6 +46,7 @@ interface Image {
   imageAddress: string;
   lastUpdateTime: string;
   status: 'online' | 'offline' | 'pending';
+  type?: 'public' | 'custom'; // 镜像类型：公共镜像或自定义镜像
   icon?: string;
   introduction?: string;
   paperUrl?: string;
@@ -406,15 +407,18 @@ address = {Atlanta, USA}
               <Col>
                 <Button icon={<ReloadOutlined />} />
               </Col>
-              <Col>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => setVersionModalVisible(true)}
-                >
-                  新建版本
-                </Button>
-              </Col>
+              {/* 只有自定义镜像才显示新建版本按钮 */}
+              {imageDetail && imageDetail.type !== 'public' && (
+                <Col>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => setVersionModalVisible(true)}
+                  >
+                    新建版本
+                  </Button>
+                </Col>
+              )}
             </Row>
           </div>
 

@@ -1,7 +1,4 @@
 import {
-  CloudOutlined,
-  CloudServerOutlined,
-  ClockCircleOutlined,
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
@@ -9,8 +6,6 @@ import {
   ReloadOutlined,
   FileTextOutlined,
   BranchesOutlined,
-  UpOutlined,
-  DownOutlined,
 } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -29,6 +24,7 @@ import {
   Space,
   Statistic,
   Tag,
+  Tabs,
   Typography,
 } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
@@ -51,6 +47,7 @@ interface Image {
   imageAddress: string;
   lastUpdateTime: string;
   status: 'online' | 'offline' | 'pending';
+  type?: 'public' | 'custom'; // 镜像类型：公共镜像或自定义镜像
   icon?: string;
   introduction?: string;
   paperUrl?: string;
@@ -68,6 +65,7 @@ const Image: React.FC = () => {
   const [editingImage, setEditingImage] = useState<Image | null>(null);
   const [form] = Form.useForm();
   const proTableRef = useRef<ActionType>(null);
+  const [activeTab, setActiveTab] = useState<string>('public'); // 当前选中的tab：public（公共镜像）或 custom（自定义镜像）
 
   // 获取镜像列表
   const fetchImages = async (params: any = {}) => {
@@ -82,6 +80,7 @@ const Image: React.FC = () => {
           framework: params.framework || '',
           chipType: params.chipType || '',
           applicableScope: params.applicableScope || '',
+          type: activeTab, // 根据当前选中的tab传递类型参数
         },
       });
 
@@ -120,7 +119,10 @@ const Image: React.FC = () => {
     try {
       const response = await request('/api/images', {
         method: 'POST',
-        data: values,
+        data: {
+          ...values,
+          type: activeTab, // 根据当前选中的tab设置镜像类型
+        },
       });
 
       if (response.success) {
@@ -187,26 +189,6 @@ const Image: React.FC = () => {
     });
   };
 
-  // 更新状态
-  const _handleStatusChange = async (image: Image, newStatus: string) => {
-    try {
-      const response = await request(`/api/images/${image.id}/status`, {
-        method: 'PUT',
-        data: { status: newStatus },
-      });
-
-      if (response.success) {
-        message.success('状态更新成功');
-        proTableRef.current?.reload();
-      } else {
-        message.error(response.message || '状态更新失败');
-      }
-    } catch (error: any) {
-      console.error('状态更新失败:', error);
-      message.error(`状态更新失败: ${error.message}`);
-    }
-  };
-
   // 查看镜像详情
   const handleViewImage = async (record: Image) => {
     try {
@@ -239,64 +221,6 @@ const Image: React.FC = () => {
     history.push(`/image/detail/${record.id}?tab=versions`);
   };
 
-  // 上架镜像
-  const handleOnline = async (record: Image) => {
-    Modal.confirm({
-      title: '确认上架',
-      content: `确定要将镜像"${record.name}"上架吗？`,
-      okText: '确认上架',
-      cancelText: '取消',
-      okType: 'primary',
-      onOk: async () => {
-        try {
-          const response = await request(`/api/images/${record.id}/status`, {
-            method: 'PUT',
-            data: { status: 'online' },
-          });
-
-          if (response.success) {
-            message.success('镜像上架成功');
-            proTableRef.current?.reload(); // 刷新列表
-          } else {
-            message.error(response.message || '镜像上架失败');
-          }
-        } catch (error) {
-          console.error('镜像上架失败:', error);
-          message.error('镜像上架失败');
-        }
-      },
-    });
-  };
-
-  // 下架镜像
-  const handleOffline = async (record: Image) => {
-    Modal.confirm({
-      title: '确认下架',
-      content: `确定要将镜像"${record.name}"下架吗？`,
-      okText: '确认下架',
-      cancelText: '取消',
-      okType: 'danger',
-      onOk: async () => {
-        try {
-          const response = await request(`/api/images/${record.id}/status`, {
-            method: 'PUT',
-            data: { status: 'offline' },
-          });
-
-          if (response.success) {
-            message.success('镜像下架成功');
-            proTableRef.current?.reload(); // 刷新列表
-          } else {
-            message.error(response.message || '镜像下架失败');
-          }
-        } catch (error) {
-          console.error('镜像下架失败:', error);
-          message.error('镜像下架失败');
-        }
-      },
-    });
-  };
-
   // 打开编辑模态框
   const openEditModal = (image: Image) => {
     setEditingImage(image);
@@ -304,20 +228,11 @@ const Image: React.FC = () => {
     setEditModalVisible(true);
   };
 
-  // 状态标签渲染
-  const renderStatusTag = (status: string) => {
-    const statusConfig = {
-      online: { color: 'green', icon: <CloudOutlined />, text: '上架' },
-      offline: { color: 'red', icon: <CloudServerOutlined />, text: '下架' },
-      pending: { color: 'orange', icon: <ClockCircleOutlined />, text: '待上线' },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      <Tag color={config.color} icon={config.icon}>
-        {config.text}
-      </Tag>
-    );
+  // 切换Tab
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    // 切换Tab时重新加载数据
+    proTableRef.current?.reload();
   };
 
   // 表格列定义
@@ -359,31 +274,36 @@ const Image: React.FC = () => {
         </Space>
       ),
     },
-    {
-      title: '芯片类型',
-      dataIndex: 'chipType',
-      width: 100,
-      render: (_: any, record: Image) => {
-        const color = record.chipType === 'GPU' ? 'blue' : record.chipType === 'CPU' ? 'green' : 'purple';
-        return <Tag color={color}>{record.chipType}</Tag>;
+    // 公共镜像显示描述，自定义镜像显示芯片类型和预置CUDA
+    ...(activeTab === 'public' ? [
+      {
+        title: '描述',
+        dataIndex: 'description',
+        width: 300,
+        ellipsis: true,
+        render: (text: any) => text || '-',
       },
-    },
-    {
-      title: '预置CUDA',
-      dataIndex: 'presetCuda',
-      width: 100,
-      render: (_: any, record: Image) => (
-        <Tag color={record.presetCuda ? 'green' : 'default'}>
-          {record.presetCuda ? '是' : '否'}
-        </Tag>
-      ),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      width: 100,
-      render: (_: any, record: Image) => renderStatusTag(record.status),
-    },
+    ] : [
+      {
+        title: '芯片类型',
+        dataIndex: 'chipType',
+        width: 100,
+        render: (_: any, record: Image) => {
+          const color = record.chipType === 'GPU' ? 'blue' : record.chipType === 'CPU' ? 'green' : 'purple';
+          return <Tag color={color}>{record.chipType}</Tag>;
+        },
+      },
+      {
+        title: '预置CUDA',
+        dataIndex: 'presetCuda',
+        width: 100,
+        render: (_: any, record: Image) => (
+          <Tag color={record.presetCuda ? 'green' : 'default'}>
+            {record.presetCuda ? '是' : '否'}
+          </Tag>
+        ),
+      },
+    ]),
     {
       title: '最后更新时间',
       dataIndex: 'lastUpdateTime',
@@ -394,76 +314,65 @@ const Image: React.FC = () => {
       title: '操作',
       width: 360,
       fixed: 'right' as const,
-      render: (_: any, record: Image) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewImage(record)}
-            style={{ color: '#1890ff' }}
-          >
-            查看
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<FileTextOutlined />}
-            onClick={() => handleViewIntroduction(record)}
-            style={{ color: '#52c41a' }}
-          >
-            简介
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<BranchesOutlined />}
-            onClick={() => handleViewVersions(record)}
-            style={{ color: '#722ed1' }}
-          >
-            版本
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => openEditModal(record)}
-            style={{ color: '#1890ff' }}
-          >
-            编辑
-          </Button>
-          {record.status === 'offline' || record.status === 'pending' ? (
+      render: (_: any, record: Image) => {
+        // 公共镜像只显示查看相关操作，不显示编辑、删除等操作
+        const isPublicImage = activeTab === 'public' || record.type === 'public' || !record.type;
+
+        return (
+          <Space wrap>
             <Button
               type="text"
               size="small"
-              icon={<UpOutlined />}
-              onClick={() => handleOnline(record)}
+              icon={<EyeOutlined />}
+              onClick={() => handleViewImage(record)}
+              style={{ color: '#1890ff' }}
+            >
+              查看
+            </Button>
+            <Button
+              type="text"
+              size="small"
+              icon={<FileTextOutlined />}
+              onClick={() => handleViewIntroduction(record)}
               style={{ color: '#52c41a' }}
             >
-              上架
+              简介
             </Button>
-          ) : (
             <Button
               type="text"
               size="small"
-              icon={<DownOutlined />}
-              onClick={() => handleOffline(record)}
-              style={{ color: '#faad14' }}
+              icon={<BranchesOutlined />}
+              onClick={() => handleViewVersions(record)}
+              style={{ color: '#722ed1' }}
             >
-              下架
+              版本
             </Button>
-          )}
-          <Button
-            type="text"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record)}
-          >
-            删除
-          </Button>
-        </Space>
-      ),
+            {/* 只有自定义镜像才显示编辑、删除操作 */}
+            {!isPublicImage && (
+              <>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<EditOutlined />}
+                  onClick={() => openEditModal(record)}
+                  style={{ color: '#1890ff' }}
+                >
+                  编辑
+                </Button>
+                <Button
+                  type="text"
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleDelete(record)}
+                >
+                  删除
+                </Button>
+              </>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -473,13 +382,16 @@ const Image: React.FC = () => {
       subTitle="管理镜像，支持创建、查看和管理"
       extra={
         <Space>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalVisible(true)}
-          >
-            创建镜像
-          </Button>
+          {/* 只有自定义镜像tab才显示创建按钮 */}
+          {activeTab === 'custom' && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateModalVisible(true)}
+            >
+              创建镜像
+            </Button>
+          )}
           <Button
             icon={<ReloadOutlined />}
             onClick={() => proTableRef.current?.reload()}
@@ -491,18 +403,21 @@ const Image: React.FC = () => {
     >
       {/* 数据表格区域 */}
       <Card>
-        <div
-          style={{
-            marginBottom: 16,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
-            镜像列表
-          </h4>
-        </div>
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          items={[
+            {
+              key: 'public',
+              label: '公共镜像',
+            },
+            {
+              key: 'custom',
+              label: '自定义镜像',
+            },
+          ]}
+          style={{ marginBottom: 16 }}
+        />
 
         <ProTable<Image>
           actionRef={proTableRef}
@@ -810,9 +725,6 @@ const Image: React.FC = () => {
                   {selectedImage.presetCuda ? '是' : '否'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="状态" span={1}>
-                {renderStatusTag(selectedImage.status)}
-              </Descriptions.Item>
               <Descriptions.Item label="最后更新时间" span={1}>
                 {selectedImage.lastUpdateTime ? new Date(selectedImage.lastUpdateTime).toLocaleString() : '-'}
               </Descriptions.Item>
@@ -840,23 +752,28 @@ const Image: React.FC = () => {
                 >
                   查看详情
                 </Button>
-                <Button
-                  onClick={() => {
-                    setDrawerVisible(false);
-                    openEditModal(selectedImage);
-                  }}
-                >
-                  编辑
-                </Button>
-                <Button
-                  danger
-                  onClick={() => {
-                    setDrawerVisible(false);
-                    handleDelete(selectedImage);
-                  }}
-                >
-                  删除
-                </Button>
+                {/* 只有自定义镜像才显示编辑和删除按钮 */}
+                {selectedImage.type === 'custom' && (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setDrawerVisible(false);
+                        openEditModal(selectedImage);
+                      }}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      danger
+                      onClick={() => {
+                        setDrawerVisible(false);
+                        handleDelete(selectedImage);
+                      }}
+                    >
+                      删除
+                    </Button>
+                  </>
+                )}
               </Space>
             </div>
           </div>

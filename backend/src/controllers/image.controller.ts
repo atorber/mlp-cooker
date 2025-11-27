@@ -33,10 +33,20 @@ export class ImageController {
         framework,
         chipType,
         applicableScope,
+        type, // 镜像类型：public（公共镜像）或 custom（自定义镜像）
       } = req.query;
 
       const storage = ImageController.getStorage();
       let images = await storage.load();
+
+      // 按类型过滤（如果提供了type参数）
+      if (type && typeof type === 'string') {
+        images = images.filter((img: any) => {
+          // 如果没有type字段，默认为public（公共镜像）
+          const imgType = img.type || 'public';
+          return imgType === type;
+        });
+      }
 
       // 过滤
       if (name && typeof name === 'string') {
@@ -96,12 +106,22 @@ export class ImageController {
         return;
       }
 
+      // 公共镜像只能通过配置文件设置，不允许通过API创建
+      if (data.type === 'public') {
+        ResponseUtils.error(res, '公共镜像只能通过配置文件设置，不允许通过API创建');
+        return;
+      }
+
       const storage = ImageController.getStorage();
       const images = await storage.load();
 
-      // 检查是否已存在相同名称或imageId的镜像
+      // 检查是否已存在相同名称或imageId的镜像（仅检查同类型镜像）
+      const imageType = data.type || 'custom';
       const existing = images.find(
-        (img: any) => img.name === data.name || img.imageId === data.imageId
+        (img: any) => {
+          const imgType = img.type || 'public'; // 兼容旧数据，默认为public
+          return imgType === imageType && (img.name === data.name || img.imageId === data.imageId);
+        }
       );
 
       if (existing) {
@@ -122,6 +142,7 @@ export class ImageController {
         imageAddress: data.imageAddress,
         lastUpdateTime: new Date().toISOString(),
         status: data.status || 'pending',
+        type: 'custom', // 强制设置为custom，因为公共镜像只能通过配置文件设置
         icon: data.icon,
         introduction: data.introduction,
         paperUrl: data.paperUrl,
@@ -194,18 +215,38 @@ export class ImageController {
         return;
       }
 
-      // 如果更新名称或imageId，检查是否与其他镜像冲突
+      // 公共镜像不允许通过API更新
+      const currentImage = images[index];
+      const currentType = currentImage.type || 'public'; // 兼容旧数据
+      if (currentType === 'public') {
+        ResponseUtils.error(res, '公共镜像只能通过配置文件修改，不允许通过API更新');
+        return;
+      }
+
+      // 如果更新名称或imageId，检查是否与其他镜像冲突（仅检查同类型镜像）
       if (data.name || data.imageId) {
+        const imageType = data.type || currentType;
         const existing = images.find(
-          (img: any, idx: number) =>
-            idx !== index &&
-            (img.name === data.name || img.imageId === data.imageId)
+          (img: any, idx: number) => {
+            const imgType = img.type || 'public'; // 兼容旧数据
+            return (
+              idx !== index &&
+              imgType === imageType &&
+              (img.name === data.name || img.imageId === data.imageId)
+            );
+          }
         );
 
         if (existing) {
           ResponseUtils.error(res, '镜像名称或镜像ID已存在');
           return;
         }
+      }
+
+      // 不允许将自定义镜像改为公共镜像
+      if (data.type === 'public') {
+        ResponseUtils.error(res, '不允许将镜像类型修改为公共镜像');
+        return;
       }
 
       // 更新镜像数据（保留原有数据，只更新提供的字段）
@@ -249,6 +290,14 @@ export class ImageController {
         return;
       }
 
+      // 公共镜像不允许通过API删除
+      const image = images[index];
+      const imageType = image.type || 'public'; // 兼容旧数据
+      if (imageType === 'public') {
+        ResponseUtils.error(res, '公共镜像只能通过配置文件删除，不允许通过API删除');
+        return;
+      }
+
       images.splice(index, 1);
       await storage.save(images);
 
@@ -285,6 +334,14 @@ export class ImageController {
 
       if (index === -1) {
         ResponseUtils.error(res, '镜像不存在', { statusCode: 404 });
+        return;
+      }
+
+      // 公共镜像不允许通过API修改状态
+      const image = images[index];
+      const imageType = image.type || 'public'; // 兼容旧数据
+      if (imageType === 'public') {
+        ResponseUtils.error(res, '公共镜像的状态只能通过配置文件修改，不允许通过API更新');
         return;
       }
 
@@ -362,6 +419,14 @@ export class ImageController {
 
       if (index === -1) {
         ResponseUtils.error(res, '镜像不存在', { statusCode: 404 });
+        return;
+      }
+
+      // 公共镜像不允许通过API创建版本
+      const image = images[index];
+      const imageType = image.type || 'public'; // 兼容旧数据
+      if (imageType === 'public') {
+        ResponseUtils.error(res, '公共镜像的版本只能通过配置文件修改，不允许通过API创建');
         return;
       }
 

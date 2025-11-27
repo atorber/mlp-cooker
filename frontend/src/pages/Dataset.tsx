@@ -3,6 +3,7 @@ import {
   EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
+  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -50,6 +51,11 @@ const Dataset: React.FC = () => {
   const [createForm] = Form.useForm();
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeStorageType, setActiveStorageType] = useState<string>('BOS'); // 当前选择的存储类型：BOS 或 PFS
+  const [versionDrawerVisible, setVersionDrawerVisible] = useState(false);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
+  const [selectedDatasetName, setSelectedDatasetName] = useState<string>('');
+  const [versions, setVersions] = useState<any[]>([]);
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -173,6 +179,46 @@ const Dataset: React.FC = () => {
     }
   };
 
+  // 查看数据集版本
+  const handleViewVersions = async (record: Dataset) => {
+    const datasetId = record.datasetId || record.id || '';
+    setSelectedDatasetId(datasetId);
+    setSelectedDatasetName(record.name || '');
+    setVersionDrawerVisible(true);
+    setVersionLoading(true);
+    try {
+      const response = await request(`/api/datasets/${datasetId}/versions`, {
+        method: 'GET',
+      });
+
+      if (response.success) {
+        const data = response.data;
+        let versionList: any[] = [];
+        
+        if (Array.isArray(data)) {
+          versionList = data;
+        } else if (data?.versions && Array.isArray(data.versions)) {
+          versionList = data.versions;
+        } else if (data?.result && Array.isArray(data.result)) {
+          versionList = data.result;
+        } else if (data?.data && Array.isArray(data.data)) {
+          versionList = data.data;
+        } else if (data?.list && Array.isArray(data.list)) {
+          versionList = data.list;
+        }
+        
+        setVersions(versionList);
+      } else {
+        messageApi.error(response.message || '获取版本列表失败');
+      }
+    } catch (error) {
+      console.error('获取版本列表失败:', error);
+      messageApi.error('获取版本列表失败');
+    } finally {
+      setVersionLoading(false);
+    }
+  };
+
   // 表格列定义
   const columns: ProColumns<Dataset>[] = [
     {
@@ -238,16 +284,27 @@ const Dataset: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
-      fixed: 'right',
+      width: 240,
+      fixed: 'right' as const,
       render: (_: any, record: Dataset) => (
-        <Space>
+        <Space wrap>
           <Button
-            type="link"
+            type="text"
+            size="small"
             icon={<EyeOutlined />}
             onClick={() => fetchDatasetDetail(record.datasetId || record.id || '')}
+            style={{ color: '#1890ff' }}
           >
             详情
+          </Button>
+          <Button
+            type="text"
+            size="small"
+            icon={<BranchesOutlined />}
+            onClick={() => handleViewVersions(record)}
+            style={{ color: '#722ed1' }}
+          >
+            版本
           </Button>
           <Popconfirm
             title="确定要删除这个数据集吗？"
@@ -255,7 +312,7 @@ const Dataset: React.FC = () => {
             okText="确定"
             cancelText="取消"
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
+            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
               删除
             </Button>
           </Popconfirm>
@@ -439,6 +496,77 @@ const Dataset: React.FC = () => {
             </Descriptions.Item>
           </Descriptions>
         )}
+      </Drawer>
+
+      {/* 版本列表抽屉 */}
+      <Drawer
+        title={`数据集版本列表 - ${selectedDatasetName || ''}`}
+        placement="right"
+        width={1000}
+        open={versionDrawerVisible}
+        onClose={() => {
+          setVersionDrawerVisible(false);
+          setVersions([]);
+          setSelectedDatasetId('');
+          setSelectedDatasetName('');
+        }}
+        loading={versionLoading}
+        destroyOnClose
+      >
+        <ProTable
+          rowKey={(record) => record.id || record.versionId || record.version || ''}
+          columns={[
+            {
+              title: '版本号',
+              dataIndex: 'version',
+              width: 150,
+            },
+            {
+              title: '版本ID',
+              dataIndex: 'id',
+              width: 200,
+              ellipsis: true,
+              render: (text, record) => text || record.versionId || '-',
+            },
+            {
+              title: '源路径',
+              dataIndex: 'sourcePath',
+              ellipsis: true,
+            },
+            {
+              title: '存储桶',
+              dataIndex: 'storageBucket',
+              width: 150,
+              ellipsis: true,
+            },
+            {
+              title: '存储路径',
+              dataIndex: 'storagePath',
+              ellipsis: true,
+            },
+            {
+              title: '创建时间',
+              dataIndex: 'createdAt',
+              width: 180,
+              render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+            },
+            {
+              title: '创建用户',
+              dataIndex: 'createUserName',
+              width: 120,
+              render: (text, record) => text || record.createUser || '-',
+            },
+          ]}
+          dataSource={versions}
+          loading={versionLoading}
+          search={false}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+          }}
+          options={false}
+          toolBarRender={false}
+        />
       </Drawer>
     </PageContainer>
   );
