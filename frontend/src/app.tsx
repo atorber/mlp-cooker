@@ -124,7 +124,17 @@ export const layout: RunTimeLayoutConfig = ({
     childrenRender: (children) => {
       // if (initialState?.loading) return <PageLoading />;
       return (
-        <App>
+        <App
+          message={{
+            // 配置消息容器，避免静态方法警告
+            maxCount: 3,
+          }}
+          notification={{
+            // 配置通知容器
+            placement: 'topRight',
+            maxCount: 3,
+          }}
+        >
           {children}
           {isDevOrTest && (
             <SettingDrawer

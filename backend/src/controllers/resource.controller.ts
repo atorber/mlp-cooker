@@ -33,9 +33,9 @@ export class ResourceController {
       
       const sdk = ResourceController.getResourceSDK();
       let result = await sdk.describeQueues({
-        resourcePoolId: (resourcePoolId as string) || undefined,
-        pageNumber: pageNumber ? parseInt(pageNumber as string, 10) : undefined,
-        pageSize: pageSize ? parseInt(pageSize as string, 10) : undefined,
+        resourcePoolId: resourcePoolId as string,
+        pageNumber: pageNumber ? Number(pageNumber) : undefined,
+        pageSize: pageSize ? Number(pageSize) : undefined,
         keywordType: (keywordType as string) || undefined,
         keyword: (keyword as string) || undefined,
       });
@@ -136,10 +136,10 @@ export class ResourceController {
    */
   public static async listResourcePools(req: Request, res: Response): Promise<void> {
     try {
-      const { resourcePoolType } = req.query;
+      const { resourcePoolType, pageSize, pageNumber } = req.query;
       
       const sdk = ResourceController.getResourceSDK();
-      const result = await sdk.describeResourcePools((resourcePoolType as string) || 'common');
+      const result = await sdk.describeResourcePools((resourcePoolType as string) || 'dedicatedV2', Number(pageSize) || 100, Number(pageNumber) || 1);
 
       ResponseUtils.success(res, result, '查询资源池列表成功');
     } catch (error) {

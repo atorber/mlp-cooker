@@ -33,7 +33,7 @@ export class JobController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { keyword, status, owner } = req.query;
+      const { keyword, status, owner, queueID } = req.query;
       const requestBody: any = {};
 
       if (keyword) requestBody.keyword = keyword;
@@ -45,7 +45,7 @@ export class JobController {
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
       const sdk = JobController.getJobSDK();
-      const result = await sdk.describeJobs(mlResourceConfig.poolId, mlResourceConfig.queueId, requestBody);
+      const result = await sdk.describeJobs('aihc-serverless', (queueID as string) || mlResourceConfig.queueId, requestBody);
 
       ResponseUtils.success(res, result);
     } catch (error) {

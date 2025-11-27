@@ -224,10 +224,12 @@ export class AihcSDK extends BaseService {
   /**
    * 查询资源池列表
    */
-  async describeResourcePools(resourcePoolType: string = 'common'): Promise<any> {
+  async describeResourcePools(resourcePoolType: string = 'dedicatedV2', pageSize?: number, pageNumber?: number): Promise<any> {
     return this.withRetry(async () => {
       return this.sendRequest('GET', 'DescribeResourcePools', {
         resourcePoolType,
+        pageSize: pageSize?.toString() || '100',
+        pageNumber: pageNumber?.toString() || '1',
       });
     });
   }
@@ -790,7 +792,7 @@ export class AihcSDK extends BaseService {
   }): Promise<any> {
     return this.withRetry(async () => {
       const params: QueryParams = {
-        resourcePoolId: options?.resourcePoolId || this.config.defaultResourcePoolId || '',
+        resourcePoolId: options?.resourcePoolId||'',
       };
       if (options?.keywordType) params.keywordType = options.keywordType;
       if (options?.keyword) params.keyword = options.keyword;

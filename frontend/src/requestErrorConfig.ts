@@ -154,11 +154,7 @@ export const errorConfig: RequestConfig = {
   responseInterceptors: [
     (response) => {
       // 拦截响应数据，进行个性化处理
-      const { data } = response as unknown as ResponseStructure;
-
-      if (data?.success === false) {
-        message.error('请求失败！');
-      }
+      // 不在这里显示错误，错误处理由 errorHandler 统一处理
       return response;
     },
   ],
