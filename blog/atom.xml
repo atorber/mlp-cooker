@@ -2,13 +2,45 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://vlist.com/mlp-cooker/blog</id>
     <title>MLP Cooker Blog</title>
-    <updated>2021-08-26T00:00:00.000Z</updated>
+    <updated>2025-11-27T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://vlist.com/mlp-cooker/blog"/>
     <subtitle>MLP Cooker Blog</subtitle>
     <icon>https://vlist.com/mlp-cooker/img/favicon.ico</icon>
     <entry>
-        <title type="html"><![CDATA[Welcome]]></title>
+        <title type="html"><![CDATA[为什么要做MPL-COOKER]]></title>
+        <id>https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker</id>
+        <link href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker"/>
+        <updated>2025-11-27T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[让我聊聊为什么会有这个项目...]]></summary>
+        <content type="html"><![CDATA[<p>让我聊聊为什么会有这个项目...</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="开发者工具产品经理的视角">开发者工具产品经理的视角<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#%E5%BC%80%E5%8F%91%E8%80%85%E5%B7%A5%E5%85%B7%E4%BA%A7%E5%93%81%E7%BB%8F%E7%90%86%E7%9A%84%E8%A7%86%E8%A7%92" class="hash-link" aria-label="开发者工具产品经理的视角的直接链接" title="开发者工具产品经理的视角的直接链接" translate="no">​</a></h2>
+<p>作为开发者工具产品经理，一直关注如何帮助开发者更好地提升工作效率，降低系统集成和二次开发的门槛。</p>
+<p>但在实际使用中，我们发现很多企业和个人在构建自定义平台时，会因为业务或技术的限制难以实现个性化需求：</p>
+<ul>
+<li class="">不知道如何调用API</li>
+<li class="">不懂开发，不知道如何构建前后端服务</li>
+<li class="">官方最佳实践匮乏</li>
+<li class="">对原生平台的设计逻辑理解不透彻</li>
+</ul>
+<p><strong>MPL-COOKER 的初衷</strong>，就是希望通过对 OpenAPI 的规范化利用，整理出一套行之有效的最佳实践，帮助用户用最少的精力、最清晰的路径把分布式平台搭建起来。</p>
+<p>无论是接口聚合、自动化生成代码，还是权限管理、平台扩展，MPL-COOKER 都可以作为一个开箱即用的模板和创新范例，演示现代平台如何高效、灵活地对接各种服务。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="机器学习平台使用者的痛点">机器学习平台使用者的痛点<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%B9%B3%E5%8F%B0%E4%BD%BF%E7%94%A8%E8%80%85%E7%9A%84%E7%97%9B%E7%82%B9" class="hash-link" aria-label="机器学习平台使用者的痛点的直接链接" title="机器学习平台使用者的痛点的直接链接" translate="no">​</a></h2>
+<p>作为机器学习平台的使用者，我们也深深体会到无论原生平台在易用性、体验上如何努力，依然无法满足不同客户的个性化使用需求。</p>
+<p>市面上的机器学习平台为了满足不同客户的需求往往功能繁复、操作冗长，对于需要快速试错和实验的科研、工程用户来说，却往往仅需要极少的与自身业务相关的功能和操作。</p>
+<p>我们希望拥有的是一个简单、开箱即用的平台，能让自己专注在模型的构建和实验，而不是被运维、配置、琐碎的接口调用所困扰。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mpl-cooker-的愿景">MPL-COOKER 的愿景<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#mpl-cooker-%E7%9A%84%E6%84%BF%E6%99%AF" class="hash-link" aria-label="MPL-COOKER 的愿景的直接链接" title="MPL-COOKER 的愿景的直接链接" translate="no">​</a></h2>
+<p>MPL-COOKER 针对这一痛点，力求以极简的设计理念，为用户提供清晰的操作流程和开源的可定制空间，在项目基础上任何人可以借助vibe coding工具快速进行二次开发，打造自己专属的机器学习平台。</p>
+<p>希望这个项目，从个人个性化体验出发，真正能够让更多人享受到高效易用的机器学习开发体验，同时通过社区的共创，反哺原生平台体验。</p>]]></content>
+        <author>
+            <name>atorber</name>
+            <uri>https://github.com/atorber</uri>
+        </author>
+        <category label="aihc" term="aihc"/>
+        <category label="mlp" term="mlp"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[欢迎来到社区]]></title>
         <id>https://vlist.com/mlp-cooker/blog/welcome</id>
         <link href="https://vlist.com/mlp-cooker/blog/welcome"/>
         <updated>2021-08-26T00:00:00.000Z</updated>
@@ -54,56 +86,6 @@
             <name>Sébastien Lorber</name>
             <uri>https://sebastienlorber.com</uri>
         </author>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Long Blog Post]]></title>
-        <id>https://vlist.com/mlp-cooker/blog/long-blog-post</id>
-        <link href="https://vlist.com/mlp-cooker/blog/long-blog-post"/>
-        <updated>2019-05-29T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[This is the summary of a very long blog post,]]></summary>
-        <content type="html"><![CDATA[<p>This is the summary of a very long blog post,</p>
-<p>Use a <code>&lt;!--</code> <code>truncate</code> <code>--&gt;</code> comment to limit blog post size in the list view.</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>]]></content>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://linkedin.com/in/yangshun</uri>
-        </author>
-        <category label="Hello" term="Hello"/>
-        <category label="Docusaurus" term="Docusaurus"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[First Blog Post]]></title>
-        <id>https://vlist.com/mlp-cooker/blog/first-blog-post</id>
-        <link href="https://vlist.com/mlp-cooker/blog/first-blog-post"/>
-        <updated>2019-05-28T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Lorem ipsum dolor sit amet...]]></summary>
-        <content type="html"><![CDATA[<p>Lorem ipsum dolor sit amet...</p>
-<p>...consectetur adipiscing elit. Pellentesque elementum dignissim ultricies. Fusce rhoncus ipsum tempor eros aliquam consequat. Lorem ipsum dolor sit amet</p>]]></content>
-        <author>
-            <name>Sébastien Lorber</name>
-            <uri>https://sebastienlorber.com</uri>
-        </author>
-        <author>
-            <name>Yangshun Tay</name>
-            <uri>https://linkedin.com/in/yangshun</uri>
-        </author>
-        <category label="Hola" term="Hola"/>
         <category label="Docusaurus" term="Docusaurus"/>
     </entry>
 </feed>
