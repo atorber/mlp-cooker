@@ -32,8 +32,68 @@ tags: [aihc, mlp]
 
 我们希望拥有的是一个简单、开箱即用的平台，能让自己专注在模型的构建和实验，而不是被运维、配置、琐碎的接口调用所困扰。
 
-## MPL-COOKER 的愿景
+## 愿景
 
 MPL-COOKER 针对这一痛点，力求以极简的设计理念，为用户提供清晰的操作流程和开源的可定制空间，在项目基础上任何人可以借助vibe coding工具快速进行二次开发，打造自己专属的机器学习平台。
 
 希望这个项目，从个人个性化体验出发，真正能够让更多人享受到高效易用的机器学习开发体验，同时通过社区的共创，反哺原生平台体验。
+
+## MPL-COOKER的实现架构
+
+```mermaid
+graph TB
+    subgraph "用户层"
+        User[用户浏览器]
+    end
+    
+    subgraph "前端层 (Port 8000)"
+        Frontend[React 19 + TypeScript]
+        UI[Ant Design 5 + ProComponents]
+        Umi[Umi 4 框架]
+        Frontend --> UI
+        Frontend --> Umi
+    end
+    
+    subgraph "后端层 (Port 8001)"
+        Backend[Node.js + Express + TypeScript]
+        API[RESTful API]
+        Auth[认证中间件]
+        Backend --> API
+        Backend --> Auth
+    end
+    
+    subgraph "配置层"
+        Config[YAML 配置文件<br/>config.yaml]
+    end
+    
+    subgraph "SDK 层"
+        SDK[百度云 SDK<br/>@atorber/baiducloud-sdk]
+    end
+    
+    subgraph "外部服务"
+        AIHC[AIHC 平台]
+        BOS[BOS 存储]
+        PFS[PFS 存储]
+    end
+    
+    User -->|HTTP/HTTPS| Frontend
+    Frontend -->|API 请求| Backend
+    Backend -->|读取配置| Config
+    Backend -->|调用 SDK| SDK
+    SDK -->|API 调用| AIHC
+    SDK -->|存储访问| BOS
+    SDK -->|存储访问| PFS
+    
+    style Frontend fill:#e1f5ff,stroke:#1890ff,stroke-width:2px
+    style Backend fill:#fff4e1,stroke:#fa8c16,stroke-width:2px
+    style Config fill:#f3e5f5,stroke:#722ed1,stroke-width:2px
+    style SDK fill:#e8f5e9,stroke:#52c41a,stroke-width:2px
+    style AIHC fill:#ffebee,stroke:#f5222d,stroke-width:2px
+    style User fill:#f0f0f0,stroke:#595959,stroke-width:2px
+```
+
+1. 基于 Node.js + TypeScript + React 实现，你可以将本项目作为一个脚手架使用，在此基础上继续添加新的功能，甚至不需要懂开发，使用AI IDE用聊天的方式开发
+
+2. 没有使用数据库，数据在本地使用json文件存储，所以不用担心不会部署
+
+更多介绍移步 [项目概览](../docs/概览)

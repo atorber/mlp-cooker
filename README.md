@@ -71,10 +71,34 @@
 
 ## 快速开始
 
-### 1. 克隆项目
+### 🚀 Mac 用户一键安装（推荐）
+
+如果您使用的是 macOS 系统，可以使用我们提供的自动化安装脚本：
 
 ```bash
-git clone <repository-url>
+# 方式一：直接运行（推荐）
+curl -fsSL https://raw.githubusercontent.com/atorber/mlp-cooker/main/install-mac.sh | bash
+
+# 方式二：先克隆再运行
+git clone https://github.com/atorber/mlp-cooker.git
+cd mlp-cooker
+./install-mac.sh
+```
+
+安装脚本会自动完成：
+- ✅ 安装 Homebrew、Git、Node.js
+- ✅ 克隆项目代码
+- ✅ 安装所有依赖
+- ✅ 启动后端服务
+
+详细说明请查看 [Mac 安装指南](./INSTALL.md)
+
+### 📋 手动安装
+
+#### 1. 克隆项目
+
+```bash
+git clone https://github.com/atorber/mlp-cooker.git
 cd mlp-cooker
 ```
 
