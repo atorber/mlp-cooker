@@ -14,6 +14,13 @@
             "request": "launch",
             "command": "cd frontend && npm run start",
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Start Docusaurus",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "cd pages && npm run start",
+            "cwd": "${workspaceFolder}"
         }
     ],
     "compounds": [

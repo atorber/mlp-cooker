@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# 认证相关 API
+# 认证相关
 
 ## 接口列表
 

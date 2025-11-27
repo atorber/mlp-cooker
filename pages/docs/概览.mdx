@@ -6,7 +6,68 @@ sidebar_position: 1
 
 基于 Node.js + TypeScript + React 的现代化机器学习平台管理系统,提供完整的 AIHC 平台资源管理功能,支持部署、训练、任务、数据集、模型等全生命周期管理。
 
-![架构](./img/WX20251121-203945.png)
+{/* 
+  系统架构图 - 使用 Mermaid 代码绘制
+  编辑说明：
+  1. 修改节点：更改方括号 [] 中的文本即可修改节点名称
+  2. 添加节点：复制现有节点行，修改名称和连接关系
+  3. 修改连接：修改箭头 --> 和连接标签 |标签|
+  4. 修改样式：修改 style 行中的颜色代码（十六进制）
+  5. 添加分组：使用 subgraph "分组名" ... end 包裹节点
+  6. 更多语法：参考 https://mermaid.js.org/
+*/}
+
+```mermaid
+graph TB
+    subgraph "用户层"
+        User[用户浏览器]
+    end
+    
+    subgraph "前端层 (Port 8000)"
+        Frontend[React 19 + TypeScript]
+        UI[Ant Design 5 + ProComponents]
+        Umi[Umi 4 框架]
+        Frontend --> UI
+        Frontend --> Umi
+    end
+    
+    subgraph "后端层 (Port 8001)"
+        Backend[Node.js + Express + TypeScript]
+        API[RESTful API]
+        Auth[认证中间件]
+        Backend --> API
+        Backend --> Auth
+    end
+    
+    subgraph "配置层"
+        Config[YAML 配置文件<br/>config.yaml]
+    end
+    
+    subgraph "SDK 层"
+        SDK[百度云 SDK<br/>@atorber/baiducloud-sdk]
+    end
+    
+    subgraph "外部服务"
+        AIHC[AIHC 平台]
+        BOS[BOS 存储]
+        PFS[PFS 存储]
+    end
+    
+    User -->|HTTP/HTTPS| Frontend
+    Frontend -->|API 请求| Backend
+    Backend -->|读取配置| Config
+    Backend -->|调用 SDK| SDK
+    SDK -->|API 调用| AIHC
+    SDK -->|存储访问| BOS
+    SDK -->|存储访问| PFS
+    
+    style Frontend fill:#e1f5ff,stroke:#1890ff,stroke-width:2px
+    style Backend fill:#fff4e1,stroke:#fa8c16,stroke-width:2px
+    style Config fill:#f3e5f5,stroke:#722ed1,stroke-width:2px
+    style SDK fill:#e8f5e9,stroke:#52c41a,stroke-width:2px
+    style AIHC fill:#ffebee,stroke:#f5222d,stroke-width:2px
+    style User fill:#f0f0f0,stroke:#595959,stroke-width:2px
+```
 
 ## 核心功能模块
 

@@ -2,20 +2,20 @@
 sidebar_position: 3
 ---
 
-# 配置管理 API
+# 配置管理
 
 所有配置管理接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/config`：获取配置
-- `POST /api/config/batch`：批量获取配置
-- `PUT /api/config`：更新配置
-- `POST /api/config/reset`：重置配置
-- `GET /api/config/validate`：验证配置
-- `GET /api/config/metadata`：获取配置元数据
-- `GET /api/config/:key`：获取指定配置项
-- `GET /api/environment/info`：获取环境信息
+- <code>GET /api/config</code>：获取配置
+- <code>POST /api/config/batch</code>：批量获取配置
+- <code>PUT /api/config</code>：更新配置
+- <code>POST /api/config/reset</code>：重置配置
+- <code>GET /api/config/validate</code>：验证配置
+- <code>GET /api/config/metadata</code>：获取配置元数据
+- <code>GET /api/config/:key</code>：获取指定配置项
+- <code>GET /api/environment/info</code>：获取环境信息
 
 ## 接口详情
 

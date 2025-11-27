@@ -1,17 +1,17 @@
 ---
-sidebar_position: 8
+sidebar_position: 5
 ---
 
-# 计算资源 API
+# 计算资源
 
 所有计算资源接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/resources/queues`：查询队列列表
-- `GET /api/resources/queues/:queueId`：查询队列详情
-- `GET /api/resources/pools`：查询资源池列表
-- `GET /api/resources/pools/:resourcePoolId`：查询资源池详情
+- <code>GET /api/resources/queues</code>：查询队列列表
+- <code>GET /api/resources/queues/:queueId</code>：查询队列详情
+- <code>GET /api/resources/pools</code>：查询资源池列表
+- <code>GET /api/resources/pools/:resourcePoolId</code>：查询资源池详情
 
 ## 接口详情
 
@@ -46,7 +46,7 @@ sidebar_position: 8
 }
 ```
 
-### GET /api/resources/queues/:queueId
+### GET /api/resources/queues/&#58;queueId
 
 根据队列 ID 查询详情。
 
@@ -100,7 +100,7 @@ sidebar_position: 8
 }
 ```
 
-### GET /api/resources/pools/:resourcePoolId
+### GET /api/resources/pools/&#58;resourcePoolId
 
 根据资源池 ID 查询详情。
 

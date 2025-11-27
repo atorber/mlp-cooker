@@ -1,0 +1,255 @@
+.editable-image-container {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.editable-image-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.editable-image-wrapper img {
+  transition: transform 0.2s ease;
+}
+
+.editable-image-wrapper img:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.editable-image-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.editable-image-wrapper:hover .editable-image-actions {
+  opacity: 1;
+}
+
+.edit-btn,
+.editor-btn,
+.download-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.edit-btn:hover,
+.editor-btn:hover,
+.download-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.edit-btn:active,
+.editor-btn:active,
+.download-btn:active {
+  transform: translateY(0);
+}
+
+.editor-btn {
+  background: rgba(37, 194, 160, 0.9);
+  color: white;
+  border-color: #25c2a0;
+}
+
+.editor-btn:hover {
+  background: rgba(37, 194, 160, 1);
+}
+
+/* 编辑模态框样式 */
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.edit-modal-content {
+  background: white;
+  border-radius: 8px;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #000;
+}
+
+.edit-modal-body {
+  padding: 20px;
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.edit-tips {
+  margin-top: 16px;
+  padding: 12px;
+  background: #f0f7ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: left;
+  max-width: 600px;
+}
+
+.edit-tips p {
+  margin: 0 0 8px 0;
+  font-weight: bold;
+}
+
+.edit-tips ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.edit-tips li {
+  margin: 4px 0;
+}
+
+.edit-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e1e4e8;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background: white;
+  color: #666;
+}
+
+.cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+.save-btn {
+  background: #25c2a0;
+  color: white;
+  border-color: #25c2a0;
+}
+
+.save-btn:hover {
+  background: #21af90;
+}
+
+/* 深色模式支持 */
+[data-theme='dark'] .edit-btn,
+[data-theme='dark'] .editor-btn,
+[data-theme='dark'] .download-btn {
+  background: rgba(30, 30, 30, 0.9);
+  border-color: #555;
+  color: #fff;
+}
+
+[data-theme='dark'] .edit-btn:hover,
+[data-theme='dark'] .editor-btn:hover,
+[data-theme='dark'] .download-btn:hover {
+  background: rgba(40, 40, 40, 1);
+}
+
+[data-theme='dark'] .edit-modal-content {
+  background: #1e1e1e;
+  color: #fff;
+}
+
+[data-theme='dark'] .edit-modal-header {
+  border-bottom-color: #444;
+}
+
+[data-theme='dark'] .edit-modal-footer {
+  border-top-color: #444;
+}
+
+[data-theme='dark'] .close-btn {
+  color: #ccc;
+}
+
+[data-theme='dark'] .close-btn:hover {
+  background: #333;
+  color: #fff;
+}
+
+[data-theme='dark'] .edit-tips {
+  background: #1e3a5f;
+  border-color: #3d5a80;
+  color: #90caf9;
+}
+
+[data-theme='dark'] .cancel-btn {
+  background: #333;
+  color: #ccc;
+  border-color: #555;
+}
+
+[data-theme='dark'] .cancel-btn:hover {
+  background: #444;
+}
+

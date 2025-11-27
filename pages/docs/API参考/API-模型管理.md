@@ -1,20 +1,20 @@
 ---
-sidebar_position: 6
+sidebar_position: 8
 ---
 
-# 模型管理 API
+# 模型管理
 
 所有模型管理接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/models`：查询模型列表
-- `GET /api/models/:modelId`：查询模型详情
-- `GET /api/models/:modelId/versions`：查询模型版本列表
-- `POST /api/models`：创建模型
-- `DELETE /api/models/:modelId`：删除模型
-- `POST /api/models/:modelId/versions`：创建模型版本
-- `DELETE /api/models/:modelId/versions/:versionId`：删除模型版本
+- <code>GET /api/models</code>：查询模型列表
+- <code>GET /api/models/:modelId</code>：查询模型详情
+- <code>GET /api/models/:modelId/versions</code>：查询模型版本列表
+- <code>POST /api/models</code>：创建模型
+- <code>DELETE /api/models/:modelId</code>：删除模型
+- <code>POST /api/models/:modelId/versions</code>：创建模型版本
+- <code>DELETE /api/models/:modelId/versions/:versionId</code>：删除模型版本
 
 ## 接口详情
 
@@ -41,7 +41,7 @@ sidebar_position: 6
 }
 ```
 
-### GET /api/models/:modelId
+### GET /api/models/&#58;modelId
 
 根据模型 ID 查询详情。
 
@@ -61,7 +61,7 @@ sidebar_position: 6
 }
 ```
 
-### GET /api/models/:modelId/versions
+### GET /api/models/&#58;modelId/versions
 
 查询模型版本列表。
 
@@ -110,7 +110,7 @@ sidebar_position: 6
 }
 ```
 
-### DELETE /api/models/:modelId
+### DELETE /api/models/&#58;modelId
 
 删除指定的模型。
 
@@ -126,7 +126,7 @@ sidebar_position: 6
 }
 ```
 
-### POST /api/models/:modelId/versions
+### POST /api/models/&#58;modelId/versions
 
 为模型创建新版本。
 
@@ -155,7 +155,7 @@ sidebar_position: 6
 }
 ```
 
-### DELETE /api/models/:modelId/versions/:versionId
+### DELETE /api/models/&#58;modelId/versions/&#58;versionId
 
 删除指定的模型版本。
 

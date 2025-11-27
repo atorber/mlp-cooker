@@ -1,21 +1,21 @@
 ---
-sidebar_position: 9
+sidebar_position: 10
 ---
 
-# 训练任务 API
+# 训练任务
 
 所有训练任务接口都需要认证。
 
 ## 接口列表
 
-- `POST /api/jobs`：查询训练任务列表
-- `GET /api/jobs/:jobId`：查询训练任务详情
-- `POST /api/jobs/create`：创建训练任务
-- `POST /api/jobs/:jobId/stop`：停止训练任务
-- `DELETE /api/jobs/:jobId`：删除训练任务
-- `GET /api/jobs/:jobId/events`：查询训练任务事件
-- `GET /api/jobs/:jobId/pods/:podName/logs`：查询训练任务日志
-- `GET /api/jobs/:jobId/pods/:podName/webterminal`：获取训练任务 Web Terminal 地址
+- <code>POST /api/jobs</code>：查询训练任务列表
+- <code>GET /api/jobs/:jobId</code>：查询训练任务详情
+- <code>POST /api/jobs/create</code>：创建训练任务
+- <code>POST /api/jobs/:jobId/stop</code>：停止训练任务
+- <code>DELETE /api/jobs/:jobId</code>：删除训练任务
+- <code>GET /api/jobs/:jobId/events</code>：查询训练任务事件
+- <code>GET /api/jobs/:jobId/pods/:podName/logs</code>：查询训练任务日志
+- <code>GET /api/jobs/:jobId/pods/:podName/webterminal</code>：获取训练任务 Web Terminal 地址
 
 ## 接口详情
 
@@ -53,7 +53,7 @@ sidebar_position: 9
 }
 ```
 
-### GET /api/jobs/:jobId
+### GET /api/jobs/&#58;jobId
 
 根据任务 ID 查询详情。
 
@@ -104,7 +104,7 @@ sidebar_position: 9
 }
 ```
 
-### POST /api/jobs/:jobId/stop
+### POST /api/jobs/&#58;jobId/stop
 
 停止正在运行的训练任务。
 
@@ -120,7 +120,7 @@ sidebar_position: 9
 }
 ```
 
-### DELETE /api/jobs/:jobId
+### DELETE /api/jobs/&#58;jobId
 
 删除指定的训练任务。
 
@@ -136,7 +136,7 @@ sidebar_position: 9
 }
 ```
 
-### GET /api/jobs/:jobId/events
+### GET /api/jobs/&#58;jobId/events
 
 查询训练任务的事件日志。
 
@@ -161,7 +161,7 @@ sidebar_position: 9
 }
 ```
 
-### GET /api/jobs/:jobId/pods/:podName/logs
+### GET /api/jobs/&#58;jobId/pods/&#58;podName/logs
 
 查询指定 Pod 的日志。
 
@@ -184,7 +184,7 @@ sidebar_position: 9
 }
 ```
 
-### GET /api/jobs/:jobId/pods/:podName/webterminal
+### GET /api/jobs/&#58;jobId/pods/&#58;podName/webterminal
 
 获取训练任务的 Web Terminal 访问地址。
 

@@ -1,20 +1,20 @@
 ---
-sidebar_position: 5
+sidebar_position: 7
 ---
 
-# 数据集管理 API
+# 数据集管理
 
 所有数据集管理接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/datasets`：查询数据集列表
-- `GET /api/datasets/:datasetId`：查询数据集详情
-- `GET /api/datasets/:datasetId/versions`：查询数据集版本列表
-- `POST /api/datasets`：创建数据集
-- `DELETE /api/datasets/:datasetId`：删除数据集
-- `POST /api/datasets/:datasetId/versions`：创建数据集版本
-- `DELETE /api/datasets/:datasetId/versions/:versionId`：删除数据集版本
+- <code>GET /api/datasets</code>：查询数据集列表
+- <code>GET /api/datasets/:datasetId</code>：查询数据集详情
+- <code>GET /api/datasets/:datasetId/versions</code>：查询数据集版本列表
+- <code>POST /api/datasets</code>：创建数据集
+- <code>DELETE /api/datasets/:datasetId</code>：删除数据集
+- <code>POST /api/datasets/:datasetId/versions</code>：创建数据集版本
+- <code>DELETE /api/datasets/:datasetId/versions/:versionId</code>：删除数据集版本
 
 ## 接口详情
 
@@ -43,7 +43,7 @@ sidebar_position: 5
 }
 ```
 
-### GET /api/datasets/:datasetId
+### GET /api/datasets/&#58;datasetId
 
 根据数据集 ID 查询详情。
 
@@ -63,7 +63,7 @@ sidebar_position: 5
 }
 ```
 
-### GET /api/datasets/:datasetId/versions
+### GET /api/datasets/&#58;datasetId/versions
 
 查询数据集版本列表。
 
@@ -112,7 +112,7 @@ sidebar_position: 5
 }
 ```
 
-### DELETE /api/datasets/:datasetId
+### DELETE /api/datasets/&#58;datasetId
 
 删除指定的数据集。
 
@@ -128,7 +128,7 @@ sidebar_position: 5
 }
 ```
 
-### POST /api/datasets/:datasetId/versions
+### POST /api/datasets/&#58;datasetId/versions
 
 为数据集创建新版本。
 
@@ -157,7 +157,7 @@ sidebar_position: 5
 }
 ```
 
-### DELETE /api/datasets/:datasetId/versions/:versionId
+### DELETE /api/datasets/&#58;datasetId/versions/&#58;versionId
 
 删除指定的数据集版本。
 

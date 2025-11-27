@@ -2,7 +2,7 @@
 sidebar_position: 4
 ---
 
-# 健康检查 API
+# 健康检查
 
 ## 接口列表
 

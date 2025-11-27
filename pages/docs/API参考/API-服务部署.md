@@ -2,17 +2,17 @@
 sidebar_position: 11
 ---
 
-# 服务部署 API
+# 服务部署
 
 所有服务部署接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/services`：查询服务列表
-- `GET /api/services/:serviceId`：查询服务详情
-- `GET /api/services/:serviceId/status`：查询服务状态
-- `POST /api/services`：创建服务
-- `DELETE /api/services/:serviceId`：删除服务
+- <code>GET /api/services</code>：查询服务列表
+- <code>GET /api/services/:serviceId</code>：查询服务详情
+- <code>GET /api/services/:serviceId/status</code>：查询服务状态
+- <code>POST /api/services</code>：创建服务
+- <code>DELETE /api/services/:serviceId</code>：删除服务
 
 ## 接口详情
 
@@ -44,7 +44,7 @@ sidebar_position: 11
 }
 ```
 
-### GET /api/services/:serviceId
+### GET /api/services/&#58;serviceId
 
 根据服务 ID 查询详情。
 
@@ -74,7 +74,7 @@ sidebar_position: 11
 }
 ```
 
-### GET /api/services/:serviceId/status
+### GET /api/services/&#58;serviceId/status
 
 查询服务的运行状态。
 
@@ -139,7 +139,7 @@ sidebar_position: 11
 }
 ```
 
-### DELETE /api/services/:serviceId
+### DELETE /api/services/&#58;serviceId
 
 删除指定的服务。
 

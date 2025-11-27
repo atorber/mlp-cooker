@@ -1,15 +1,15 @@
 ---
-sidebar_position: 12
+sidebar_position: 6
 ---
 
-# 应用模板 API
+# 应用模板
 
 所有应用模板接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/apps`：查询应用模板列表
-- `GET /api/apps/:appId`：查询应用模板详情
+- <code>GET /api/apps</code>：查询应用模板列表
+- <code>GET /api/apps/:appId</code>：查询应用模板详情
 
 ## 接口详情
 
@@ -42,7 +42,7 @@ sidebar_position: 12
 }
 ```
 
-### GET /api/apps/:appId
+### GET /api/apps/&#58;appId
 
 根据应用模板 ID 查询详情。
 

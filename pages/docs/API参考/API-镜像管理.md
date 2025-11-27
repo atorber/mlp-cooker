@@ -1,21 +1,21 @@
 ---
-sidebar_position: 7
+sidebar_position: 9
 ---
 
-# 镜像管理 API
+# 镜像管理
 
 所有镜像管理接口都需要认证。
 
 ## 接口列表
 
-- `GET /api/images`：查询镜像列表
-- `POST /api/images`：创建镜像
-- `GET /api/images/:id`：查询镜像详情
-- `PUT /api/images/:id`：更新镜像
-- `DELETE /api/images/:id`：删除镜像
-- `PUT /api/images/:id/status`：更新镜像状态
-- `GET /api/images/:id/versions`：查询镜像版本列表
-- `POST /api/images/:id/versions`：创建镜像版本
+- <code>GET /api/images</code>：查询镜像列表
+- <code>POST /api/images</code>：创建镜像
+- <code>GET /api/images/:id</code>：查询镜像详情
+- <code>PUT /api/images/:id</code>：更新镜像
+- <code>DELETE /api/images/:id</code>：删除镜像
+- <code>PUT /api/images/:id/status</code>：更新镜像状态
+- <code>GET /api/images/:id/versions</code>：查询镜像版本列表
+- <code>POST /api/images/:id/versions</code>：创建镜像版本
 
 ## 接口详情
 
@@ -86,7 +86,7 @@ sidebar_position: 7
 }
 ```
 
-### GET /api/images/:id
+### GET /api/images/&#58;id
 
 根据镜像 ID 查询详情。
 
@@ -110,7 +110,7 @@ sidebar_position: 7
 }
 ```
 
-### PUT /api/images/:id
+### PUT /api/images/&#58;id
 
 更新镜像信息。
 
@@ -139,7 +139,7 @@ sidebar_position: 7
 }
 ```
 
-### DELETE /api/images/:id
+### DELETE /api/images/&#58;id
 
 删除指定的镜像。
 
@@ -155,7 +155,7 @@ sidebar_position: 7
 }
 ```
 
-### PUT /api/images/:id/status
+### PUT /api/images/&#58;id/status
 
 更新镜像状态。
 
@@ -188,7 +188,7 @@ sidebar_position: 7
 }
 ```
 
-### GET /api/images/:id/versions
+### GET /api/images/&#58;id/versions
 
 查询指定镜像的所有版本。
 
@@ -217,7 +217,7 @@ sidebar_position: 7
 }
 ```
 
-### POST /api/images/:id/versions
+### POST /api/images/&#58;id/versions
 
 为镜像创建新版本。
 
