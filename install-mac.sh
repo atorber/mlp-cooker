@@ -154,7 +154,7 @@ clone_project() {
 
 # 安装项目依赖
 install_dependencies() {
-    print_step "步骤 5/6: 安装项目依赖"
+    print_step "步骤 5/7: 安装项目依赖"
     
     # 安装后端依赖
     if [ -d "backend" ]; then
@@ -184,45 +184,83 @@ install_dependencies() {
         print_error "未找到 backend 目录"
         exit 1
     fi
+    
+    # 安装前端依赖
+    if [ -d "frontend" ]; then
+        print_info "正在安装前端依赖（这可能需要几分钟）..."
+        cd frontend
+        
+        if [ ! -d "node_modules" ]; then
+            npm install
+            if [ $? -eq 0 ]; then
+                print_success "前端依赖安装完成"
+            else
+                print_error "前端依赖安装失败，请检查网络连接或 npm 配置"
+                exit 1
+            fi
+        else
+            print_info "前端依赖已存在，跳过安装"
+        fi
+        
+        cd ..
+    else
+        print_warning "未找到 frontend 目录，跳过前端安装"
+    fi
 }
 
-# 启动后端服务
-start_backend() {
-    print_step "步骤 6/6: 启动后端服务"
+# 构建项目
+build_projects() {
+    print_step "步骤 6/7: 构建项目"
     
+    # 构建后端
+    print_info "正在构建后端项目..."
     cd backend
-    
-    # 检查配置文件
-    if [ ! -f "../config.yaml" ]; then
-        print_warning "未找到 config.yaml 配置文件"
-        print_info "请参考 README.md 创建配置文件"
-        print_info "服务将在默认配置下启动"
-    fi
-    
-    # 构建项目
-    print_info "正在构建项目..."
     npm run build
-    
     if [ $? -eq 0 ]; then
-        print_success "项目构建成功"
+        print_success "后端项目构建成功"
     else
-        print_error "项目构建失败"
+        print_error "后端项目构建失败"
         exit 1
     fi
+    cd ..
     
     print_success "所有准备工作完成！"
+}
+
+# 显示启动说明
+show_start_info() {
+    print_step "步骤 7/7: 安装完成"
+    
     echo ""
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${GREEN}  🎉 安装完成！${NC}"
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    print_info "后端服务将启动在: http://localhost:8001"
-    print_info "按 Ctrl+C 可以停止服务"
-    echo ""
     
-    # 启动服务
-    print_info "正在启动后端服务..."
-    npm run dev
+    # 检查配置文件
+    if [ ! -f "config.yaml" ]; then
+        print_warning "未找到 config.yaml 配置文件"
+        print_info "请参考 README.md 创建配置文件"
+        print_info "服务将在默认配置下启动"
+        echo ""
+    fi
+    
+    print_info "使用以下命令启动服务："
+    echo ""
+    echo -e "${YELLOW}方式一：使用启动脚本（推荐）${NC}"
+    echo -e "  ${BLUE}./start.sh${NC}"
+    echo ""
+    echo -e "${YELLOW}方式二：手动启动${NC}"
+    echo -e "  ${BLUE}# 终端1：启动后端${NC}"
+    echo -e "  ${BLUE}cd backend && npm run dev${NC}"
+    echo ""
+    echo -e "  ${BLUE}# 终端2：启动前端${NC}"
+    echo -e "  ${BLUE}cd frontend && npm run start:dev${NC}"
+    echo ""
+    print_info "服务地址："
+    echo -e "  - 后端 API: ${GREEN}http://localhost:5002${NC}"
+    echo -e "  - 前端应用: ${GREEN}http://localhost:8000${NC}"
+    echo ""
 }
 
 # 主函数
@@ -246,7 +284,8 @@ main() {
     install_nodejs
     clone_project
     install_dependencies
-    start_backend
+    build_projects
+    show_start_info
 }
 
 # 运行主函数

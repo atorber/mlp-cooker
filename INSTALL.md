@@ -110,9 +110,36 @@ ML_PLATFORM_RESOURCE_BUCKET: your_bucket_name
 
 ## 🌐 访问服务
 
-安装完成后，后端服务将运行在：
+安装完成后，服务将运行在：
 
-- **后端 API**: http://localhost:8001
+- **后端 API**: http://localhost:5002 (或 http://0.0.0.0:5002)
+- **前端应用**: http://localhost:8000
+
+## 🚀 启动服务
+
+安装完成后，使用以下方式启动服务：
+
+### 方式一：使用启动脚本（推荐）
+
+```bash
+./start.sh
+```
+
+这个脚本会同时启动前端和后端服务。
+
+### 方式二：手动启动
+
+**终端 1：启动后端**
+```bash
+cd backend
+npm run dev
+```
+
+**终端 2：启动前端**
+```bash
+cd frontend
+npm run start:dev
+```
 
 ## 🛠️ 常见问题
 
