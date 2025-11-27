@@ -30,9 +30,20 @@
 <p>作为机器学习平台的使用者，我们也深深体会到无论原生平台在易用性、体验上如何努力，依然无法满足不同客户的个性化使用需求。</p>
 <p>市面上的机器学习平台为了满足不同客户的需求往往功能繁复、操作冗长，对于需要快速试错和实验的科研、工程用户来说，却往往仅需要极少的与自身业务相关的功能和操作。</p>
 <p>我们希望拥有的是一个简单、开箱即用的平台，能让自己专注在模型的构建和实验，而不是被运维、配置、琐碎的接口调用所困扰。</p>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mpl-cooker-的愿景">MPL-COOKER 的愿景<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#mpl-cooker-%E7%9A%84%E6%84%BF%E6%99%AF" class="hash-link" aria-label="MPL-COOKER 的愿景的直接链接" title="MPL-COOKER 的愿景的直接链接" translate="no">​</a></h2>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="愿景">愿景<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#%E6%84%BF%E6%99%AF" class="hash-link" aria-label="愿景的直接链接" title="愿景的直接链接" translate="no">​</a></h2>
 <p>MPL-COOKER 针对这一痛点，力求以极简的设计理念，为用户提供清晰的操作流程和开源的可定制空间，在项目基础上任何人可以借助vibe coding工具快速进行二次开发，打造自己专属的机器学习平台。</p>
-<p>希望这个项目，从个人个性化体验出发，真正能够让更多人享受到高效易用的机器学习开发体验，同时通过社区的共创，反哺原生平台体验。</p>]]></content:encoded>
+<p>希望这个项目，从个人个性化体验出发，真正能够让更多人享受到高效易用的机器学习开发体验，同时通过社区的共创，反哺原生平台体验。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mpl-cooker的实现架构">MPL-COOKER的实现架构<a href="https://vlist.com/mlp-cooker/blog/why-is-mlp-cooker#mpl-cooker%E7%9A%84%E5%AE%9E%E7%8E%B0%E6%9E%B6%E6%9E%84" class="hash-link" aria-label="MPL-COOKER的实现架构的直接链接" title="MPL-COOKER的实现架构的直接链接" translate="no">​</a></h2>
+<!-- -->
+<ol>
+<li class="">
+<p>基于 Node.js + TypeScript + React 实现，你可以将本项目作为一个脚手架使用，在此基础上继续添加新的功能，甚至不需要懂开发，使用AI IDE用聊天的方式开发</p>
+</li>
+<li class="">
+<p>没有使用数据库，数据在本地使用json文件存储，所以不用担心不会部署</p>
+</li>
+</ol>
+<p>更多介绍移步 <a class="" href="https://vlist.com/mlp-cooker/docs/%E6%A6%82%E8%A7%88">项目概览</a></p>]]></content:encoded>
             <category>aihc</category>
             <category>mlp</category>
         </item>
