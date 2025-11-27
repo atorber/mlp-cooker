@@ -109,7 +109,7 @@ const config: Config = {
           items: [
             {
               label: '使用手册',
-              to: '/docs/intro',
+              to: '/docs/概览',
             },
           ],
         },
