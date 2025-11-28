@@ -5,7 +5,7 @@
 <meta name="generator" content="Docusaurus v3.9.2">
 <title data-rh="true">开发指南 | MLP Cooker</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://vlist.com/mlp-cooker/img/docusaurus-social-card.jpg"><meta data-rh="true" name="twitter:image" content="https://vlist.com/mlp-cooker/img/docusaurus-social-card.jpg"><meta data-rh="true" property="og:url" content="https://vlist.com/mlp-cooker/docs/开发指南"><meta data-rh="true" property="og:locale" content="zh_CN"><meta data-rh="true" name="docusaurus_locale" content="zh-CN"><meta data-rh="true" name="docsearch:language" content="zh-CN"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="开发指南 | MLP Cooker"><meta data-rh="true" name="description" content="本章节提供 MLP Cooker 的开发指南,帮助您快速上手开发。"><meta data-rh="true" property="og:description" content="本章节提供 MLP Cooker 的开发指南,帮助您快速上手开发。"><link data-rh="true" rel="icon" href="/mlp-cooker/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://vlist.com/mlp-cooker/docs/开发指南"><link data-rh="true" rel="alternate" href="https://vlist.com/mlp-cooker/docs/开发指南" hreflang="zh-CN"><link data-rh="true" rel="alternate" href="https://vlist.com/mlp-cooker/docs/开发指南" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"开发指南","item":"https://vlist.com/mlp-cooker/docs/开发指南"}]}</script><link rel="alternate" type="application/rss+xml" href="/mlp-cooker/blog/rss.xml" title="MLP Cooker RSS Feed">
 <link rel="alternate" type="application/atom+xml" href="/mlp-cooker/blog/atom.xml" title="MLP Cooker Atom Feed"><link rel="stylesheet" href="/mlp-cooker/assets/css/styles.56479de6.css">
-<script src="/mlp-cooker/assets/js/runtime~main.04107d23.js" defer="defer"></script>
+<script src="/mlp-cooker/assets/js/runtime~main.7606fd80.js" defer="defer"></script>
 <script src="/mlp-cooker/assets/js/main.8a768af2.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -18,8 +18,10 @@
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="-mac-用户一键安装推荐">🚀 Mac 用户一键安装（推荐）<a href="#-mac-用户一键安装推荐" class="hash-link" aria-label="🚀 Mac 用户一键安装（推荐）的直接链接" title="🚀 Mac 用户一键安装（推荐）的直接链接" translate="no">​</a></h3>
 <p>如果您使用的是 macOS 系统，可以使用我们提供的自动化安装脚本：</p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="方式一直接运行推荐">方式一：直接运行（推荐）<a href="#方式一直接运行推荐" class="hash-link" aria-label="方式一：直接运行（推荐）的直接链接" title="方式一：直接运行（推荐）的直接链接" translate="no">​</a></h4>
+<p>以下命令可以一键安装运行环境、下载代码、安装依赖，小白用户强烈推荐~</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">curl -fsSL https://raw.githubusercontent.com/atorber/mlp-cooker/main/install-mac.sh | bash</span><br></span></code></pre></div></div>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="方式二先克隆再运行">方式二：先克隆再运行<a href="#方式二先克隆再运行" class="hash-link" aria-label="方式二：先克隆再运行的直接链接" title="方式二：先克隆再运行的直接链接" translate="no">​</a></h4>
+<p>熟悉git的用户可以先自行clone，再安装依赖和运行</p>
 <div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">git clone https://github.com/atorber/mlp-cooker.git</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">cd mlp-cooker</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">./install-mac.sh</span><br></span></code></pre></div></div>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="安装脚本功能">安装脚本功能<a href="#安装脚本功能" class="hash-link" aria-label="安装脚本功能的直接链接" title="安装脚本功能的直接链接" translate="no">​</a></h4>
 <p>安装脚本会自动完成以下步骤：</p>
@@ -36,9 +38,9 @@
 <p>💡 <strong>注意</strong>：安装脚本只负责安装和构建，不会自动启动服务。安装完成后，请使用启动脚本启动服务。</p>
 </blockquote>
 <h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="-启动服务">🎯 启动服务<a href="#-启动服务" class="hash-link" aria-label="🎯 启动服务的直接链接" title="🎯 启动服务的直接链接" translate="no">​</a></h3>
-<p>安装完成后，使用以下方式启动服务：</p>
+<p>环境、代码、依赖安装完成后，使用以下方式启动服务：</p>
 <h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="方式一使用启动脚本推荐">方式一：使用启动脚本（推荐）<a href="#方式一使用启动脚本推荐" class="hash-link" aria-label="方式一：使用启动脚本（推荐）的直接链接" title="方式一：使用启动脚本（推荐）的直接链接" translate="no">​</a></h4>
-<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">./start.sh</span><br></span></code></pre></div></div>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#393A34;--prism-background-color:#f6f8fa"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#393A34;background-color:#f6f8fa"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#393A34"><span class="token plain">cd mlp-cooker</span><br></span><span class="token-line" style="color:#393A34"><span class="token plain">./start.sh</span><br></span></code></pre></div></div>
 <p>启动脚本会：</p>
 <ul>
 <li class="">同时启动前端和后端服务</li>
