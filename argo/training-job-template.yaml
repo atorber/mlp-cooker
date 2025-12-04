@@ -1,0 +1,266 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: aihc-training-job
+  namespace: argo
+  annotations:
+    description: "百度百舸平台训练任务模板（使用Python SDK）"
+spec:
+  entrypoint: create-training-job
+  
+  # 参数定义
+  arguments:
+    parameters:
+      # 训练任务基本参数
+      - name: job-name
+        description: "训练任务名称"
+        value: "pytorch-training-job"
+      
+      - name: job-type
+        description: "任务类型: PyTorchJob, TensorFlowJob"
+        value: "PyTorchJob"
+      
+      - name: command
+        description: "启动命令"
+        value: "python train.py"
+      
+      - name: replicas
+        description: "副本数量"
+        value: "1"
+      
+      # 镜像配置
+      - name: image
+        description: "训练镜像地址"
+        value: "registry.baidubce.com/aihc-aiak/aiak-megatron:ubuntu20.04-cu11.8-torch1.14.0-py38_v1.2.7.12_release"
+      
+      # 资源配置
+      - name: enable-rdma
+        description: "是否启用RDMA"
+        value: "true"
+      
+      # AIHC平台配置（从Secret或ConfigMap读取）
+      - name: aihc-ak
+        description: "AIHC Access Key"
+        value: ""
+      
+      - name: aihc-sk
+        description: "AIHC Secret Key"
+        value: ""
+      
+      - name: aihc-base-url
+        description: "AIHC API Base URL"
+        value: "https://aihc.bj.baidubce.com"
+      
+      - name: resource-pool-id
+        description: "资源池ID"
+        value: ""
+      
+      - name: queue-id
+        description: "队列ID"
+        value: ""
+      
+      - name: pfs-instance-id
+        description: "PFS实例ID"
+        value: ""
+      
+      - name: bucket
+        description: "BOS存储桶"
+        value: ""
+      
+      # 环境变量（JSON格式）
+      - name: envs
+        description: "环境变量配置（JSON数组格式）"
+        value: |
+          [
+            {
+              "name": "NCCL_DEBUG",
+              "value": "INFO"
+            },
+            {
+              "name": "NCCL_IB_DISABLE",
+              "value": "0"
+            }
+          ]
+      
+      # 数据源配置（JSON格式）
+      - name: datasources
+        description: "数据源配置（JSON数组格式）"
+        value: |
+          [
+            {
+              "type": "pfs",
+              "mountPath": "/data"
+            }
+          ]
+  
+  # 模板定义
+  templates:
+    # 主模板：创建训练任务
+    - name: create-training-job
+      script:
+        image: docker.io/library/python:3.10-slim
+        imagePullPolicy: IfNotPresent
+        command: [python]
+        source: |
+          #!/usr/bin/env python
+          # -*- coding: utf-8 -*-
+          """
+          使用百度云Python SDK创建AIHC训练任务
+          """
+          
+          import json
+          import sys
+          import subprocess
+          
+          # 安装依赖（使用清华大学PyPI镜像）
+          print("安装百度云Python SDK...")
+          subprocess.check_call([
+              sys.executable, "-m", "pip", "install", "-q", 
+              "bce-python-sdk-next",
+              "-i", "https://pypi.tuna.tsinghua.edu.cn/simple",
+              "--trusted-host", "pypi.tuna.tsinghua.edu.cn"
+          ])
+          
+          from baidubce.bce_client_configuration import BceClientConfiguration
+          from baidubce.auth.bce_credentials import BceCredentials
+          from baidubce.services.aihc.aihc_client import AihcClient
+          from baidubce.exception import BceHttpClientError, BceServerError
+          
+          # 获取参数
+          job_name = '{{workflow.parameters.job-name}}'
+          job_type = '{{workflow.parameters.job-type}}'
+          command = '{{workflow.parameters.command}}'
+          replicas = int('{{workflow.parameters.replicas}}')
+          image = '{{workflow.parameters.image}}'
+          enable_rdma = '{{workflow.parameters.enable-rdma}}' == 'true'
+          
+          # AIHC配置
+          aihc_ak = '{{workflow.parameters.aihc-ak}}'
+          aihc_sk = '{{workflow.parameters.aihc-sk}}'
+          aihc_base_url = '{{workflow.parameters.aihc-base-url}}'
+          resource_pool_id = '{{workflow.parameters.resource-pool-id}}'
+          queue_id = '{{workflow.parameters.queue-id}}'
+          pfs_instance_id = '{{workflow.parameters.pfs-instance-id}}'
+          bucket = '{{workflow.parameters.bucket}}'
+          
+          # 解析环境变量和数据源
+          envs = json.loads('''{{workflow.parameters.envs}}''')
+          datasources = json.loads('''{{workflow.parameters.datasources}}''')
+          
+          # 处理数据源配置
+          processed_datasources = []
+          for ds in datasources:
+              if ds['type'] == 'pfs':
+                  processed_datasources.append({
+                      'type': 'pfs',
+                      'name': pfs_instance_id,
+                      'sourcePath': ds.get('sourcePath', '/'),
+                      'mountPath': ds.get('mountPath', '/data'),
+                      'readOnly': ds.get('readOnly', False)
+                  })
+              elif ds['type'] == 'bos':
+                  processed_datasources.append({
+                      'type': 'bos',
+                      'name': '',
+                      'sourcePath': ds.get('sourcePath', f'{bucket}/'),
+                      'mountPath': ds.get('mountPath', '/data'),
+                      'readOnly': ds.get('readOnly', True)
+                  })
+          
+          # 构建任务参数
+          job_params = {
+              'name': job_name,
+              'jobType': job_type,
+              'command': command,
+              'queue': queue_id,
+              'jobSpec': {
+                  'replicas': replicas,
+                  'image': image,
+                  'resources': [],
+                  'envs': envs,
+                  'enableRDMA': enable_rdma
+              },
+              'datasources': processed_datasources
+          }
+          
+          print("========================================")
+          print("创建AIHC训练任务")
+          print("========================================")
+          print(f"任务名称: {job_name}")
+          print(f"任务类型: {job_type}")
+          print(f"资源池ID: {resource_pool_id}")
+          print(f"队列ID: {queue_id}")
+          print("")
+          
+          try:
+              # 配置BCE客户端
+              config = BceClientConfiguration(
+                  credentials=BceCredentials(aihc_ak, aihc_sk),
+                  endpoint=aihc_base_url.replace('https://', '').replace('http://', '')
+              )
+              
+              # 创建AIHC客户端
+              aihc_client = AihcClient(config)
+              
+              # 调用CreateJob接口
+              print("正在调用AIHC API创建训练任务...")
+              print(f"任务参数: {json.dumps(job_params, indent=2, ensure_ascii=False)}")
+              print("")
+              
+              # 使用SDK的job对象调用CreateJob方法
+              # 参考：aihc_client.job.CreateJob()
+              response = aihc_client.job.CreateJob(
+                  resourcePoolId=resource_pool_id,
+                  queueID=queue_id,
+                  body=job_params
+              )
+              
+              # 处理响应
+              if hasattr(response, '__dict__'):
+                  result = {k: v for k, v in response.__dict__.items() if not k.startswith('_')}
+              else:
+                  result = response
+              
+              print("✅ 训练任务创建成功！")
+              print(f"响应数据: {json.dumps(result, indent=2, ensure_ascii=False)}")
+              
+              # 输出到文件供后续步骤使用
+              with open('/tmp/response.json', 'w') as f:
+                  json.dump(result, f, ensure_ascii=False, indent=2)
+              
+              # 如果响应中包含jobId，输出到stdout供Argo捕获
+              if hasattr(response, 'jobId'):
+                  print(f"\nJob ID: {response.jobId}")
+              elif isinstance(result, dict) and 'jobId' in result:
+                  print(f"\nJob ID: {result['jobId']}")
+              
+              sys.exit(0)
+              
+          except BceServerError as e:
+              print(f"❌ 服务器错误: {e.status_code}")
+              print(f"错误代码: {e.code}")
+              print(f"错误信息: {e.message}")
+              sys.exit(1)
+              
+          except BceHttpClientError as e:
+              if isinstance(e.last_error, BceServerError):
+                  print(f"❌ 服务器错误: {e.last_error.status_code}")
+                  print(f"错误代码: {e.last_error.code}")
+                  print(f"错误信息: {e.last_error.message}")
+              else:
+                  print(f"❌ 客户端错误: {str(e)}")
+              sys.exit(1)
+              
+          except Exception as e:
+              print(f"❌ 未知错误: {str(e)}")
+              import traceback
+              traceback.print_exc()
+              sys.exit(1)
+      
+      # 输出结果
+      outputs:
+        parameters:
+          - name: response
+            valueFrom:
+              path: /tmp/response.json
+
