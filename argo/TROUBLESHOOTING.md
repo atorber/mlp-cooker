@@ -143,7 +143,48 @@ subprocess.check_call([
 ])
 ```
 
-### 问题6：任务创建失败（AIHC API 错误）
+### 问题6：Python SDK 依赖缺失
+
+**症状：**
+```
+ModuleNotFoundError: No module named 'requests'
+ModuleNotFoundError: No module named 'dotenv'
+```
+
+**原因：**
+`bce-python-sdk-next` 依赖 `requests` 和 `python-dotenv` 等模块。
+
+**解决方法：**
+
+模板已更新，同时安装所有必需依赖：
+
+```python
+subprocess.check_call([
+    sys.executable, "-m", "pip", "install", "-q", 
+    "bce-python-sdk-next", "requests", "python-dotenv",
+    "-i", "https://pypi.tuna.tsinghua.edu.cn/simple"
+])
+```
+
+**最佳实践：**
+
+为避免依赖问题，推荐使用预装 SDK 的自定义镜像：
+
+```dockerfile
+FROM python:3.10-slim
+RUN pip install --no-cache-dir bce-python-sdk-next requests python-dotenv \
+    -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+构建并推送镜像后，在模板中使用：
+
+```yaml
+script:
+  image: your-registry/python-bce-sdk:latest
+  imagePullPolicy: IfNotPresent
+```
+
+### 问题7：任务创建失败（AIHC API 错误）
 
 **症状：**
 ```

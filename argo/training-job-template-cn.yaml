@@ -114,13 +114,15 @@ spec:
           import subprocess
           
           # 安装依赖（使用阿里云PyPI镜像）
-          print("安装百度云Python SDK...")
+          print("安装百度云Python SDK及其所有依赖...")
+          print("(首次安装需要约30秒，请耐心等待)")
           subprocess.check_call([
               sys.executable, "-m", "pip", "install", "-q", 
-              "bce-python-sdk-next",
+              "bce-python-sdk-next", "requests", "python-dotenv",
               "-i", "https://mirrors.aliyun.com/pypi/simple/",
               "--trusted-host", "mirrors.aliyun.com"
           ])
+          print("✅ SDK安装完成")
           
           from baidubce.bce_client_configuration import BceClientConfiguration
           from baidubce.auth.bce_credentials import BceCredentials
