@@ -1,6 +1,7 @@
 import {
   ReloadOutlined,
   RightOutlined,
+  ImportOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import {
@@ -20,6 +21,7 @@ import {
   Empty,
   Tooltip,
   Radio,
+  Table,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { request, history } from '@umijs/max';
@@ -81,6 +83,13 @@ const Application: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [envVariables, setEnvVariables] = useState<Array<{ name: string; value: string; placeholder?: string }>>([]);
 
+  // 导入功能相关状态
+  const [importModalVisible, setImportModalVisible] = useState(false);
+  const [importForm] = Form.useForm();
+  const [jobList, setJobList] = useState<any[]>([]);
+  const [jobListLoading, setJobListLoading] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any | null>(null);
+
   // 获取应用模板列表
   const fetchApps = async () => {
     setLoading(true);
@@ -105,6 +114,155 @@ const Application: React.FC = () => {
   useEffect(() => {
     fetchApps();
   }, []);
+
+  // 获取训练任务列表（用于导入）
+  const fetchJobs = async () => {
+    setJobListLoading(true);
+    try {
+      const response = await request('/api/jobs', {
+        method: 'POST',
+        data: {},
+      });
+
+      if (response.success) {
+        const data = response.data;
+        let jobs: any[] = [];
+
+        if (Array.isArray(data)) {
+          jobs = data;
+        } else if (data?.jobs && Array.isArray(data.jobs)) {
+          jobs = data.jobs;
+        } else if (data?.result && Array.isArray(data.result)) {
+          jobs = data.result;
+        } else if (data?.data && Array.isArray(data.data)) {
+          jobs = data.data;
+        }
+
+        setJobList(jobs);
+      }
+    } catch (error) {
+      console.error('获取训练任务列表失败:', error);
+    } finally {
+      setJobListLoading(false);
+    }
+  };
+
+  // 获取训练任务详情
+  const fetchJobDetail = async (jobId: string) => {
+    try {
+      const response = await request(`/api/jobs/${jobId}`, {
+        method: 'GET',
+        params: {
+          needDetail: 'true',
+          resourcePoolId: 'aihc-serverless',
+        },
+      });
+
+      if (response.success) {
+        const data = response.data;
+        let job: any = null;
+
+        if (data?.job) {
+          job = data.job;
+        } else if (data?.data) {
+          job = data.data;
+        } else if (typeof data === 'object') {
+          job = data;
+        }
+
+        return job;
+      }
+    } catch (error) {
+      console.error('获取训练任务详情失败:', error);
+      messageApi.error('获取训练任务详情失败');
+    }
+    return null;
+  };
+
+  // 处理导入
+  const handleImport = async (values: any) => {
+    if (!selectedJob) {
+      messageApi.error('请选择一个训练任务');
+      return;
+    }
+
+    try {
+      // 获取任务详情，提取 taskParams
+      const jobDetail = await fetchJobDetail(selectedJob.jobId || selectedJob.id);
+
+      // 从任务详情中提取 taskParams
+      let taskParams: any = {};
+      let command = '';
+
+      if (jobDetail) {
+        // 尝试从不同位置提取 taskParams
+        if (jobDetail.taskParams) {
+          taskParams = jobDetail.taskParams;
+        } else if (jobDetail.config) {
+          // 尝试从 config 中提取
+          taskParams = jobDetail.config;
+        } else if (jobDetail.jobSpec) {
+          // 直接使用 jobSpec 作为 taskParams
+          taskParams = { jobSpec: jobDetail.jobSpec };
+        }
+
+        // 提取 command
+        if (jobDetail.command) {
+          command = jobDetail.command;
+        } else if (taskParams.command) {
+          command = taskParams.command;
+        } else if (taskParams.jobSpec?.command) {
+          command = taskParams.jobSpec.command;
+        }
+      }
+
+      // 处理标签：将逗号分隔的字符串转换为数组
+      let tags: string[] = [];
+      if (values.tags) {
+        if (Array.isArray(values.tags)) {
+          tags = values.tags;
+        } else if (typeof values.tags === 'string') {
+          tags = values.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag);
+        }
+      }
+
+      // 调用创建应用模板接口
+      const response = await request('/api/apps/create', {
+        method: 'POST',
+        data: {
+          name: values.name,
+          description: values.description || `从训练任务 ${selectedJob.name || selectedJob.jobId || selectedJob.id} 导入`,
+          type: 'training',
+          categoryType: 'model',
+          tags: tags,
+          jobId: selectedJob.jobId || selectedJob.id,
+          taskParams: JSON.stringify(taskParams),
+          command: command,
+        },
+      });
+
+      if (response.success) {
+        messageApi.success('应用模板创建成功');
+        setImportModalVisible(false);
+        importForm.resetFields();
+        setSelectedJob(null);
+        // 刷新列表
+        fetchApps();
+      } else {
+        messageApi.error(response.message || '创建应用模板失败');
+      }
+    } catch (error: any) {
+      console.error('创建应用模板失败:', error);
+      const errorMessage = error?.info?.errorMessage || error?.message || '创建应用模板失败';
+      messageApi.error(errorMessage);
+    }
+  };
+
+  // 打开导入模态框时获取任务列表
+  const handleOpenImportModal = () => {
+    setImportModalVisible(true);
+    fetchJobs();
+  };
 
 
   // 获取类型标签颜色
@@ -399,6 +557,12 @@ const Application: React.FC = () => {
       extra={
         <Space>
           <Button
+            icon={<ImportOutlined />}
+            onClick={handleOpenImportModal}
+          >
+            导入训练任务
+          </Button>
+          <Button
             icon={<ReloadOutlined />}
             onClick={fetchApps}
             loading={loading}
@@ -641,6 +805,113 @@ const Application: React.FC = () => {
           </Descriptions>
         )}
       </Drawer>
+
+      {/* 导入训练任务模态框 */}
+      <Modal
+        title="导入训练任务为模板"
+        open={importModalVisible}
+        onCancel={() => {
+          setImportModalVisible(false);
+          importForm.resetFields();
+          setSelectedJob(null);
+        }}
+        onOk={() => importForm.submit()}
+        width={900}
+      >
+        <Form
+          form={importForm}
+          layout="vertical"
+          onFinish={handleImport}
+        >
+          {/* 任务选择 */}
+          <Form.Item
+            label="选择训练任务"
+            required
+            tooltip="选择一个已有的训练任务，将其配置导入为应用模板"
+          >
+            <div style={{ border: '1px solid #d9d9d9', borderRadius: '8px', padding: '16px', maxHeight: '300px', overflow: 'auto' }}>
+              <Table
+                dataSource={jobList}
+                loading={jobListLoading}
+                rowKey={(record) => record.jobId || record.id || ''}
+                size="small"
+                pagination={false}
+                columns={[
+                  {
+                    title: '任务ID',
+                    dataIndex: 'jobId',
+                    key: 'jobId',
+                    render: (_text: any, record: any) => record.jobId || record.id,
+                    width: 180,
+                  },
+                  {
+                    title: '任务名称',
+                    dataIndex: 'name',
+                    key: 'name',
+                    width: 150,
+                  },
+                  {
+                    title: '状态',
+                    dataIndex: 'status',
+                    key: 'status',
+                    width: 100,
+                    render: (status: string) => {
+                      if (!status) return '-';
+                      return <Tag>{status}</Tag>;
+                    },
+                  },
+                ]}
+                rowSelection={{
+                  type: 'radio',
+                  selectedRowKeys: selectedJob ? [selectedJob.jobId || selectedJob.id] : [],
+                  onChange: (_selectedRowKeys, selectedRows) => {
+                    setSelectedJob(selectedRows[0] || null);
+                  },
+                }}
+                locale={{ emptyText: '暂无训练任务' }}
+              />
+            </div>
+          </Form.Item>
+
+          {/* 模板名称 */}
+          <Form.Item
+            name="name"
+            label="模板名称"
+            rules={[
+              { required: true, message: '请输入模板名称' },
+              { max: 50, message: '模板名称不能超过50个字符' },
+            ]}
+          >
+            <Input placeholder="请输入应用模板名称" />
+          </Form.Item>
+
+          {/* 描述 */}
+          <Form.Item
+            name="description"
+            label="描述"
+          >
+            <Input.TextArea rows={2} placeholder="请输入应用模板描述（可选）" />
+          </Form.Item>
+
+          {/* 标签 */}
+          <Form.Item
+            name="tags"
+            label="标签"
+            tooltip="多个标签用逗号分隔"
+          >
+            <Input placeholder="例如：训练, PyTorch, 示例（多个标签用逗号分隔）" />
+          </Form.Item>
+
+          {selectedJob && (
+            <div style={{ marginTop: '16px', padding: '12px', background: '#f5f5f5', borderRadius: '4px' }}>
+              <div style={{ fontWeight: 500, marginBottom: '8px' }}>已选择的任务信息：</div>
+              <div>任务ID：{selectedJob.jobId || selectedJob.id || '-'}</div>
+              <div>任务名称：{selectedJob.name || '-'}</div>
+              <div>状态：{selectedJob.status || '-'}</div>
+            </div>
+          )}
+        </Form>
+      </Modal>
 
       {/* 操作模态框（部署/训练/创建任务） */}
       <Modal

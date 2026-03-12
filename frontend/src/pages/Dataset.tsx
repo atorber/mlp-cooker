@@ -179,6 +179,22 @@ const Dataset: React.FC = () => {
     }
   };
 
+  // 数据处理
+  const handleDataProcess = (record: any) => {
+    const versionId = record.id || record.versionId || record.version || '';
+    const datasetName = record.datasetName || selectedDatasetName || '';
+    messageApi.info(`数据处理：版本 ${versionId}, 数据集 ${datasetName}`);
+    // TODO: 实现数据处理功能
+  };
+
+  // 数据导入
+  const handleDataImport = (record: any) => {
+    const versionId = record.id || record.versionId || record.version || '';
+    const datasetName = record.datasetName || selectedDatasetName || '';
+    messageApi.info(`数据导入：版本 ${versionId}, 数据集 ${datasetName}`);
+    // TODO: 实现数据导入功能
+  };
+
   // 查看数据集版本
   const handleViewVersions = async (record: Dataset) => {
     const datasetId = record.datasetId || record.id || '';
@@ -555,6 +571,30 @@ const Dataset: React.FC = () => {
               dataIndex: 'createUserName',
               width: 120,
               render: (text, record) => text || record.createUser || '-',
+            },
+            {
+              title: '操作',
+              key: 'action',
+              width: 180,
+              fixed: 'right',
+              render: (_: any, record: any) => (
+                <Space>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => handleDataProcess(record)}
+                  >
+                    数据处理
+                  </Button>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => handleDataImport(record)}
+                  >
+                    数据导入
+                  </Button>
+                </Space>
+              ),
             },
           ]}
           dataSource={versions}

@@ -163,6 +163,9 @@ router.get('/api/apps', authMiddleware, AppController.list);
 // 查询应用模板详情
 router.get('/api/apps/:appId', authMiddleware, AppController.get);
 
+// 创建应用模板（从训练任务导入）
+router.post('/api/apps/create', authMiddleware, AppController.create);
+
 /**
  * 计算资源相关路由
  */

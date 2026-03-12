@@ -1,0 +1,60 @@
+{
+  "taskParams": {
+    "jobSpec": {
+      "image": "ccr-2hpgw1bh-pub.cnc.bj.baidubce.com/aihc-private/data-collection:v1.4",
+      "imageConfig": {
+        "username": "",
+        "password": ""
+      },
+      "replicas": 1,
+      "resources": [
+        {
+          "name": "cpu",
+          "quantity": 4
+        },
+        {
+          "name": "memory",
+          "quantity": 16
+        },
+        {
+          "name": "sharedMemory",
+          "quantity": 32
+        }
+      ],
+      "envs": [
+        {
+          "name": "AIHC_JOB_NAME",
+          "value": "transfer-copy12"
+        },
+        {
+          "name": "LOG_COLLECTION",
+          "value": "true"
+        },
+        {
+          "name": "NCCL_IB_DISABLE",
+          "value": "1"
+        },
+        {
+          "name": "USER_DATASET_CONVERT_RESULT_PATH",
+          "value": "/workspace/result"
+        },
+        {
+          "name": "USER_DATASET_PATH",
+          "value": "https://datahub.bj.bcebos.com/embodied/export/178/ExportTask-178_result.txt"
+        },
+        {
+          "name": "USER_DATA_TYPE",
+          "value": "lerobot_v3.0"
+        },
+        {
+          "name": "USER_WORKSPACE",
+          "value": "/workspace"
+        }
+      ],
+      "enableRDMA": false,
+      "hostNetwork": false
+    }
+  },
+  "command": "#! /bin/bash\nexport DATASET_PATH=$USER_DATASET_PATH\nexport WORKSPACE=$USER_WORKSPACE\nexport DATASET_CONVERT_RESULT_PATH=$USER_DATASET_CONVERT_RESULT_PATH\nexport DATA_TYPE=$USER_DATA_TYPE\n\npython3 /code/resolve.py",
+  "accelerators": {}
+}
