@@ -11,8 +11,6 @@ import {
   App,
   Button,
   Card,
-  Descriptions,
-  Drawer,
   Form,
   Input,
   Modal,
@@ -22,7 +20,7 @@ import {
   Tabs,
 } from 'antd';
 import React, { useRef, useState } from 'react';
-import { request } from '@umijs/max';
+import { history, request } from '@umijs/max';
 
 const { TextArea } = Input;
 
@@ -45,17 +43,9 @@ interface Dataset {
 const Dataset: React.FC = () => {
   const { message: messageApi } = App.useApp();
   const proTableRef = useRef<ActionType>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
-  const [detailLoading, setDetailLoading] = useState(false);
   const [activeStorageType, setActiveStorageType] = useState<string>('BOS'); // 当前选择的存储类型：BOS 或 PFS
-  const [versionDrawerVisible, setVersionDrawerVisible] = useState(false);
-  const [versionLoading, setVersionLoading] = useState(false);
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
-  const [selectedDatasetName, setSelectedDatasetName] = useState<string>('');
-  const [versions, setVersions] = useState<any[]>([]);
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -116,25 +106,13 @@ const Dataset: React.FC = () => {
     }
   };
 
-  // 获取数据集详情
-  const fetchDatasetDetail = async (datasetId: string) => {
-    setDetailLoading(true);
-    try {
-      const response = await request(`/api/datasets/${datasetId}`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        setSelectedDataset(response.data);
-        setDrawerVisible(true);
-      } else {
-        messageApi.error(response.message || '获取数据集详情失败');
-      }
-    } catch (error) {
-      console.error('获取数据集详情失败:', error);
-      messageApi.error('获取数据集详情失败');
-    } finally {
-      setDetailLoading(false);
+  // 跳转数据集详情页
+  const goToDetail = (record: Dataset, tab?: 'versions') => {
+    const id = record.datasetId || record.id || '';
+    if (tab) {
+      history.push(`/dataset/detail/${id}?tab=${tab}`);
+    } else {
+      history.push(`/dataset/detail/${id}`);
     }
   };
 
@@ -176,62 +154,6 @@ const Dataset: React.FC = () => {
     } catch (error) {
       console.error('删除数据集失败:', error);
       messageApi.error('删除数据集失败');
-    }
-  };
-
-  // 数据处理
-  const handleDataProcess = (record: any) => {
-    const versionId = record.id || record.versionId || record.version || '';
-    const datasetName = record.datasetName || selectedDatasetName || '';
-    messageApi.info(`数据处理：版本 ${versionId}, 数据集 ${datasetName}`);
-    // TODO: 实现数据处理功能
-  };
-
-  // 数据导入
-  const handleDataImport = (record: any) => {
-    const versionId = record.id || record.versionId || record.version || '';
-    const datasetName = record.datasetName || selectedDatasetName || '';
-    messageApi.info(`数据导入：版本 ${versionId}, 数据集 ${datasetName}`);
-    // TODO: 实现数据导入功能
-  };
-
-  // 查看数据集版本
-  const handleViewVersions = async (record: Dataset) => {
-    const datasetId = record.datasetId || record.id || '';
-    setSelectedDatasetId(datasetId);
-    setSelectedDatasetName(record.name || '');
-    setVersionDrawerVisible(true);
-    setVersionLoading(true);
-    try {
-      const response = await request(`/api/datasets/${datasetId}/versions`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        const data = response.data;
-        let versionList: any[] = [];
-        
-        if (Array.isArray(data)) {
-          versionList = data;
-        } else if (data?.versions && Array.isArray(data.versions)) {
-          versionList = data.versions;
-        } else if (data?.result && Array.isArray(data.result)) {
-          versionList = data.result;
-        } else if (data?.data && Array.isArray(data.data)) {
-          versionList = data.data;
-        } else if (data?.list && Array.isArray(data.list)) {
-          versionList = data.list;
-        }
-        
-        setVersions(versionList);
-      } else {
-        messageApi.error(response.message || '获取版本列表失败');
-      }
-    } catch (error) {
-      console.error('获取版本列表失败:', error);
-      messageApi.error('获取版本列表失败');
-    } finally {
-      setVersionLoading(false);
     }
   };
 
@@ -308,7 +230,7 @@ const Dataset: React.FC = () => {
             type="text"
             size="small"
             icon={<EyeOutlined />}
-            onClick={() => fetchDatasetDetail(record.datasetId || record.id || '')}
+            onClick={() => goToDetail(record)}
             style={{ color: '#1890ff' }}
           >
             详情
@@ -317,7 +239,7 @@ const Dataset: React.FC = () => {
             type="text"
             size="small"
             icon={<BranchesOutlined />}
-            onClick={() => handleViewVersions(record)}
+            onClick={() => goToDetail(record, 'versions')}
             style={{ color: '#722ed1' }}
           >
             版本
@@ -454,160 +376,6 @@ const Dataset: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-
-      {/* 数据集详情抽屉 */}
-      <Drawer
-        title="数据集详情"
-        width={800}
-        open={drawerVisible}
-        onClose={() => {
-          setDrawerVisible(false);
-          setSelectedDataset(null);
-        }}
-        loading={detailLoading}
-      >
-        {selectedDataset && (
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="数据集ID">
-              {selectedDataset.datasetId || selectedDataset.id || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="名称">
-              {selectedDataset.name || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="存储类型">
-              {selectedDataset.storageType ? (
-                <Tag>{selectedDataset.storageType}</Tag>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="存储实例">
-              {selectedDataset.storageInstance || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="导入格式">
-              {selectedDataset.importFormat ? (
-                <Tag>{selectedDataset.importFormat}</Tag>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="描述">
-              {selectedDataset.description || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="所有者">
-              {selectedDataset.owner || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="可见范围">
-              {selectedDataset.visibilityScope || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">
-              {selectedDataset.createTime
-                ? new Date(selectedDataset.createTime).toLocaleString()
-                : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="更新时间">
-              {selectedDataset.updateTime
-                ? new Date(selectedDataset.updateTime).toLocaleString()
-                : '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Drawer>
-
-      {/* 版本列表抽屉 */}
-      <Drawer
-        title={`数据集版本列表 - ${selectedDatasetName || ''}`}
-        placement="right"
-        width={1000}
-        open={versionDrawerVisible}
-        onClose={() => {
-          setVersionDrawerVisible(false);
-          setVersions([]);
-          setSelectedDatasetId('');
-          setSelectedDatasetName('');
-        }}
-        loading={versionLoading}
-        destroyOnClose
-      >
-        <ProTable
-          rowKey={(record) => record.id || record.versionId || record.version || ''}
-          columns={[
-            {
-              title: '版本号',
-              dataIndex: 'version',
-              width: 150,
-            },
-            {
-              title: '版本ID',
-              dataIndex: 'id',
-              width: 200,
-              ellipsis: true,
-              render: (text, record) => text || record.versionId || '-',
-            },
-            {
-              title: '源路径',
-              dataIndex: 'sourcePath',
-              ellipsis: true,
-            },
-            {
-              title: '存储桶',
-              dataIndex: 'storageBucket',
-              width: 150,
-              ellipsis: true,
-            },
-            {
-              title: '存储路径',
-              dataIndex: 'storagePath',
-              ellipsis: true,
-            },
-            {
-              title: '创建时间',
-              dataIndex: 'createdAt',
-              width: 180,
-              render: (text) => (text ? new Date(text).toLocaleString() : '-'),
-            },
-            {
-              title: '创建用户',
-              dataIndex: 'createUserName',
-              width: 120,
-              render: (text, record) => text || record.createUser || '-',
-            },
-            {
-              title: '操作',
-              key: 'action',
-              width: 180,
-              fixed: 'right',
-              render: (_: any, record: any) => (
-                <Space>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => handleDataProcess(record)}
-                  >
-                    数据处理
-                  </Button>
-                  <Button
-                    type="link"
-                    size="small"
-                    onClick={() => handleDataImport(record)}
-                  >
-                    数据导入
-                  </Button>
-                </Space>
-              ),
-            },
-          ]}
-          dataSource={versions}
-          loading={versionLoading}
-          search={false}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-          }}
-          options={false}
-          toolBarRender={false}
-        />
-      </Drawer>
     </PageContainer>
   );
 };
