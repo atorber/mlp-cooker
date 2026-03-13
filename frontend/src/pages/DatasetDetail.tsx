@@ -3,11 +3,12 @@ import {
   BranchesOutlined,
   FileOutlined,
   FolderOutlined,
+  PlayCircleOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { App, Button, Card, Descriptions, Space, Tag, Tabs } from 'antd';
+import { App, Button, Card, Descriptions, Input, Space, Table, Tag, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { history, useParams, useSearchParams } from '@umijs/max';
 import { request } from '@umijs/max';
@@ -66,8 +67,13 @@ const DatasetDetail: React.FC = () => {
   const [isTruncated, setIsTruncated] = useState(false);
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
   const [activeTab, setActiveTab] = useState(() =>
-    tabFromUrl === 'versions' ? 'versions' : tabFromUrl === 'files' ? 'files' : 'basic',
+    tabFromUrl === 'versions' ? 'versions' : tabFromUrl === 'files' ? 'files' : tabFromUrl === 'query' ? 'query' : 'basic',
   );
+  const [isLance, setIsLance] = useState(false);
+  const [lanceCheckLoading, setLanceCheckLoading] = useState(false);
+  const [sqlText, setSqlText] = useState('SELECT * FROM dataset LIMIT 10');
+  const [queryResult, setQueryResult] = useState<{ columns: string[]; rows: any[][] } | null>(null);
+  const [queryLoading, setQueryLoading] = useState(false);
 
   // 获取数据集详情
   const fetchDatasetDetail = useCallback(async () => {
@@ -188,16 +194,63 @@ const DatasetDetail: React.FC = () => {
     }
   }, [datasetId, messageApi]);
 
+  // Lance 格式检测（BOS 数据集时）
+  const fetchLanceCheck = useCallback(async () => {
+    if (!datasetId) return;
+    setLanceCheckLoading(true);
+    try {
+      const response = await request(`/api/datasets/${datasetId}/lance-check`, { method: 'GET' });
+      if (response.success && response.data?.isLance) {
+        setIsLance(true);
+      } else {
+        setIsLance(false);
+      }
+    } catch {
+      setIsLance(false);
+    } finally {
+      setLanceCheckLoading(false);
+    }
+  }, [datasetId]);
+
+  // Lance SQL 查询
+  const runLanceQuery = useCallback(async () => {
+    if (!datasetId || !sqlText.trim()) {
+      messageApi.warning('请输入 SQL');
+      return;
+    }
+    setQueryLoading(true);
+    setQueryResult(null);
+    try {
+      const response = await request(`/api/datasets/${datasetId}/query`, {
+        method: 'POST',
+        data: { sql: sqlText.trim() },
+      });
+      if (response.success && response.data) {
+        setQueryResult({
+          columns: response.data.columns ?? [],
+          rows: response.data.rows ?? [],
+        });
+        if (response.data.rows?.length === 0 && !response.data.columns?.length) {
+          messageApi.info('查询无结果');
+        }
+      } else {
+        messageApi.error(response.message || response.details?.error || '查询失败');
+      }
+    } catch (error: any) {
+      messageApi.error(error?.data?.details?.error || error?.message || '查询失败');
+    } finally {
+      setQueryLoading(false);
+    }
+  }, [datasetId, sqlText, messageApi]);
+
   useEffect(() => {
     fetchDatasetDetail();
   }, [fetchDatasetDetail]);
 
   useEffect(() => {
-    if (tabFromUrl === 'versions') {
-      setActiveTab('versions');
-    } else if (tabFromUrl === 'files') {
-      setActiveTab('files');
-    }
+    if (tabFromUrl === 'versions') setActiveTab('versions');
+    else if (tabFromUrl === 'files') setActiveTab('files');
+    else if (tabFromUrl === 'query') setActiveTab('query');
   }, [tabFromUrl]);
 
   useEffect(() => {
@@ -211,6 +264,14 @@ const DatasetDetail: React.FC = () => {
       fetchFiles();
     }
   }, [activeTab, fetchFiles, dataset]);
+
+  useEffect(() => {
+    if (dataset?.storageType === 'BOS' && dataset?.datasetId) {
+      fetchLanceCheck();
+    } else {
+      setIsLance(false);
+    }
+  }, [dataset?.storageType, dataset?.datasetId, fetchLanceCheck]);
 
   const handleDataProcess = (record: any) => {
     const versionId = record.id || record.versionId || record.version || '';
@@ -255,7 +316,7 @@ const DatasetDetail: React.FC = () => {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 180,
-      render: (text) => (text ? new Date(text).toLocaleString() : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString() : '-'),
     },
     {
       title: '创建用户',
@@ -462,16 +523,16 @@ const DatasetDetail: React.FC = () => {
                               dataIndex: 'size',
                               key: 'size',
                               width: 120,
-                              render: (text) => formatFileSize(text),
+                              render: (text: any) => formatFileSize(Number(text)),
                             },
                             {
                               title: '修改时间',
                               dataIndex: 'lastModified',
                               key: 'lastModified',
                               width: 180,
-                              render: (text) => {
+                              render: (text: any) => {
                                 if (text == null || text === '') return '-';
-                                const date = new Date(text);
+                                const date = new Date(String(text));
                                 return Number.isNaN(date.getTime())
                                   ? '-'
                                   : date.toLocaleString('zh-CN');
@@ -494,6 +555,58 @@ const DatasetDetail: React.FC = () => {
                             </Button>
                           </div>
                         )}
+                      </div>
+                    ),
+                  },
+                ]
+              : []),
+            ...(isLance
+              ? [
+                  {
+                    key: 'query',
+                    label: (
+                      <span>
+                        <PlayCircleOutlined />
+                        SQL查询
+                      </span>
+                    ),
+                    children: (
+                      <div>
+                        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                          <Input.TextArea
+                            value={sqlText}
+                            onChange={(e) => setSqlText(e.target.value)}
+                            placeholder="SELECT * FROM dataset LIMIT 10"
+                            rows={4}
+                            style={{ fontFamily: 'monospace' }}
+                          />
+                          <Button
+                            type="primary"
+                            icon={<PlayCircleOutlined />}
+                            onClick={runLanceQuery}
+                            loading={queryLoading}
+                          >
+                            执行
+                          </Button>
+                          {queryResult && (
+                            <Table
+                              size="small"
+                              scroll={{ x: 'max-content' }}
+                              columns={queryResult.columns.map((col, i) => ({
+                                title: col,
+                                dataIndex: String(i),
+                                key: String(i),
+                                ellipsis: true,
+                                render: (v: any) => (v != null ? String(v) : '-'),
+                              }))}
+                              dataSource={queryResult.rows.map((row, i) => ({
+                                key: i,
+                                ...row.reduce((acc, val, j) => ({ ...acc, [String(j)]: val }), {}),
+                              }))}
+                              pagination={{ pageSize: 20, showSizeChanger: true }}
+                            />
+                          )}
+                        </Space>
                       </div>
                     ),
                   },

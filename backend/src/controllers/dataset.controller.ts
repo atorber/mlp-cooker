@@ -468,7 +468,7 @@ export class DatasetController {
 
       const { spawn } = await import('child_process');
       const path = await import('path');
-      const scriptPath = path.join(__dirname, '../../scripts/query_lance.py');
+      const scriptPath = path.join(process.cwd(), 'scripts', 'query_lance.py');
 
       const env = {
         ...process.env,
