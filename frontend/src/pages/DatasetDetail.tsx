@@ -265,13 +265,14 @@ const DatasetDetail: React.FC = () => {
     }
   }, [activeTab, fetchFiles, dataset]);
 
+  // 进入详情页且当前数据集为 BOS 时，自动请求后端判断根目录是否为 Lance 格式
   useEffect(() => {
-    if (dataset?.storageType === 'BOS' && dataset?.datasetId) {
+    if (dataset?.storageType === 'BOS' && datasetId) {
       fetchLanceCheck();
     } else {
       setIsLance(false);
     }
-  }, [dataset?.storageType, dataset?.datasetId, fetchLanceCheck]);
+  }, [dataset?.storageType, datasetId, fetchLanceCheck]);
 
   const handleDataProcess = (record: any) => {
     const versionId = record.id || record.versionId || record.version || '';

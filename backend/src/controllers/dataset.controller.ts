@@ -353,7 +353,11 @@ export class DatasetController {
   }
 
   /**
-   * 检测数据集根目录是否为 Lance 格式（存在 _versions 或 data 目录，或 .lance 文件）
+   * 判断当前数据集根目录是否为 Lance 格式。
+   * 逻辑：获取数据集根目录文件列表（BOS ListObjectsV2，Delimiter=/），根据目录结构判断：
+   * - 存在 _versions 目录（Lance 版本清单）或 data 目录（Lance 数据目录），或
+   * - 存在任意以 .lance 结尾的 key
+   * 则视为 Lance 数据集。
    */
   public static async checkLance(req: Request, res: Response): Promise<void> {
     try {
@@ -391,15 +395,15 @@ export class DatasetController {
 
       const s3Result: ListObjectsV2CommandOutput = await s3Client.send(listCommand);
 
-      let isLance = false;
-      const names = new Set<string>();
+      const topLevelNames = new Set<string>();
+      let hasLanceFile = false;
 
       if (s3Result.CommonPrefixes) {
         for (const p of s3Result.CommonPrefixes) {
           if (!p.Prefix) continue;
           const rel = prefixForS3 ? p.Prefix.slice(prefixForS3.length) : p.Prefix;
           const top = rel.split('/').filter(Boolean)[0] || '';
-          names.add(top);
+          topLevelNames.add(top);
         }
       }
       if (s3Result.Contents) {
@@ -407,17 +411,16 @@ export class DatasetController {
           if (!obj.Key) continue;
           const rel = prefixForS3 ? obj.Key.slice(prefixForS3.length) : obj.Key;
           if (rel.endsWith('.lance')) {
-            isLance = true;
+            hasLanceFile = true;
             break;
           }
           const top = rel.split('/').filter(Boolean)[0] || '';
-          names.add(top);
+          topLevelNames.add(top);
         }
       }
 
-      if (!isLance) {
-        isLance = names.has('_versions') || names.has('data');
-      }
+      const isLance =
+        hasLanceFile || topLevelNames.has('_versions') || topLevelNames.has('data');
 
       ResponseUtils.success(res, { isLance }, 'ok');
     } catch (error: any) {
@@ -468,7 +471,11 @@ export class DatasetController {
 
       const { spawn } = await import('child_process');
       const path = await import('path');
-      const scriptPath = path.join(process.cwd(), 'scripts', 'query_lance.py');
+      const fs = await import('fs');
+      const cwd = process.cwd();
+      const scriptPath = path.join(cwd, 'scripts', 'query_lance.py');
+      const venvPython = path.join(cwd, '.venv-lance', 'bin', 'python3');
+      const pythonCmd = fs.existsSync(venvPython) ? venvPython : 'python3';
 
       const env = {
         ...process.env,
@@ -480,7 +487,7 @@ export class DatasetController {
         LANCE_S3_REGION: region,
       };
 
-      const proc = spawn('python3', [scriptPath], {
+      const proc = spawn(pythonCmd, [scriptPath], {
         env,
         stdio: ['ignore', 'pipe', 'pipe'],
       });

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
 Lance 数据集 SQL 查询脚本。
-从环境变量读取 LANCE_S3_URI, LANCE_SQL 及 S3 认证，用 DuckDB + Lance 扩展执行 SQL，输出 JSON。
-依赖: pip install duckdb
-可选: DuckDB 需能加载 community 的 lance 扩展（INSTALL lance; LOAD lance）。
-BOS 使用 S3 兼容接口，通过 s3_endpoint 等配置。
+从环境变量读取 LANCE_S3_URI, LANCE_SQL 及 S3 认证：
+  1. 用 pylance 读取 Lance 数据集为 PyArrow 表（无需 DuckDB 的 lance 扩展）
+  2. 用 DuckDB 对 PyArrow 表执行用户 SQL，输出 JSON。
+依赖: pip install duckdb pyarrow pylance
+BOS 使用 S3 兼容接口，通过 storage_options 传入 endpoint、AK/SK。
 """
 import os
 import sys
@@ -23,6 +24,40 @@ def main():
         print(json.dumps(out, ensure_ascii=False))
         sys.exit(1)
 
+    storage_options = {}
+    if endpoint:
+        storage_options["endpoint"] = endpoint
+    if region:
+        storage_options["region"] = region
+    if access_key:
+        storage_options["access_key_id"] = access_key
+    if secret_key:
+        storage_options["secret_access_key"] = secret_key
+
+    # 1. 用 pylance 读取 Lance 数据集为 PyArrow 表（不依赖 DuckDB lance 扩展）
+    try:
+        import lance
+    except ImportError:
+        out = {"columns": [], "rows": [], "error": "python package pylance is required: pip install pylance"}
+        print(json.dumps(out, ensure_ascii=False))
+        sys.exit(1)
+
+    # 使用 LanceDataset 类打开（pylance 包；勿装成 PyPI 上的 lance）
+    opener = getattr(lance, "LanceDataset", None) or getattr(lance, "dataset", None)
+    if not opener:
+        out = {"columns": [], "rows": [], "error": "pylance 未提供 LanceDataset/dataset，请安装: pip install pylance"}
+        print(json.dumps(out, ensure_ascii=False))
+        sys.exit(1)
+
+    try:
+        ds = opener(uri, storage_options=storage_options or None)
+        table = ds.to_table()
+    except Exception as e:
+        out = {"columns": [], "rows": [], "error": f"Open lance dataset failed: {e}"}
+        print(json.dumps(out, ensure_ascii=False))
+        sys.exit(1)
+
+    # 2. DuckDB 注册 PyArrow 表为 dataset，执行用户 SQL
     try:
         import duckdb
     except ImportError:
@@ -31,34 +66,7 @@ def main():
         sys.exit(1)
 
     conn = duckdb.connect(":memory:")
-
-    # BOS S3 兼容：配置自定义 endpoint 与认证
-    if endpoint:
-        conn.execute(f"SET s3_endpoint='{endpoint.replace(chr(39), chr(39)+chr(39))}'")
-    if region:
-        conn.execute(f"SET s3_region='{region}'")
-    if access_key:
-        conn.execute(f"SET s3_access_key_id='{access_key.replace(chr(39), chr(39)+chr(39))}'")
-    if secret_key:
-        conn.execute(f"SET s3_secret_access_key='{secret_key.replace(chr(39), chr(39)+chr(39))}'")
-
-    # 加载 Lance 扩展并创建视图指向当前数据集
-    try:
-        conn.execute("INSTALL lance")
-        conn.execute("LOAD lance")
-    except Exception as e:
-        out = {"columns": [], "rows": [], "error": f"Lance extension load failed: {e}"}
-        print(json.dumps(out, ensure_ascii=False))
-        sys.exit(1)
-
-    # 将 Lance 数据集注册为视图 'dataset'，便于用户写 SELECT * FROM dataset
-    safe_uri = uri.replace("'", "''")
-    try:
-        conn.execute(f"CREATE VIEW dataset AS SELECT * FROM '{safe_uri}'")
-    except Exception as e:
-        out = {"columns": [], "rows": [], "error": f"Open lance dataset failed: {e}"}
-        print(json.dumps(out, ensure_ascii=False))
-        sys.exit(1)
+    conn.register("dataset", table)
 
     def to_jsonable(v):
         if v is None:
