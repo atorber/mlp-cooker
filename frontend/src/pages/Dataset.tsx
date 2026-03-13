@@ -18,6 +18,7 @@ import {
   Space,
   Tag,
   Tabs,
+  Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { history, request } from '@umijs/max';
@@ -161,19 +162,31 @@ const Dataset: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Dataset>[] = [
     {
-      title: '数据集ID',
-      dataIndex: 'datasetId',
-      key: 'datasetId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.datasetId || record.id,
-    },
-    {
-      title: '名称',
+      title: '名称 / 数据集ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Dataset) => {
+        const id = record.datasetId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => goToDetail(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '存储类型',
@@ -210,7 +223,7 @@ const Dataset: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '更新时间',
@@ -218,7 +231,7 @@ const Dataset: React.FC = () => {
       key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '操作',

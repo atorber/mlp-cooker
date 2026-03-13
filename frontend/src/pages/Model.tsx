@@ -17,6 +17,7 @@ import {
   Select,
   Space,
   Tag,
+  Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { history, request } from '@umijs/max';
@@ -177,19 +178,31 @@ const Model: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Model>[] = [
     {
-      title: '模型ID',
-      dataIndex: 'modelId',
-      key: 'modelId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.modelId || record.id,
-    },
-    {
-      title: '名称',
+      title: '名称 / 模型ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Model) => {
+        const id = record.modelId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => goToDetail(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '模型格式',
@@ -235,7 +248,7 @@ const Model: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '更新时间',
@@ -243,7 +256,7 @@ const Model: React.FC = () => {
       key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '操作',
