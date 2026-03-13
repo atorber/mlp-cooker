@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
 import { AihcSDK, AIHC_DEFAULT_BASE_URL } from '@/utils/sdk/aihc.sdk';
 import { YamlConfigManager } from '@/config/yaml-config';
-import { S3Client, ListObjectsV2Command, ListObjectsV2CommandOutput } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, ListObjectsV2CommandOutput, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 /**
  * 数据集控制器
@@ -243,7 +244,7 @@ export class DatasetController {
   public static async listFiles(req: Request, res: Response): Promise<void> {
     try {
       const { datasetId } = req.params;
-      const { prefix = '', continuationToken = '', maxKeys = 1000 } = req.query;
+      const { prefix = '', continuationToken = '', maxKeys = 1000, versionId } = req.query;
 
       if (!datasetId) {
         ResponseUtils.error(res, '数据集ID不能为空');
@@ -274,12 +275,27 @@ export class DatasetController {
         return;
       }
 
-      // 从版本信息中获取存储路径；若请求带了 prefix（子目录），则以其为准
+      // 从版本信息中获取存储路径；若请求带了 versionId 则从版本列表中取该版本的 storagePath
       let storagePath = '';
-      if (datasetDetail.versionEntry && datasetDetail.versionEntry.storagePath) {
-        storagePath = datasetDetail.versionEntry.storagePath;
-      } else if (datasetDetail.latestVersionEntry && datasetDetail.latestVersionEntry.storagePath) {
-        storagePath = datasetDetail.latestVersionEntry.storagePath;
+      const requestedVersionId = typeof versionId === 'string' ? versionId.trim() : '';
+      if (requestedVersionId) {
+        const versionListResult = await sdk.describeDatasetVersions(datasetId, 1, 100);
+        const versionList: any[] = Array.isArray(versionListResult)
+          ? versionListResult
+          : versionListResult?.versions ?? versionListResult?.result ?? versionListResult?.data ?? versionListResult?.list ?? [];
+        const versionEntry = versionList.find(
+          (v: any) => (v.id && String(v.id) === requestedVersionId) || (v.versionId && String(v.versionId) === requestedVersionId)
+        );
+        if (versionEntry?.storagePath) {
+          storagePath = versionEntry.storagePath;
+        }
+      }
+      if (!storagePath && !requestedVersionId) {
+        if (datasetDetail.versionEntry && datasetDetail.versionEntry.storagePath) {
+          storagePath = datasetDetail.versionEntry.storagePath;
+        } else if (datasetDetail.latestVersionEntry && datasetDetail.latestVersionEntry.storagePath) {
+          storagePath = datasetDetail.latestVersionEntry.storagePath;
+        }
       }
       const requestPrefix = typeof prefix === 'string' ? prefix : '';
       const basePath = requestPrefix.trim() || storagePath;
@@ -349,6 +365,135 @@ export class DatasetController {
         ? '无法解析存储服务地址，请检查网络或 VPN 是否已连接'
         : (error instanceof Error ? error.message : 'Unknown error');
       ResponseUtils.error(res, '获取文件列表失败', { error: message });
+    }
+  }
+
+  /**
+   * 获取单个文件的访问 URL（预签名，用于预览或下载）
+   */
+  public static async getFileAccessUrl(req: Request, res: Response): Promise<void> {
+    try {
+      const { datasetId } = req.params;
+      const { key, disposition = 'inline' } = req.query;
+
+      if (!datasetId || !key || typeof key !== 'string' || !key.trim()) {
+        ResponseUtils.error(res, 'datasetId 与 key 不能为空');
+        return;
+      }
+
+      const sdk = DatasetController.getDatasetSDK();
+      const datasetDetail = await sdk.describeDataset(datasetId);
+      if (!datasetDetail) {
+        ResponseUtils.error(res, '数据集不存在');
+        return;
+      }
+
+      if (datasetDetail.storageType !== 'BOS') {
+        ResponseUtils.error(res, '当前只支持 BOS 存储类型的文件访问');
+        return;
+      }
+
+      const bucket = datasetDetail.storageInstance;
+      if (!bucket) {
+        ResponseUtils.error(res, '数据集存储实例为空');
+        return;
+      }
+
+      const objectKey = key.trim();
+      const isAttachment = disposition === 'attachment';
+      const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: objectKey,
+        ...(isAttachment && {
+          ResponseContentDisposition: `attachment; filename="${encodeURIComponent(objectKey.replace(/^.*\//, ''))}"`,
+        }),
+      });
+
+      const s3Client = DatasetController.getS3Client();
+      const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+      const suggestedFilename = objectKey.replace(/^.*\//, '');
+
+      ResponseUtils.success(res, { url, suggestedFilename }, '获取成功');
+    } catch (error: any) {
+      console.error('获取文件访问 URL 失败:', error);
+      const message = error?.code === 'ENOTFOUND'
+        ? '无法解析存储服务地址，请检查网络或 VPN 是否已连接'
+        : (error instanceof Error ? error.message : 'Unknown error');
+      ResponseUtils.error(res, '获取文件访问 URL 失败', { error: message });
+    }
+  }
+
+  /** 允许预览的文本文件扩展名（小写） */
+  private static readonly PREVIEW_TEXT_EXT = new Set([
+    'txt', 'json', 'yaml', 'yml', 'xml', 'md', 'csv', 'log', 'conf', 'cfg', 'ini', 'env', 'properties', 'text',
+  ]);
+
+  /** 预览文件最大大小（字节，默认 1MB） */
+  private static readonly PREVIEW_MAX_BYTES = 1024 * 1024;
+
+  /**
+   * 获取文本文件内容（仅用于预览，仅支持 txt、json、yaml 等文本格式）
+   */
+  public static async getFileContent(req: Request, res: Response): Promise<void> {
+    try {
+      const { datasetId } = req.params;
+      const { key } = req.query;
+
+      if (!datasetId || !key || typeof key !== 'string' || !key.trim()) {
+        ResponseUtils.error(res, 'datasetId 与 key 不能为空');
+        return;
+      }
+
+      const objectKey = key.trim();
+      const ext = objectKey.split('.').pop()?.toLowerCase() ?? '';
+      if (!DatasetController.PREVIEW_TEXT_EXT.has(ext)) {
+        ResponseUtils.error(res, '仅支持预览 txt、json、yaml、xml、md、csv 等文本格式文件');
+        return;
+      }
+
+      const sdk = DatasetController.getDatasetSDK();
+      const datasetDetail = await sdk.describeDataset(datasetId);
+      if (!datasetDetail) {
+        ResponseUtils.error(res, '数据集不存在');
+        return;
+      }
+
+      if (datasetDetail.storageType !== 'BOS') {
+        ResponseUtils.error(res, '当前只支持 BOS 存储类型的文件访问');
+        return;
+      }
+
+      const bucket = datasetDetail.storageInstance;
+      if (!bucket) {
+        ResponseUtils.error(res, '数据集存储实例为空');
+        return;
+      }
+
+      const s3Client = DatasetController.getS3Client();
+
+      const headCommand = new HeadObjectCommand({ Bucket: bucket, Key: objectKey });
+      const headResult = await s3Client.send(headCommand);
+      const contentLength = headResult.ContentLength ?? 0;
+      if (contentLength > DatasetController.PREVIEW_MAX_BYTES) {
+        ResponseUtils.error(res, `文件过大，仅支持预览不超过 ${DatasetController.PREVIEW_MAX_BYTES / 1024}KB 的文本文件`);
+        return;
+      }
+
+      const getCommand = new GetObjectCommand({ Bucket: bucket, Key: objectKey });
+      const getResult = await s3Client.send(getCommand);
+      if (!getResult.Body) {
+        ResponseUtils.error(res, '文件内容为空');
+        return;
+      }
+
+      const content = await getResult.Body.transformToString('utf-8');
+      ResponseUtils.success(res, { content, filename: objectKey.replace(/^.*\//, '') }, '获取成功');
+    } catch (error: any) {
+      console.error('获取文件内容失败:', error);
+      const message = error?.code === 'ENOTFOUND'
+        ? '无法解析存储服务地址，请检查网络或 VPN 是否已连接'
+        : (error instanceof Error ? error.message : 'Unknown error');
+      ResponseUtils.error(res, '获取文件内容失败', { error: message });
     }
   }
 

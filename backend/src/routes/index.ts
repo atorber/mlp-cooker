@@ -79,6 +79,10 @@ router.post('/api/datasets/:datasetId/versions', DatasetController.createVersion
 // 删除数据集版本
 router.delete('/api/datasets/:datasetId/versions/:versionId', DatasetController.deleteVersion);
 
+// 获取数据集单个文件访问 URL（预签名，用于下载）
+router.get('/api/datasets/:datasetId/files/access-url', DatasetController.getFileAccessUrl);
+// 获取数据集文本文件内容（用于前端预览）
+router.get('/api/datasets/:datasetId/files/content', DatasetController.getFileContent);
 // 获取数据集文件列表（BOS存储）
 router.get('/api/datasets/:datasetId/files', DatasetController.listFiles);
 // Lance 格式检测
