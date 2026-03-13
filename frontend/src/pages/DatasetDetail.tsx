@@ -4,11 +4,12 @@ import {
   FileOutlined,
   FolderOutlined,
   PlayCircleOutlined,
+  QuestionCircleOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { App, Button, Card, Descriptions, Input, Space, Table, Tag, Tabs } from 'antd';
+import { App, Button, Card, Descriptions, Input, Space, Table, Tag, Tabs, Tooltip } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { history, useParams, useSearchParams } from '@umijs/max';
 import { request } from '@umijs/max';
@@ -569,6 +570,9 @@ const DatasetDetail: React.FC = () => {
                       <span>
                         <PlayCircleOutlined />
                         SQL查询
+                        <Tooltip title="使用 SQL 控制台对数据集运行遵循 DuckDB SQL 语法的查询，支持正则表达式等标准功能。">
+                          <QuestionCircleOutlined style={{ marginLeft: 6, color: '#999', cursor: 'help' }} />
+                        </Tooltip>
                       </span>
                     ),
                     children: (
