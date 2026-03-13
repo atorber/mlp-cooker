@@ -112,9 +112,9 @@ const Dataset: React.FC = () => {
   const goToDetail = (record: Dataset, tab?: 'versions') => {
     const id = record.datasetId || record.id || '';
     if (tab) {
-      history.push(`/dataset/detail/${id}?tab=${tab}`);
+      history.push(`/ai-assets/dataset/detail/${id}?tab=${tab}`);
     } else {
-      history.push(`/dataset/detail/${id}`);
+      history.push(`/ai-assets/dataset/detail/${id}`);
     }
   };
 

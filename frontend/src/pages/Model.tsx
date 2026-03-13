@@ -53,9 +53,9 @@ const Model: React.FC = () => {
   const goToDetail = (record: Model, tab?: 'versions') => {
     const id = record.modelId || record.id || '';
     if (tab) {
-      history.push(`/model/detail/${id}?tab=${tab}`);
+      history.push(`/ai-assets/model/detail/${id}?tab=${tab}`);
     } else {
-      history.push(`/model/detail/${id}`);
+      history.push(`/ai-assets/model/detail/${id}`);
     }
   };
 

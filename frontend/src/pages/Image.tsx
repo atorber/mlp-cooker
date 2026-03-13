@@ -214,12 +214,12 @@ const Image: React.FC = () => {
 
   // 查看镜像简介
   const handleViewIntroduction = (record: Image) => {
-    history.push(`/image/detail/${record.id}?tab=intro`);
+    history.push(`/ai-assets/image/detail/${record.id}?tab=intro`);
   };
 
   // 查看镜像版本
   const handleViewVersions = (record: Image) => {
-    history.push(`/image/detail/${record.id}?tab=versions`);
+    history.push(`/ai-assets/image/detail/${record.id}?tab=versions`);
   };
 
   // 打开编辑模态框
@@ -762,7 +762,7 @@ const Image: React.FC = () => {
                   type="primary"
                   onClick={() => {
                     setDrawerVisible(false);
-                    history.push(`/image/detail/${selectedImage.id}`);
+                    history.push(`/ai-assets/image/detail/${selectedImage.id}`);
                   }}
                 >
                   查看详情
