@@ -1,6 +1,8 @@
 import {
   ArrowLeftOutlined,
+  BookOutlined,
   BranchesOutlined,
+  CopyOutlined,
   DownloadOutlined,
   EyeOutlined,
   FileOutlined,
@@ -12,7 +14,7 @@ import {
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { App, Button, Card, Col, Descriptions, Input, Modal, Row, Select, Space, Spin, Table, Tag, Tabs, Tooltip } from 'antd';
+import { Alert, App, Button, Card, Col, Descriptions, Input, Modal, Row, Select, Space, Spin, Table, Tag, Tabs, Tooltip } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { history, useParams, useSearchParams } from '@umijs/max';
 import { request } from '@umijs/max';
@@ -85,6 +87,16 @@ interface Dataset {
   createTime?: string;
   updateTime?: string;
   latestVersion?: any;
+  versionEntry?: {
+    storagePath?: string;
+    storageBucket?: string;
+    [key: string]: any;
+  };
+  latestVersionEntry?: {
+    storagePath?: string;
+    storageBucket?: string;
+    [key: string]: any;
+  };
 }
 
 const DatasetDetail: React.FC = () => {
@@ -105,7 +117,7 @@ const DatasetDetail: React.FC = () => {
   const [currentPrefix, setCurrentPrefix] = useState<string>('');
   const [selectedFileVersionId, setSelectedFileVersionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(() =>
-    tabFromUrl === 'versions' ? 'versions' : tabFromUrl === 'files' ? 'files' : tabFromUrl === 'query' ? 'query' : 'basic',
+    tabFromUrl === 'versions' ? 'versions' : tabFromUrl === 'files' ? 'files' : tabFromUrl === 'query' ? 'query' : tabFromUrl === 'usage' ? 'usage' : 'basic',
   );
   const [isLance, setIsLance] = useState(false);
   const [lanceCheckLoading, setLanceCheckLoading] = useState(false);
@@ -374,6 +386,7 @@ const DatasetDetail: React.FC = () => {
     if (tabFromUrl === 'versions') setActiveTab('versions');
     else if (tabFromUrl === 'files') setActiveTab('files');
     else if (tabFromUrl === 'query') setActiveTab('query');
+    else if (tabFromUrl === 'usage') setActiveTab('usage');
   }, [tabFromUrl]);
 
   useEffect(() => {
@@ -964,6 +977,224 @@ const DatasetDetail: React.FC = () => {
                         </Col>
                       </Row>
                     ),
+                  },
+                  {
+                    key: 'usage',
+                    label: (
+                      <span>
+                        <BookOutlined />
+                        使用说明
+                      </span>
+                    ),
+                    children: (() => {
+                      const bucket = dataset?.storageInstance || 'bucket';
+                      const storagePath = dataset?.versionEntry?.storagePath || dataset?.latestVersionEntry?.storagePath || 'path/to/data';
+                      const s3Uri = `s3://${bucket}/${storagePath.replace(/^\//, '')}`;
+                      return (
+                        <div style={{ padding: '16px 0' }}>
+                          <Alert
+                            message="操作文档"
+                            description="更多使用说明详见官方文档"
+                            type="info"
+                            showIcon
+                            style={{ marginBottom: 16 }}
+                          />
+                          <Card size="small" title="1. 配置环境变量" style={{ marginBottom: 16 }}>
+                            <pre style={{ background: '#f6f8fa', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
+{`# 您可以在「访问控制」->「API 访问密钥」中创建或查看您的 api key
+export AWS_ACCESS_KEY_ID=xxx
+export AWS_SECRET_ACCESS_KEY=xxx
+export AWS_REGION=cn-beijing
+export AWS_ENDPOINT=https://s3.cn-beijing.baidubce.com`}
+                            </pre>
+                            <Button
+                              icon={<CopyOutlined />}
+                              size="small"
+                              onClick={() => {
+                                const text = `export AWS_ACCESS_KEY_ID=xxx
+export AWS_SECRET_ACCESS_KEY=xxx
+export AWS_REGION=cn-beijing
+export AWS_ENDPOINT=https://s3.cn-beijing.baidubce.com`;
+                                navigator.clipboard.writeText(text);
+                                messageApi.success('已复制到剪贴板');
+                              }}
+                              style={{ marginTop: 8 }}
+                            >
+                              复制
+                            </Button>
+                          </Card>
+                          <Card size="small" title="2. 读取数据" style={{ marginBottom: 16 }}>
+                            <pre style={{ background: '#f6f8fa', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
+{`import daft
+from pyarrow.dataset import dataset
+import pyarrow as pa
+
+# 使用 pyarrow 读取 Lance 格式数据
+ds = dataset("${s3Uri}", format=" lance")
+table = ds.to_table()
+df = daft.from_pydataframe(table)
+df.show()`}
+                            </pre>
+                            <Button
+                              icon={<CopyOutlined />}
+                              size="small"
+                              onClick={() => {
+                                const text = `import daft
+from pyarrow.dataset import dataset
+import pyarrow as pa
+
+# 使用 pyarrow 读取 Lance 格式数据
+ds = dataset("${s3Uri}", format="lance")
+table = ds.to_table()
+df = daft.from_pydataframe(table)
+df.show()`;
+                                navigator.clipboard.writeText(text);
+                                messageApi.success('已复制到剪贴板');
+                              }}
+                              style={{ marginTop: 8 }}
+                            >
+                              复制
+                            </Button>
+                          </Card>
+                          <Card size="small" title="3. 加列" style={{ marginBottom: 16 }}>
+                            <pre style={{ background: '#f6f8fa', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
+{`import pyarrow as pa
+from daft.io import IOConfig
+from daft.io.lance import merge_columns
+import os
+
+# 配置 S3 连接信息
+io_config = IOConfig(
+    s3={
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region": os.environ.get("AWS_REGION", "cn-beijing"),
+        "endpoint": os.environ.get("AWS_ENDPOINT", "https://s3.cn-beijing.baidubce.com"),
+    }
+)
+
+#  此处加列逻辑非常简单，仅展示用法
+def get_create_tag_new_column_func(input_col: str, output_col: str):
+    def tag_new_column(batch: pa.RecordBatch) -> pa.RecordBatch:
+        values = batch.column(input_col).to_pylist()
+        tagged_data_list = [value + "__tag" for value in values]
+        tagged_data_array = pa.array(tagged_data_list, type=pa.string())
+        return pa.RecordBatch.from_arrays([tagged_data_array], names=[output_col])
+    return tag_new_column
+
+print("正在添加新列到 Lance 数据集 ...")
+merge_columns(
+    uri="${s3Uri}",
+    io_config=io_config,
+    transform=get_create_tag_new_column_func("column_name", "new_column_name"),
+)
+print("新列添加完成！")`}
+                            </pre>
+                            <Button
+                              icon={<CopyOutlined />}
+                              size="small"
+                              onClick={() => {
+                                const text = `import pyarrow as pa
+from daft.io import IOConfig
+from daft.io.lance import merge_columns
+import os
+
+# 配置 S3 连接信息
+io_config = IOConfig(
+    s3={
+        "access_key": os.environ.get("AWS_ACCESS_KEY_ID"),
+        "secret_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        "region": os.environ.get("AWS_REGION", "cn-beijing"),
+        "endpoint": os.environ.get("AWS_ENDPOINT", "https://s3.cn-beijing.baidubce.com"),
+    }
+)
+
+def get_create_tag_new_column_func(input_col: str, output_col: str):
+    def tag_new_column(batch: pa.RecordBatch) -> pa.RecordBatch:
+        values = batch.column(input_col).to_pylist()
+        tagged_data_list = [value + "__tag" for value in values]
+        tagged_data_array = pa.array(tagged_data_list, type=pa.string())
+        return pa.RecordBatch.from_arrays([tagged_data_array], names=[output_col])
+    return tag_new_column
+
+print("正在添加新列到 Lance 数据集 ...")
+merge_columns(
+    uri="${s3Uri}",
+    io_config=io_config,
+    transform=get_create_tag_new_column_func("column_name", "new_column_name"),
+)
+print("新列添加完成！")`;
+                                navigator.clipboard.writeText(text);
+                                messageApi.success('已复制到剪贴板');
+                              }}
+                              style={{ marginTop: 8 }}
+                            >
+                              复制
+                            </Button>
+                          </Card>
+                          <Card size="small" title="4. 查看更多 Lance 信息">
+                            <pre style={{ background: '#f6f8fa', padding: 12, borderRadius: 6, overflow: 'auto', fontSize: 12 }}>
+{`import lance
+import os
+
+# 配置 S3 连接信息
+storage_options = {
+    "access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
+    "secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+    "region": os.environ.get("AWS_REGION", "cn-beijing"),
+    "endpoint": os.environ.get("AWS_ENDPOINT", "https://s3.cn-beijing.baidubce.com"),
+}
+
+ds = lance.LanceDataset(
+    uri="${s3Uri}",
+    storage_options=storage_options,
+)
+
+# 查看 Lance 数据集的 schema 信息
+print("Lance 数据集的 schema 信息如下：")
+print(ds.schema)
+
+# 查看 Lance 数据集的版本信息
+print("Lance 数据集的版本信息如下：")
+print(ds.versions())
+
+# 查看 Lance 数据集的索引信息
+print("Lance 数据集的索引信息如下：")
+print(ds.list_indices())`}
+                            </pre>
+                            <Button
+                              icon={<CopyOutlined />}
+                              size="small"
+                              onClick={() => {
+                                const text = `import lance
+import os
+
+storage_options = {
+    "access_key_id": os.environ.get("AWS_ACCESS_KEY_ID"),
+    "secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY"),
+    "region": os.environ.get("AWS_REGION", "cn-beijing"),
+    "endpoint": os.environ.get("AWS_ENDPOINT", "https://s3.cn-beijing.baidubce.com"),
+}
+
+ds = lance.LanceDataset(
+    uri="${s3Uri}",
+    storage_options=storage_options,
+)
+
+print(ds.schema)
+print(ds.versions())
+print(ds.list_indices())`;
+                                navigator.clipboard.writeText(text);
+                                messageApi.success('已复制到剪贴板');
+                              }}
+                              style={{ marginTop: 8 }}
+                            >
+                              复制
+                            </Button>
+                          </Card>
+                        </div>
+                      );
+                    })(),
                   },
                 ]
               : []),
