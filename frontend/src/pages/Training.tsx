@@ -371,24 +371,35 @@ const Training: React.FC = () => {
     if (!status) return 'default';
     const statusStr = String(status).toLowerCase();
 
-    // 运行中状态
-    if (statusStr === 'running' || statusStr.includes('running') || statusStr === 'pending') {
+    // 运行/启动/排队/重启中状态 - 蓝色进行中
+    if (
+      statusStr === 'running' ||
+      statusStr === 'starting' ||
+      statusStr === 'created' ||
+      statusStr === 'restarting' ||
+      statusStr === 'pending'
+    ) {
       return 'processing';
     }
 
-    // 已完成/已停止状态
-    if (statusStr === 'completed' || statusStr === 'stopped' || statusStr === 'manualtermination' || statusStr.includes('termination')) {
+    // 停止中状态 - 橙色警告
+    if (statusStr === 'stopping') {
+      return 'warning';
+    }
+
+    // 已停止状态 - 灰色默认
+    if (statusStr === 'stopped') {
+      return 'default';
+    }
+
+    // 成功状态 - 绿色
+    if (statusStr === 'succeeded' || statusStr === 'completed') {
       return 'success';
     }
 
-    // 错误状态
-    if (statusStr === 'error' || statusStr === 'failed' || statusStr.includes('error') || statusStr.includes('failed')) {
+    // 失败/异常状态 - 红色错误
+    if (statusStr === 'failed' || statusStr === 'abnormal' || statusStr === 'error') {
       return 'error';
-    }
-
-    // 创建中状态
-    if (statusStr === 'creating' || statusStr.includes('creating')) {
-      return 'processing';
     }
 
     return 'default';
@@ -430,13 +441,15 @@ const Training: React.FC = () => {
       width: 120,
       valueType: 'select',
       valueEnum: {
+        Created: { text: '排队中', status: 'Processing' },
+        Starting: { text: '启动中', status: 'Processing' },
         Running: { text: '运行中', status: 'Processing' },
-        Pending: { text: '等待中', status: 'Processing' },
-        Stopped: { text: '已停止', status: 'Success' },
-        Completed: { text: '已完成', status: 'Success' },
-        ManualTermination: { text: '手动终止', status: 'Success' },
-        Error: { text: '错误', status: 'Error' },
+        Stopping: { text: '停止中', status: 'Warning' },
+        Stopped: { text: '已停止', status: 'Default' },
         Failed: { text: '失败', status: 'Error' },
+        Succeeded: { text: '成功', status: 'Success' },
+        Abnormal: { text: '异常', status: 'Error' },
+        Restarting: { text: '重启中', status: 'Processing' },
       },
       render: (text, record) => {
         // status 可能是字符串或对象（ProTable 的 valueEnum 可能会转换）
@@ -456,13 +469,15 @@ const Training: React.FC = () => {
 
         // 状态文本映射
         const statusTextMap: Record<string, string> = {
+          Created: '排队中',
+          Starting: '启动中',
           Running: '运行中',
-          Pending: '等待中',
+          Stopping: '停止中',
           Stopped: '已停止',
-          Completed: '已完成',
-          ManualTermination: '手动终止',
-          Error: '错误',
           Failed: '失败',
+          Succeeded: '成功',
+          Abnormal: '异常',
+          Restarting: '重启中',
         };
 
         const displayText = statusTextMap[statusStr] || statusStr;

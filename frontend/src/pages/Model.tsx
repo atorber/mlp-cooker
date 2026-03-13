@@ -261,7 +261,7 @@ const Model: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 240,
       fixed: 'right' as const,
       render: (_: any, record: Model) => (
         <Space wrap>

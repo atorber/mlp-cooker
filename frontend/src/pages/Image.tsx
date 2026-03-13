@@ -19,6 +19,7 @@ import {
   Form,
   Input,
   Modal,
+  Popconfirm,
   Row,
   Select,
   Space,
@@ -325,7 +326,8 @@ const Image: React.FC = () => {
     },
     {
       title: '操作',
-      width: 360,
+      key: 'action',
+      width: 240,
       fixed: 'right' as const,
       render: (_: any, record: Image) => {
         // 公共镜像只显示查看相关操作，不显示编辑、删除等操作
@@ -360,7 +362,6 @@ const Image: React.FC = () => {
             >
               版本
             </Button>
-            {/* 只有自定义镜像才显示编辑、删除操作 */}
             {!isPublicImage && (
               <>
                 <Button
@@ -372,15 +373,16 @@ const Image: React.FC = () => {
                 >
                   编辑
                 </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDelete(record)}
+                <Popconfirm
+                  title="确定要删除这个镜像吗？"
+                  onConfirm={() => handleDelete(record)}
+                  okText="确定"
+                  cancelText="取消"
                 >
-                  删除
-                </Button>
+                  <Button type="text" size="small" danger icon={<DeleteOutlined />}>
+                    删除
+                  </Button>
+                </Popconfirm>
               </>
             )}
           </Space>
