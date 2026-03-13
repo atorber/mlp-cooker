@@ -46,6 +46,19 @@ export default [
     path: '/training',
     component: './Training',
   },
+  {
+    name: 'workflow',
+    icon: 'apartment',
+    path: '/workflow',
+    component: './Workflow',
+  },
+  {
+    name: 'workflow-editor',
+    path: '/workflow/editor/:id',
+    component: './WorkflowEditor',
+    hideInMenu: true,
+    layout: false,
+  },
   // AI资产菜单组
   {
     name: 'ai-assets',

@@ -50,11 +50,9 @@ class App {
     const uploadsPath = path.join(process.cwd(), 'data', 'uploads');
     this.app.use('/uploads', express.static(uploadsPath));
 
-    // 生产环境下提供前端静态文件
-    if (!this.config.server.debug) {
-      const frontendDistPath = path.join(process.cwd(), '..', 'frontend-antd', 'dist');
-      this.app.use(express.static(frontendDistPath));
-    }
+    // 提供前端静态文件
+    const frontendDistPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+    this.app.use(express.static(frontendDistPath));
 
     // 请求ID中间件
     this.app.use((req, res, next) => {
@@ -88,8 +86,14 @@ class App {
       });
     }
 
-    // 前端路由支持（SPA） - 简化处理
-    // 这个功能在后续集成前端时再启用
+    // 前端路由支持（SPA） - 非 API 路由回退到 index.html
+    const frontendDistPath = path.join(process.cwd(), '..', 'frontend', 'dist');
+    this.app.use((req, res, next) => {
+      if (req.method !== 'GET' || req.path.startsWith('/api/')) {
+        return next();
+      }
+      res.sendFile(path.join(frontendDistPath, 'index.html'));
+    });
   }
 
   /**

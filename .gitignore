@@ -140,3 +140,4 @@ backend/node_modules/*
 .docs/*
 .docs/api/
 .knowledge/*
+.claude/*

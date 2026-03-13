@@ -51,6 +51,8 @@ export default {
   'menu.editor.koni': '拓扑编辑器',
   'menu.application': '应用',
   'menu.deployment': '部署',
+  'menu.workflow': '工作流',
+  'menu.workflow-editor': '工作流编排',
   'menu.training': '训练',
   'menu.task': '任务',
   'menu.ai-assets': 'AI资产',

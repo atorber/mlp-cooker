@@ -51,6 +51,8 @@ export default {
   'menu.editor.koni': 'Koni Editor',
   'menu.application': 'Application',
   'menu.deployment': 'Deployment',
+  'menu.workflow': 'Workflow',
+  'menu.workflow-editor': 'Workflow Editor',
   'menu.training': 'Training',
   'menu.task': 'Task',
   'menu.ai-assets': 'AI Assets',

@@ -9,6 +9,7 @@ import { AppController } from '@/controllers/app.controller';
 import { ResourceController } from '@/controllers/resource.controller';
 import { TaskController } from '@/controllers/task.controller';
 import { ImageController } from '@/controllers/image.controller';
+import { WorkflowController } from '@/controllers/workflow.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -218,5 +219,23 @@ router.get('/api/images/:id/versions', authMiddleware, ImageController.listVersi
 
 // 创建镜像版本
 router.post('/api/images/:id/versions', authMiddleware, ImageController.createVersion);
+
+/**
+ * 工作流相关路由
+ */
+// 查询工作流列表
+router.get('/api/workflows', WorkflowController.list);
+
+// 查询工作流详情
+router.get('/api/workflows/:workflowId', WorkflowController.get);
+
+// 创建工作流
+router.post('/api/workflows', WorkflowController.create);
+
+// 更新工作流
+router.put('/api/workflows/:workflowId', WorkflowController.update);
+
+// 删除工作流
+router.delete('/api/workflows/:workflowId', WorkflowController.delete);
 
 export default router;
