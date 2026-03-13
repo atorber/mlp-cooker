@@ -34,9 +34,10 @@ interface Dataset {
   storageInstance?: string;
   importFormat?: string;
   owner?: string;
+  ownerName?: string;
   visibilityScope?: string;
-  createTime?: string;
-  updateTime?: string;
+  createdAt?: string;
+  updatedAt?: string;
   latestVersion?: any;
 }
 
@@ -73,7 +74,7 @@ const Dataset: React.FC = () => {
           total = data.length;
         } else if (data?.datasets && Array.isArray(data.datasets)) {
           datasets = data.datasets;
-          total = data.total || data.datasets.length;
+          total = data.totalCount || data.total || data.datasets.length;
         } else if (data?.result && Array.isArray(data.result)) {
           datasets = data.result;
           total = data.total || data.result.length;
@@ -205,19 +206,19 @@ const Dataset: React.FC = () => {
     },
     {
       title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '更新时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '操作',

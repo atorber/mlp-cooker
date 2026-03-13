@@ -79,6 +79,13 @@ router.post('/api/datasets/:datasetId/versions', DatasetController.createVersion
 // 删除数据集版本
 router.delete('/api/datasets/:datasetId/versions/:versionId', DatasetController.deleteVersion);
 
+// 获取数据集文件列表（BOS存储）
+router.get('/api/datasets/:datasetId/files', DatasetController.listFiles);
+// Lance 格式检测
+router.get('/api/datasets/:datasetId/lance-check', DatasetController.checkLance);
+// Lance 数据集 SQL 查询
+router.post('/api/datasets/:datasetId/query', DatasetController.queryLance);
+
 /**
  * 模型相关路由
  */

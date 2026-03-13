@@ -14,6 +14,7 @@ export interface YamlConfigData {
   ML_PLATFORM_RESOURCE_QUEUE_ID: string;
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: string;
   ML_PLATFORM_RESOURCE_BUCKET: string;
+  ML_PLATFORM_RESOURCE_REGION: string;
 }
 
 /**
@@ -38,6 +39,7 @@ const CONFIG_TYPE_DEFINITIONS: {
   ML_PLATFORM_RESOURCE_QUEUE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_BUCKET: { type: 'string', required: false },
+  ML_PLATFORM_RESOURCE_REGION: { type: 'string', required: false, default: 'bj' },
 };
 
 /**
@@ -331,6 +333,7 @@ export class YamlConfigManager {
       queueId: this.getConfig('ML_PLATFORM_RESOURCE_QUEUE_ID'),
       pfsInstanceId: this.getConfig('ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID'),
       bucket: this.getConfig('ML_PLATFORM_RESOURCE_BUCKET'),
+      region: this.getConfig('ML_PLATFORM_RESOURCE_REGION') || 'bj',
     };
   }
 }

@@ -71,6 +71,12 @@ export default [
     component: './Model',
   },
   {
+    name: 'model-detail',
+    path: '/model/detail/:id',
+    component: './ModelDetail',
+    hideInMenu: true,
+  },
+  {
     name: 'image',
     icon: 'cloud',
     path: '/image',

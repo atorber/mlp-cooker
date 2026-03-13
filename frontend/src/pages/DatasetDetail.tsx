@@ -1,6 +1,8 @@
 import {
   ArrowLeftOutlined,
   BranchesOutlined,
+  FileOutlined,
+  FolderOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
@@ -9,6 +11,27 @@ import { App, Button, Card, Descriptions, Space, Tag, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { history, useParams, useSearchParams } from '@umijs/max';
 import { request } from '@umijs/max';
+
+// 文件数据类型（name 为展示用相对名，key 为完整路径用于进入子目录）
+interface FileItem {
+  name: string;
+  key?: string;
+  size?: number;
+  lastModified?: string;
+  etag?: string;
+  isDirectory: boolean;
+}
+
+// 格式化文件大小（目录无 size，需传入有效数字）
+const formatFileSize = (bytes: number): string => {
+  if (bytes == null || !Number.isFinite(Number(bytes))) return '-';
+  const n = Number(bytes);
+  if (n === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(n) / Math.log(k));
+  return parseFloat((n / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
 
 // 数据集数据类型
 interface Dataset {
@@ -34,10 +57,16 @@ const DatasetDetail: React.FC = () => {
   const tabFromUrl = searchParams.get('tab');
   const [detailLoading, setDetailLoading] = useState(false);
   const [versionLoading, setVersionLoading] = useState(false);
+  const [fileLoading, setFileLoading] = useState(false);
   const [dataset, setDataset] = useState<Dataset | null>(null);
   const [versions, setVersions] = useState<any[]>([]);
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [commonPrefixes, setCommonPrefixes] = useState<FileItem[]>([]);
+  const [nextMarker, setNextMarker] = useState<string>('');
+  const [isTruncated, setIsTruncated] = useState(false);
+  const [currentPrefix, setCurrentPrefix] = useState<string>('');
   const [activeTab, setActiveTab] = useState(() =>
-    tabFromUrl === 'versions' ? 'versions' : 'basic',
+    tabFromUrl === 'versions' ? 'versions' : tabFromUrl === 'files' ? 'files' : 'basic',
   );
 
   // 获取数据集详情
@@ -95,6 +124,70 @@ const DatasetDetail: React.FC = () => {
     }
   }, [datasetId, messageApi]);
 
+  // 获取文件列表（marker 用于分页，prefix 用于进入子目录）
+  const fetchFiles = useCallback(async (marker?: string, prefix?: string) => {
+    if (!datasetId) return;
+    setFileLoading(true);
+    try {
+      const params: Record<string, string> = {};
+      if (marker) params.continuationToken = marker;
+      if (prefix !== undefined && prefix !== '') params.prefix = prefix;
+
+      const response = await request(`/api/datasets/${datasetId}/files`, {
+        method: 'GET',
+        params,
+      });
+      if (response.success) {
+        const data = response.data;
+        const fileList: FileItem[] = [];
+        const prefixList: FileItem[] = [];
+
+        if (data.files && Array.isArray(data.files)) {
+          for (const file of data.files) {
+            fileList.push({
+              name: file.name,
+              key: file.key,
+              size: file.size,
+              lastModified: file.lastModified,
+              etag: file.etag,
+              isDirectory: false,
+            });
+          }
+        }
+
+        if (data.commonPrefixes && Array.isArray(data.commonPrefixes)) {
+          for (const p of data.commonPrefixes) {
+            prefixList.push({
+              name: p.name,
+              key: p.key,
+              isDirectory: true,
+            });
+          }
+        }
+
+        // 如果是加载更多，追加到现有列表
+        if (marker) {
+          setFiles((prev) => [...prev, ...fileList]);
+          setCommonPrefixes((prev) => [...prev, ...prefixList]);
+        } else {
+          setFiles(fileList);
+          setCommonPrefixes(prefixList);
+        }
+
+        setNextMarker(data.nextMarker || '');
+        setIsTruncated(data.isTruncated || false);
+        if (data.prefix != null) setCurrentPrefix(data.prefix);
+      } else {
+        messageApi.error(response.message || '获取文件列表失败');
+      }
+    } catch (error) {
+      console.error('获取文件列表失败:', error);
+      messageApi.error('获取文件列表失败');
+    } finally {
+      setFileLoading(false);
+    }
+  }, [datasetId, messageApi]);
+
   useEffect(() => {
     fetchDatasetDetail();
   }, [fetchDatasetDetail]);
@@ -102,6 +195,8 @@ const DatasetDetail: React.FC = () => {
   useEffect(() => {
     if (tabFromUrl === 'versions') {
       setActiveTab('versions');
+    } else if (tabFromUrl === 'files') {
+      setActiveTab('files');
     }
   }, [tabFromUrl]);
 
@@ -110,6 +205,12 @@ const DatasetDetail: React.FC = () => {
       fetchVersions();
     }
   }, [activeTab, fetchVersions]);
+
+  useEffect(() => {
+    if (activeTab === 'files' && dataset?.storageType === 'BOS') {
+      fetchFiles();
+    }
+  }, [activeTab, fetchFiles, dataset]);
 
   const handleDataProcess = (record: any) => {
     const versionId = record.id || record.versionId || record.version || '';
@@ -285,6 +386,119 @@ const DatasetDetail: React.FC = () => {
                 />
               ),
             },
+            ...(dataset?.storageType === 'BOS'
+              ? [
+                  {
+                    key: 'files',
+                    label: (
+                      <span>
+                        <FileOutlined />
+                        文件管理
+                      </span>
+                    ),
+                    children: (
+                      <div>
+                        <div style={{ marginBottom: 16 }}>
+                          <Space>
+                            <Button
+                              icon={<ReloadOutlined />}
+                              onClick={() => fetchFiles()}
+                              loading={fileLoading}
+                            >
+                              刷新
+                            </Button>
+                            {currentPrefix && (
+                              <Button
+                                onClick={() => {
+                                  const parts = currentPrefix.split('/').filter(Boolean);
+                                  parts.pop();
+                                  const parentPrefix = parts.length ? parts.join('/') + '/' : '';
+                                  fetchFiles(undefined, parentPrefix);
+                                }}
+                              >
+                                返回上级
+                              </Button>
+                            )}
+                          </Space>
+                          {currentPrefix && (
+                            <div style={{ marginTop: 8, color: '#666' }}>
+                              当前路径: {currentPrefix}
+                            </div>
+                          )}
+                        </div>
+                        <ProTable
+                          rowKey={(record) => record.key ?? record.name}
+                          columns={[
+                            {
+                              title: '名称',
+                              dataIndex: 'name',
+                              key: 'name',
+                              ellipsis: true,
+                              render: (text, record) => (
+                                <Space>
+                                  {record.isDirectory ? (
+                                    <FolderOutlined style={{ color: '#faad14' }} />
+                                  ) : (
+                                    <FileOutlined style={{ color: '#1890ff' }} />
+                                  )}
+                                  <span
+                                    style={{
+                                      cursor: record.isDirectory ? 'pointer' : 'default',
+                                      color: record.isDirectory ? '#1890ff' : 'inherit',
+                                    }}
+                                    onClick={() => {
+                                      if (record.isDirectory && record.key) {
+                                        fetchFiles(undefined, record.key);
+                                      }
+                                    }}
+                                  >
+                                    {text}
+                                  </span>
+                                </Space>
+                              ),
+                            },
+                            {
+                              title: '大小',
+                              dataIndex: 'size',
+                              key: 'size',
+                              width: 120,
+                              render: (text) => formatFileSize(text),
+                            },
+                            {
+                              title: '修改时间',
+                              dataIndex: 'lastModified',
+                              key: 'lastModified',
+                              width: 180,
+                              render: (text) => {
+                                if (text == null || text === '') return '-';
+                                const date = new Date(text);
+                                return Number.isNaN(date.getTime())
+                                  ? '-'
+                                  : date.toLocaleString('zh-CN');
+                              },
+                            },
+                          ]}
+                          dataSource={[...commonPrefixes, ...files]}
+                          loading={fileLoading}
+                          search={false}
+                          pagination={false}
+                          options={false}
+                        />
+                        {isTruncated && (
+                          <div style={{ marginTop: 16, textAlign: 'center' }}>
+                            <Button
+                              onClick={() => fetchFiles(nextMarker, currentPrefix)}
+                              loading={fileLoading}
+                            >
+                              加载更多
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       </Card>
