@@ -22,6 +22,7 @@ import {
   Table,
   Tag,
   Tabs,
+  Typography,
 } from 'antd';
 import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
 import React, { useRef, useState } from 'react';
@@ -396,19 +397,31 @@ const Training: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Job>[] = [
     {
-      title: '任务ID',
-      dataIndex: 'jobId',
-      key: 'jobId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.jobId || record.id,
-    },
-    {
-      title: '任务名称',
+      title: '任务名称 / 任务ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Job) => {
+        const id = record.jobId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => fetchJobDetail(id)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '状态',

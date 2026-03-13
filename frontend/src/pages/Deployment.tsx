@@ -18,6 +18,7 @@ import {
   Radio,
   Space,
   Tag,
+  Typography,
 } from 'antd';
 import { UNIFIED_TASK_PARAMS, NATIVE_TASK_PARAMS } from './Deployment_constants';
 import React, { useRef, useState } from 'react';
@@ -399,19 +400,31 @@ const Deployment: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Service>[] = [
     {
-      title: '服务ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 200,
-      ellipsis: true,
-      render: (text, record) => text || record.serviceId || record.id || '-',
-    },
-    {
-      title: '服务名称',
+      title: '服务名称 / 服务ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Service) => {
+        const id = record.serviceId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => fetchServiceDetail(id)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '状态',

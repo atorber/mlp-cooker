@@ -238,17 +238,30 @@ const Image: React.FC = () => {
   // 表格列定义
   const columns = [
     {
-      title: '镜像名称/ID',
+      title: '镜像名称 / 镜像ID',
       dataIndex: 'name',
-      width: 250,
+      width: 280,
       ellipsis: true,
-      copyable: true,
-      render: (text: any, record: Image) => (
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{text}</div>
-          <div style={{ fontSize: '12px', color: '#666' }}>{record.imageId}</div>
-        </div>
-      ),
+      render: (text: any, record: Image) => {
+        const name = text || '-';
+        const id = record.imageId || record.id || '';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => handleViewImage(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '框架',
