@@ -1,0 +1,36 @@
+# 1. 数据库配置：用于存放 lakeFS 的元数据（分支、提交记录等）
+database:
+  type: postgres
+  postgres:
+    connection_string: "postgres://localhost:5432/lakefs?sslmode=disable"
+
+# 2. 存储后端配置：定义实际大数据文件的物理存放位置 [1], [2]
+blockstore:
+  type: s3
+  s3:
+    # 自定义 S3 兼容存储的服务地址 (例如 百度云的 的地址)
+    endpoint: "<YOUR_S3_ENDPOINT>"   
+    # 底层存储桶的区域
+    region: "<YOUR_S3_REGION>"
+    # 访问底层 S3 存储桶的凭证（lakeFS -> S3）
+    # 注意：这不同于您在 SDK 中使用的 lakeFS 凭证
+    credentials:
+      access_key_id: "<YOUR_S3_ACCESS_KEY>"
+      secret_access_key: "<YOUR_S3_SECRET_KEY>"
+    # 对于非 AWS 的 S3 兼容存储，通常需要开启路径风格访问（Path Style）
+    # AWS 默认使用 Virtual Hosted Style (如 bucket.s3.amazonaws.com)
+    # 开启此项后会使用 Path Style (如 10.0.0.5:9000/bucket)
+    force_path_style: true
+    
+    # 是否自动发现 bucket 所在的 region，自定义存储通常设为 false
+    discover_bucket_region: false
+
+# 3. 认证与安全配置
+auth:
+  encrypt:
+    # 用于加密浏览器 cookie 的随机字符串
+    secret_key: "a-very-secret-random-string"
+
+# 4. 服务器设置 [3]
+# 服务运行的地址和端口，默认 8000
+listen_address: "0.0.0.0:8000"
