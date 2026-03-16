@@ -299,7 +299,7 @@ const Dataset: React.FC = () => {
                 const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
                 repoForm.setFieldsValue({
                   id: safeRepoId,
-                  storageNamespace: `s3://${record.storageInstance}/${safeRepoId}/`,
+                  storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
                   defaultBranch: 'main',
                 });
                 setRepoModalVisible(true);
@@ -476,7 +476,7 @@ const Dataset: React.FC = () => {
             rules={[{ required: true, message: '系统未能获取到 BOS 桶信息' }]}
             tooltip="底层存储路径，由系统基于关联的 BOS 桶和仓库名自动映射，无需编辑"
           >
-            <Input disabled placeholder="例如: s3://bucket/repository/" />
+            <Input disabled placeholder="例如: s3://bucket/lakefs/repository/" />
           </Form.Item>
           <Form.Item
             name="defaultBranch"
