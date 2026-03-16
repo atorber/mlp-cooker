@@ -2,13 +2,12 @@ import {
   EyeOutlined,
   ReloadOutlined,
   FolderOpenOutlined,
-  PlusOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
 import { App, Button, Space, Tag, Typography, Card, Descriptions, Modal, Form, Input } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import { getRepositories, createRepository } from '@/services/aihc-mentor/lakefs';
+import { getRepositories } from '@/services/aihc-mentor/lakefs';
 import { getConfig } from '@/services/aihc-mentor/api';
 import { history } from '@umijs/max';
 
@@ -30,11 +29,6 @@ const DataWarehouse: React.FC = () => {
     accessKey: '',
     secretKey: '',
   });
-  const [bosBucket, setBosBucket] = useState('');
-
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [createForm] = Form.useForm();
-  const [submitting, setSubmitting] = useState(false);
 
   // 获取 LakeFS 配置信息以展示给用户
   useEffect(() => {
@@ -48,10 +42,6 @@ const DataWarehouse: React.FC = () => {
             accessKey: cfg.LAKEFS_ACCESS_KEY_ID || '未配置',
             secretKey: cfg.LAKEFS_SECRET_ACCESS_KEY || '未配置',
           });
-          // 读取 BOS 桶名，用于创建仓库时自动拼接存储命名空间
-          if (cfg.ML_PLATFORM_RESOURCE_BUCKET) {
-            setBosBucket(cfg.ML_PLATFORM_RESOURCE_BUCKET);
-          }
         }
       } catch (error) {
         console.error('获取系统配置失败:', error);
@@ -92,32 +82,6 @@ const DataWarehouse: React.FC = () => {
         success: false,
         total: 0,
       };
-    }
-  };
-
-  // 处理创建仓库
-  const handleCreate = async (values: any) => {
-    setSubmitting(true);
-    try {
-      const response = await createRepository({
-        id: values.id,
-        defaultBranch: values.defaultBranch,
-        storageNamespace: values.storageNamespace,
-      });
-
-      if (response.success) {
-        messageApi.success('创建仓库成功');
-        setCreateModalVisible(false);
-        createForm.resetFields();
-        actionRef.current?.reload();
-      } else {
-        messageApi.error(response.message || '创建仓库失败');
-      }
-    } catch (error: any) {
-      console.error('创建仓库出错:', error);
-      messageApi.error(error?.info?.errorMessage || error.message || '创建仓库异常');
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -236,72 +200,7 @@ const DataWarehouse: React.FC = () => {
           showSizeChanger: true,
         }}
         headerTitle="Repositories"
-        toolBarRender={() => [
-          <Button
-            key="button"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalVisible(true)}
-            type="primary"
-          >
-            新建仓库
-          </Button>,
-        ]}
       />
-
-      {/* 新建仓库模态框 */}
-      <Modal
-        title="新建 LakeFS 仓库"
-        open={createModalVisible}
-        onCancel={() => {
-          setCreateModalVisible(false);
-          createForm.resetFields();
-        }}
-        onOk={() => createForm.submit()}
-        confirmLoading={submitting}
-        destroyOnClose
-      >
-        <Form
-          form={createForm}
-          layout="vertical"
-          onFinish={handleCreate}
-          initialValues={{ defaultBranch: 'main' }}
-          onValuesChange={(changedValues) => {
-            // 当仓库名称变化时，若有 BOS 桶则自动填充存储命名空间
-            if (changedValues.id !== undefined && bosBucket) {
-              const repoId = changedValues.id || '';
-              createForm.setFieldsValue({
-                storageNamespace: repoId ? `s3://${bosBucket}/lakefs/${repoId}/` : '',
-              });
-            }
-          }}
-        >
-          <Form.Item
-            name="id"
-            label="仓库名称 (Repository ID)"
-            rules={[
-              { required: true, message: '请输入仓库名称' },
-              { pattern: /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/, message: '由小写字母、数字、连字符构成，以字母或数字起止' }
-            ]}
-          >
-            <Input placeholder="例如: my-new-repo" />
-          </Form.Item>
-          <Form.Item
-            name="storageNamespace"
-            label="存储命名空间 (Storage Namespace)"
-            rules={[{ required: true, message: '请先配置系统 BOS 桶或输入仓库名' }]}
-            tooltip="底层存储路径，由系统基于 BOS 桶和仓库名自动归档"
-          >
-            <Input disabled placeholder={bosBucket ? `s3://${bosBucket}/lakefs/仓库名/` : '系统未配置 BOS 桶信息'} />
-          </Form.Item>
-          <Form.Item
-            name="defaultBranch"
-            label="默认分支 (Default Branch)"
-            rules={[{ required: true, message: '请输入默认分支名称' }]}
-          >
-            <Input placeholder="例如: main" />
-          </Form.Item>
-        </Form>
-      </Modal>
     </PageContainer>
   );
 };

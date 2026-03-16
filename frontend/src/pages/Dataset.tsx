@@ -22,6 +22,7 @@ import {
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { history, request } from '@umijs/max';
+import { createRepository } from '@/services/aihc-mentor/lakefs';
 
 const { TextArea } = Input;
 
@@ -48,6 +49,11 @@ const Dataset: React.FC = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
   const [activeStorageType, setActiveStorageType] = useState<string>('BOS'); // 当前选择的存储类型：BOS 或 PFS
+
+  // 创建仓库相关的状态
+  const [repoModalVisible, setRepoModalVisible] = useState(false);
+  const [repoForm] = Form.useForm();
+  const [submittingRepo, setSubmittingRepo] = useState(false);
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -137,6 +143,31 @@ const Dataset: React.FC = () => {
     } catch (error) {
       console.error('创建数据集失败:', error);
       messageApi.error('创建数据集失败');
+    }
+  };
+
+  // 处理创建 LakeFS 仓库
+  const handleCreateRepo = async (values: any) => {
+    setSubmittingRepo(true);
+    try {
+      const response = await createRepository({
+        id: values.id,
+        defaultBranch: values.defaultBranch,
+        storageNamespace: values.storageNamespace,
+      });
+
+      if (response.success) {
+        messageApi.success('创建数据仓库成功');
+        setRepoModalVisible(false);
+        repoForm.resetFields();
+      } else {
+        messageApi.error(response.message || '创建数据仓库失败');
+      }
+    } catch (error: any) {
+      console.error('创建仓库出错:', error);
+      messageApi.error(error?.info?.errorMessage || error.message || '创建数据仓库异常');
+    } finally {
+      setSubmittingRepo(false);
     }
   };
 
@@ -258,6 +289,27 @@ const Dataset: React.FC = () => {
           >
             版本
           </Button>
+
+          {record.storageType === 'BOS' && (
+            <Button
+              type="text"
+              size="small"
+              icon={<BranchesOutlined />}
+              onClick={() => {
+                const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+                repoForm.setFieldsValue({
+                  id: safeRepoId,
+                  storageNamespace: `s3://${record.storageInstance}/${safeRepoId}/`,
+                  defaultBranch: 'main',
+                });
+                setRepoModalVisible(true);
+              }}
+              style={{ color: '#52c41a' }}
+            >
+              创建仓库
+            </Button>
+          )}
+
           <Popconfirm
             title="确定要删除这个数据集吗？"
             onConfirm={() => handleDelete(record.datasetId || record.id || '')}
@@ -387,6 +439,51 @@ const Dataset: React.FC = () => {
             label="描述"
           >
             <TextArea rows={4} placeholder="请输入数据集描述" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 创建数据仓库模态框 */}
+      <Modal
+        title="基于当前数据集创建 LakeFS 仓库"
+        open={repoModalVisible}
+        onCancel={() => {
+          setRepoModalVisible(false);
+          repoForm.resetFields();
+        }}
+        onOk={() => repoForm.submit()}
+        confirmLoading={submittingRepo}
+        destroyOnClose
+      >
+        <Form
+          form={repoForm}
+          layout="vertical"
+          onFinish={handleCreateRepo}
+        >
+          <Form.Item
+            name="id"
+            label="仓库名称 (Repository ID)"
+            rules={[
+              { required: true, message: '请输入仓库名称' },
+              { pattern: /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/, message: '由小写字母、数字、连字符构成，以字母或数字起止' }
+            ]}
+          >
+            <Input disabled placeholder="例如: my-new-repo" />
+          </Form.Item>
+          <Form.Item
+            name="storageNamespace"
+            label="存储命名空间 (Storage Namespace)"
+            rules={[{ required: true, message: '系统未能获取到 BOS 桶信息' }]}
+            tooltip="底层存储路径，由系统基于关联的 BOS 桶和仓库名自动映射，无需编辑"
+          >
+            <Input disabled placeholder="例如: s3://bucket/repository/" />
+          </Form.Item>
+          <Form.Item
+            name="defaultBranch"
+            label="默认分支 (Default Branch)"
+            rules={[{ required: true, message: '请输入默认分支名称' }]}
+          >
+            <Input placeholder="输入默认分支，如 main 或 master" />
           </Form.Item>
         </Form>
       </Modal>
