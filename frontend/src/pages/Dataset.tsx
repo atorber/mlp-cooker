@@ -20,9 +20,10 @@ import {
   Tabs,
   Typography,
 } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { history, request } from '@umijs/max';
-import { createRepository } from '@/services/aihc-mentor/lakefs';
+import { createRepository, getRepositories } from '@/services/aihc-mentor/lakefs';
+import { Tooltip } from 'antd';
 
 const { TextArea } = Input;
 
@@ -54,6 +55,25 @@ const Dataset: React.FC = () => {
   const [repoModalVisible, setRepoModalVisible] = useState(false);
   const [repoForm] = Form.useForm();
   const [submittingRepo, setSubmittingRepo] = useState(false);
+  const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
+
+  // 独立获取已存在的 LakeFS 仓库，由于数量可能较多，可以不阻塞 Dataset 列表的加载
+  const fetchExistingRepos = async () => {
+    try {
+      // 在实际生产中如果仓库过百可能需要处理分页（after 游标），这里假设前1000条足够涵盖大部分业务场景
+      const response = await getRepositories({ amount: 1000 });
+      if (response.success && response.data?.results) {
+        const ids = response.data.results.map((r: any) => r.id);
+        setExistingRepos(new Set(ids));
+      }
+    } catch (error) {
+      console.error('获取现有仓库列表失败，创建仓库按钮的防冲突检查可能失效', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRepos();
+  }, []);
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -160,6 +180,8 @@ const Dataset: React.FC = () => {
         messageApi.success('创建数据仓库成功');
         setRepoModalVisible(false);
         repoForm.resetFields();
+        // 重新拉取已存在仓库，以刷新按钮状态
+        fetchExistingRepos();
       } else {
         messageApi.error(response.message || '创建数据仓库失败');
       }
@@ -290,25 +312,34 @@ const Dataset: React.FC = () => {
             版本
           </Button>
 
-          {record.storageType === 'BOS' && (
-            <Button
-              type="text"
-              size="small"
-              icon={<BranchesOutlined />}
-              onClick={() => {
-                const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
-                repoForm.setFieldsValue({
-                  id: safeRepoId,
-                  storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
-                  defaultBranch: 'main',
-                });
-                setRepoModalVisible(true);
-              }}
-              style={{ color: '#52c41a' }}
-            >
-              创建仓库
-            </Button>
-          )}
+          {record.storageType === 'BOS' && (() => {
+            const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+            const hasRepo = existingRepos.has(safeRepoId);
+            
+            return (
+              <Tooltip title={hasRepo ? '该数据集已存在对应的关联仓库' : ''}>
+                <span style={hasRepo ? { display: 'inline-block', cursor: 'not-allowed' } : {}}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<BranchesOutlined />}
+                    disabled={hasRepo}
+                    onClick={() => {
+                      repoForm.setFieldsValue({
+                        id: safeRepoId,
+                        storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
+                        defaultBranch: 'main',
+                      });
+                      setRepoModalVisible(true);
+                    }}
+                    style={hasRepo ? { pointerEvents: 'none' } : { color: '#52c41a' }}
+                  >
+                    创建仓库
+                  </Button>
+                </span>
+              </Tooltip>
+            );
+          })()}
 
           <Popconfirm
             title="确定要删除这个数据集吗？"
