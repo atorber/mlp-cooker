@@ -65,4 +65,5 @@ export default {
   'menu.ai-assets.task': '任务',
   'menu.resource': '计算资源',
   'menu.settings': '系统设置',
+  'menu.data-warehouse': '数据仓库',
 };

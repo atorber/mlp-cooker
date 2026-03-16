@@ -65,4 +65,5 @@ export default {
   'menu.ai-assets.task': 'Task',
   'menu.resource': 'Resource',
   'menu.settings': 'Settings',
+  'menu.data-warehouse': 'Data Warehouse',
 };

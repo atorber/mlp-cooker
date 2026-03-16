@@ -15,6 +15,10 @@ export interface YamlConfigData {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: string;
   ML_PLATFORM_RESOURCE_BUCKET: string;
   ML_PLATFORM_RESOURCE_REGION: string;
+  // LakeFS 资源配置
+  LAKEFS_ENDPOINT: string;
+  LAKEFS_ACCESS_KEY_ID: string;
+  LAKEFS_SECRET_ACCESS_KEY: string;
 }
 
 /**
@@ -40,6 +44,9 @@ const CONFIG_TYPE_DEFINITIONS: {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_BUCKET: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_REGION: { type: 'string', required: false, default: 'bj' },
+  LAKEFS_ENDPOINT: { type: 'string', required: false },
+  LAKEFS_ACCESS_KEY_ID: { type: 'string', required: false },
+  LAKEFS_SECRET_ACCESS_KEY: { type: 'string', required: false },
 };
 
 /**
@@ -318,6 +325,17 @@ export class YamlConfigManager {
       pfs: '',
       poolId: '',
       queueId: '',
+    };
+  }
+
+  /**
+   * 获取 LakeFS 资源配置
+   */
+  public getLakeFSConfig() {
+    return {
+      endpoint: this.getConfig('LAKEFS_ENDPOINT'),
+      accessKeyId: this.getConfig('LAKEFS_ACCESS_KEY_ID'),
+      secretAccessKey: this.getConfig('LAKEFS_SECRET_ACCESS_KEY'),
     };
   }
 

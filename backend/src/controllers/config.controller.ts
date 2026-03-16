@@ -14,7 +14,10 @@ export class ConfigController {
    */
   private static sanitizeConfig(config: any): any {
     // 不需要脱敏的配置项（AK和SK直接显示）
-    const noSanitizeKeys = ['ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK'];
+    const noSanitizeKeys = [
+      'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK',
+      'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
+    ];
     
     const sensitiveKeys = [
       'PASSWORD', 'SECRET', 'TOKEN'
@@ -35,7 +38,9 @@ export class ConfigController {
       const isSensitive = sensitiveKeys.some(sensitiveKey =>
         key.toUpperCase().includes(sensitiveKey) && 
         !key.toUpperCase().includes('PLATFORM_RESOURCE_AK') &&
-        !key.toUpperCase().includes('PLATFORM_RESOURCE_SK')
+        !key.toUpperCase().includes('PLATFORM_RESOURCE_SK') &&
+        !key.toUpperCase().includes('LAKEFS_ACCESS_KEY_ID') &&
+        !key.toUpperCase().includes('LAKEFS_SECRET_ACCESS_KEY')
       );
 
       if (isSensitive && sanitized[key]) {
@@ -59,11 +64,12 @@ export class ConfigController {
     try {
       ConfigController.logInfo('获取配置文件开始');
 
-      // 定义所有标准配置项（只包含机器学习平台资源配置）
+      // 定义所有标准配置项（包含机器学习平台与LakeFS资源配置）
       const standardKeys = [
         'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
-        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET'
+        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ] as string[];
 
       // 遍历所有标准配置项，确保即使为空也会返回（与Python版本保持一致）
@@ -178,12 +184,13 @@ export class ConfigController {
       // 获取当前配置
       const currentConfig = ConfigController.configManager.getAllConfig();
 
-      // 获取所有标准配置项（只包含机器学习平台资源配置）
+      // 获取所有标准配置项（包含机器学习平台与LakeFS资源配置）
       // 使用 Record<string, any> 类型来避免类型检查问题
       const standardKeys = [
         'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
-        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET'
+        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ];
 
       // 合并配置：保留原有的所有配置项，只更新传入的值

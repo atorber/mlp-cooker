@@ -110,6 +110,23 @@ export default [
     ],
   },
   {
+    name: 'data-warehouse',
+    icon: 'DatabaseOutlined',
+    path: '/data-warehouse',
+    routes: [
+      {
+        path: '/data-warehouse',
+        component: './DataWarehouse',
+      },
+      {
+        name: 'repository-detail',
+        path: '/data-warehouse/repository/:id',
+        component: './DataWarehouse/RepositoryDetail',
+        hideInMenu: true,
+      },
+    ],
+  },
+  {
     name: 'terminal',
     path: '/terminal',
     component: './Terminal',

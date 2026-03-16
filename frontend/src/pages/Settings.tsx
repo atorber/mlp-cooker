@@ -152,27 +152,31 @@ const Settings: React.FC = () => {
         label: '对象存储桶',
         tooltip: '机器学习平台的对象存储桶名称'
       },
+      'LAKEFS_ENDPOINT': {
+        label: 'LakeFS 地址',
+        tooltip: 'LakeFS 实例的访问地址，例如：http://lakefs.example.com'
+      },
+      'LAKEFS_ACCESS_KEY_ID': {
+        label: 'LakeFS Access Key',
+        tooltip: '访问 LakeFS 的 Access Key ID'
+      },
+      'LAKEFS_SECRET_ACCESS_KEY': {
+        label: 'LakeFS Secret Key',
+        tooltip: '访问 LakeFS 的 Secret Access Key'
+      },
     };
     return labelMap[key] || { label: key };
   };
 
   // 渲染配置表单项
-  const renderFormItems = () => {
-    // 按照配置项顺序排序（移除了资源池ID、队列ID、存储实例ID，这些已在计算资源页面配置）
-    const configKeys = [
-      'ML_PLATFORM_RESOURCE_AK',
-      'ML_PLATFORM_RESOURCE_SK',
-      'ML_PLATFORM_RESOURCE_BASE_URL',
-      'ML_PLATFORM_RESOURCE_BUCKET',
-    ];
-
+  const renderFormItems = (configKeys: string[]) => {
     return configKeys.map((key) => {
       const value = configData[key];
       const { label, tooltip } = getConfigLabel(key);
 
       // AK 直接显示，SK 使用密码输入框（带显示/隐藏按钮）
-      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK';
-      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK';
+      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK' || key === 'LAKEFS_SECRET_ACCESS_KEY';
+      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK' || key === 'LAKEFS_ACCESS_KEY_ID';
       const isOtherPassword =
         (key.toLowerCase().includes('password') ||
          key.toLowerCase().includes('secret') ||
@@ -312,30 +316,43 @@ const Settings: React.FC = () => {
             showIcon
           />
 
-          <ProCard title="机器学习平台资源配置">
-            <ProForm
-              formRef={setFormRef as any}
-              onFinish={handleSaveConfig}
-              submitter={{
-                render: (props, _doms) => [
-                  <Button
-                    key="submit"
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    loading={submitting}
-                    onClick={() => props.form?.submit?.()}
-                  >
-                    保存配置
-                  </Button>,
-                ],
-                submitButtonProps: {
-                  loading: submitting,
-                },
-              }}
-            >
-              {renderFormItems()}
-            </ProForm>
-          </ProCard>
+          <ProForm
+            formRef={setFormRef as any}
+            onFinish={handleSaveConfig}
+            submitter={{
+              render: (props, _doms) => [
+                <Button
+                  key="submit"
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  loading={submitting}
+                  onClick={() => props.form?.submit?.()}
+                >
+                  保存配置
+                </Button>,
+              ],
+              submitButtonProps: {
+                loading: submitting,
+              },
+            }}
+          >
+            <ProCard title="机器学习平台资源配置" style={{ marginBottom: 16 }}>
+              {renderFormItems([
+                'ML_PLATFORM_RESOURCE_AK',
+                'ML_PLATFORM_RESOURCE_SK',
+                'ML_PLATFORM_RESOURCE_BASE_URL',
+                'ML_PLATFORM_RESOURCE_BUCKET',
+              ])}
+            </ProCard>
+            
+            <ProCard title="数据仓库 (LakeFS) 配置">
+              {renderFormItems([
+                'LAKEFS_ENDPOINT',
+                'LAKEFS_ACCESS_KEY_ID',
+                'LAKEFS_SECRET_ACCESS_KEY',
+              ])}
+            </ProCard>
+          </ProForm>
         </>
       )}
     </PageContainer>

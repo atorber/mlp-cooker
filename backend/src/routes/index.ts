@@ -10,6 +10,7 @@ import { ResourceController } from '@/controllers/resource.controller';
 import { TaskController } from '@/controllers/task.controller';
 import { ImageController } from '@/controllers/image.controller';
 import { WorkflowController } from '@/controllers/workflow.controller';
+import { LakeFSController } from '@/controllers/lakefs.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -237,5 +238,27 @@ router.put('/api/workflows/:workflowId', WorkflowController.update);
 
 // 删除工作流
 router.delete('/api/workflows/:workflowId', WorkflowController.delete);
+
+/**
+ * LakeFS 相关路由 - 需要认证
+ */
+// 查询仓库列表
+router.get('/api/lakefs/repositories', authMiddleware, LakeFSController.getRepositories);
+// 创建仓库
+router.post('/api/lakefs/repositories', authMiddleware, LakeFSController.createRepository);
+// 查询仓库分支列表
+router.get('/api/lakefs/repositories/:repository/branches', authMiddleware, LakeFSController.getBranches);
+// 创建新分支
+router.post('/api/lakefs/repositories/:repository/branches', authMiddleware, LakeFSController.createBranch);
+// 查询分支未提交更改 (Diff)
+router.get('/api/lakefs/repositories/:repository/branches/:branch/diff', authMiddleware, LakeFSController.getBranchDiff);
+// 查询对象列表（文件与目录）
+router.get('/api/lakefs/repositories/:repository/refs/:ref/objects/ls', authMiddleware, LakeFSController.listObjects);
+// 获取特定文件内容
+router.get('/api/lakefs/repositories/:repository/refs/:ref/objects/content', authMiddleware, LakeFSController.getObjectContent);
+// 查询提交记录 (Commits)
+router.get('/api/lakefs/repositories/:repository/refs/:ref/commits', authMiddleware, LakeFSController.logCommits);
+// 提交分支上的更改 (Commit)
+router.post('/api/lakefs/repositories/:repository/branches/:branch/commits', authMiddleware, LakeFSController.commitChanges);
 
 export default router;
