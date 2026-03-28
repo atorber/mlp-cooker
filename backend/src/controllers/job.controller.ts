@@ -33,7 +33,17 @@ export class JobController {
    */
   public static async list(req: Request, res: Response): Promise<void> {
     try {
-      const { keyword, status, owner, queueID } = req.query;
+      const merged = {
+        ...(typeof req.query === 'object' && req.query ? req.query : {}),
+        ...(req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {}),
+      } as Record<string, unknown>;
+      const keyword = merged.keyword as string | undefined;
+      const status = merged.status as string | undefined;
+      const owner = merged.owner as string | undefined;
+      const queueID =
+        (merged.queueID as string | undefined) || (merged.queueId as string | undefined);
+      const resourcePoolId = merged.resourcePoolId as string | undefined;
+
       const requestBody: any = {};
 
       if (keyword) requestBody.keyword = keyword;
@@ -45,7 +55,12 @@ export class JobController {
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
       const sdk = JobController.getJobSDK();
-      const result = await sdk.describeJobs('aihc-serverless', (queueID as string) || mlResourceConfig.queueId, requestBody);
+      const pool = 'aihc-serverless' ;
+      const result = await sdk.describeJobs(
+        pool,
+        (queueID as string) || mlResourceConfig.queueId,
+        requestBody,
+      );
 
       ResponseUtils.success(res, result);
     } catch (error) {
@@ -72,7 +87,7 @@ export class JobController {
       const sdk = JobController.getJobSDK();
       const result = await sdk.describeJob(
         jobId,
-        resourcePoolId as string,
+        'aihc-serverless',
         queueID as string,
         needDetail === 'true'
       );
@@ -165,7 +180,8 @@ export class JobController {
       const sdk = JobController.getJobSDK();
       const result = await sdk.createJob(
         requestBody,
-        resourcePoolId,
+        // resourcePoolId,
+        'aihc-serverless',
         queueID
       );
 
@@ -192,7 +208,7 @@ export class JobController {
       }
 
       const sdk = JobController.getJobSDK();
-      const result = await sdk.stopJob(jobId, resourcePoolId as string);
+      const result = await sdk.stopJob(jobId, 'aihc-serverless');
 
       ResponseUtils.success(res, result, '训练任务停止成功');
     } catch (error) {
@@ -217,7 +233,7 @@ export class JobController {
       }
 
       const sdk = JobController.getJobSDK();
-      const result = await sdk.deleteJob(jobId, resourcePoolId as string);
+      const result = await sdk.deleteJob(jobId, 'aihc-serverless');
 
       ResponseUtils.success(res, result, '训练任务删除成功');
     } catch (error) {
@@ -244,7 +260,7 @@ export class JobController {
       const sdk = JobController.getJobSDK();
       const result = await sdk.describeJobEvents(
         jobId,
-        resourcePoolId as string,
+        'aihc-serverless',
         startTime as string,
         endTime as string
       );
@@ -275,7 +291,7 @@ export class JobController {
       const result = await sdk.describeJobLogs(
         jobId,
         podName,
-        resourcePoolId as string,
+        'aihc-serverless',
         {
           keywords: keywords as string,
           startTime: startTime ? Number(startTime) : undefined,
@@ -320,7 +336,7 @@ export class JobController {
       const finalQueueID = mlResourceConfig.queueId;
 
       const result = await sdk.describeJobWebterminal(
-        finalResourcePoolId,
+        'aihc-serverless',
         jobId,
         podName,
         handshakeTimeout,

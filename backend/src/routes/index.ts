@@ -7,6 +7,7 @@ import { ServiceController } from '@/controllers/service.controller';
 import { JobController } from '@/controllers/job.controller';
 import { AppController } from '@/controllers/app.controller';
 import { ResourceController } from '@/controllers/resource.controller';
+import { StorageController } from '@/controllers/storage.controller';
 import { TaskController } from '@/controllers/task.controller';
 import { ImageController } from '@/controllers/image.controller';
 import { WorkflowController } from '@/controllers/workflow.controller';
@@ -193,6 +194,12 @@ router.get('/api/resources/pools', authMiddleware, ResourceController.listResour
 
 // 查询资源池详情
 router.get('/api/resources/pools/:resourcePoolId', authMiddleware, ResourceController.getResourcePool);
+
+/**
+ * 存储管理（对象桶 / PFS 浏览）
+ */
+router.get('/api/storage/bucket/files', authMiddleware, StorageController.listBucketFiles);
+router.get('/api/storage/pfs/files', authMiddleware, StorageController.listPfsFiles);
 
 /**
  * 镜像相关路由 - 需要认证

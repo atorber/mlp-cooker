@@ -341,7 +341,6 @@ const Settings: React.FC = () => {
                 'ML_PLATFORM_RESOURCE_AK',
                 'ML_PLATFORM_RESOURCE_SK',
                 'ML_PLATFORM_RESOURCE_BASE_URL',
-                'ML_PLATFORM_RESOURCE_BUCKET',
               ])}
             </ProCard>
             

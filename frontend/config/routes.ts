@@ -35,10 +35,22 @@ export default [
     component: './Application',
   },
   {
+    name: 'dev-machine',
+    icon: 'desktop',
+    path: '/quick-app/management',
+    component: './QuickAppManagement',
+  },
+  {
     name: 'deployment',
     icon: 'rocket',
     path: '/deployment',
     component: './Deployment',
+  },
+  {
+    name: 'quick-app-debug',
+    path: '/quick-app/debug/:id',
+    component: './QuickAppDebug',
+    hideInMenu: true,
   },
   {
     name: 'training',
@@ -137,12 +149,49 @@ export default [
     name: 'resource',
     icon: 'database',
     path: '/resource',
-    component: './Resource',
+    routes: [
+      {
+        path: '/resource',
+        redirect: '/resource/queue',
+      },
+      {
+        name: 'queue',
+        path: '/resource/queue',
+        component: './Resource',
+      },
+      {
+        path: '/resource/group',
+        redirect: '/resource/pool',
+        hideInMenu: true,
+      },
+      {
+        name: 'pool',
+        path: '/resource/pool',
+        component: './ResourcePool',
+      },
+      {
+        name: 'storage',
+        icon: 'hdd',
+        path: '/resource/storage',
+        component: './StorageManagement',
+      },
+    ],
+  },
+  {
+    path: '/settings',
+    redirect: '/settings/system',
+    hideInMenu: true,
+  },
+  {
+    name: 'global-config',
+    icon: 'control',
+    path: '/settings/global',
+    component: './GlobalConfig',
   },
   {
     name: 'settings',
     icon: 'setting',
-    path: '/settings',
+    path: '/settings/system',
     component: './Settings',
   },
   {
