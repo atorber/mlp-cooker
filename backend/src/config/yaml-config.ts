@@ -15,6 +15,10 @@ export interface YamlConfigData {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: string;
   ML_PLATFORM_RESOURCE_BUCKET: string;
   ML_PLATFORM_RESOURCE_REGION: string;
+  /** MLP Cooker 常驻任务（组件）相关，供存储/PFS 等能力使用 */
+  ML_COOKER_COMPONENT_JOB_NAME: string;
+  ML_COOKER_COMPONENT_JOB_IMAGE: string;
+  ML_COOKER_COMPONENT_JOB_COMMAND: string;
   // LakeFS 资源配置
   LAKEFS_ENDPOINT: string;
   LAKEFS_ACCESS_KEY_ID: string;
@@ -44,6 +48,9 @@ const CONFIG_TYPE_DEFINITIONS: {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_BUCKET: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_REGION: { type: 'string', required: false, default: 'bj' },
+  ML_COOKER_COMPONENT_JOB_NAME: { type: 'string', required: false },
+  ML_COOKER_COMPONENT_JOB_IMAGE: { type: 'string', required: false },
+  ML_COOKER_COMPONENT_JOB_COMMAND: { type: 'string', required: false },
   LAKEFS_ENDPOINT: { type: 'string', required: false },
   LAKEFS_ACCESS_KEY_ID: { type: 'string', required: false },
   LAKEFS_SECRET_ACCESS_KEY: { type: 'string', required: false },

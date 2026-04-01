@@ -12,11 +12,13 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
   Col,
   Descriptions,
   Drawer,
   Empty,
   Row,
+  Select,
   Space,
   Spin,
   Table,
@@ -101,6 +103,9 @@ const ResourcePoolPage: React.FC = () => {
   const [selectedPool, setSelectedPool] = useState<ResourcePool | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [configPoolId, setConfigPoolId] = useState<string>('');
+  const [onlyRunning, setOnlyRunning] = useState(false);
+  const [selectedAccTypes, setSelectedAccTypes] = useState<string[]>([]);
+  const [poolAccelerators, setPoolAccelerators] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     request('/api/config/ML_PLATFORM_RESOURCE_POOL_ID', { method: 'GET' })
@@ -110,6 +115,70 @@ const ResourcePoolPage: React.FC = () => {
         }
       })
       .catch(() => {});
+  }, []);
+
+  const fetchAcceleratorsForAllPools = useCallback(async (poolsList: ResourcePool[]) => {
+    if (!poolsList || poolsList.length === 0) return;
+
+    try {
+      // 并发获取每个资源池的队列详情
+      const results = await Promise.allSettled(
+        poolsList.map(async (pool) => {
+          if (!pool.resourcePoolId) return null;
+          const response = await request('/api/resources/queues', {
+            method: 'GET',
+            params: {
+              resourcePoolId: pool.resourcePoolId,
+              pageSize: 1000,
+              pageNumber: 1,
+              includeDetails: 'true',
+            },
+          });
+          if (response.success) {
+            return { poolId: pool.resourcePoolId, data: response.data };
+          }
+          return null;
+        }),
+      );
+
+      const accMap: Record<string, Set<string>> = {};
+      results.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          const { poolId, data } = result.value;
+          let queues: any[] = [];
+          if (Array.isArray(data)) {
+            queues = data;
+          } else if (data?.queues && Array.isArray(data.queues)) {
+            queues = data.queues;
+          } else if (data?.data && Array.isArray(data.data)) {
+            queues = data.data;
+          } else if (data?.result && Array.isArray(data.result)) {
+            queues = data.result;
+          }
+
+          queues.forEach((q: any) => {
+            const detail = q.detail || q;
+            const accList = detail?.deserved?.acceleratorCardList || [];
+            if (accList.length > 0) {
+              if (!accMap[poolId]) accMap[poolId] = new Set();
+              accList.forEach((acc: any) => {
+                if (acc.acceleratorType) {
+                  accMap[poolId].add(acc.acceleratorType);
+                }
+              });
+            }
+          });
+        }
+      });
+
+      const finalMap: Record<string, string[]> = {};
+      Object.entries(accMap).forEach(([poolId, accSet]) => {
+        finalMap[poolId] = Array.from(accSet);
+      });
+      setPoolAccelerators(finalMap);
+    } catch (error) {
+      console.error('批量获取加速卡信息失败:', error);
+    }
   }, []);
 
   const fetchPools = useCallback(async () => {
@@ -140,7 +209,9 @@ const ResourcePoolPage: React.FC = () => {
           list = data.items;
         }
 
-        setPools(list.filter((p: any) => p.resourcePoolId));
+        const validPools = list.filter((p: any) => p.resourcePoolId);
+        setPools(validPools);
+        fetchAcceleratorsForAllPools(validPools);
       } else {
         messageApi.error(response.message || '获取资源池列表失败');
         setPools([]);
@@ -154,7 +225,7 @@ const ResourcePoolPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [messageApi]);
+  }, [messageApi, fetchAcceleratorsForAllPools]);
 
   useEffect(() => {
     fetchPools();
@@ -361,31 +432,53 @@ const ResourcePoolPage: React.FC = () => {
           </div>
 
           <div style={{ marginTop: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <Paragraph
-              type="secondary"
-              ellipsis={{ rows: 2 }}
-              style={{ marginBottom: 12, minHeight: 44 }}
-            >
-              {pool.description || '-'}
-            </Paragraph>
+            {/* Slot 1: Description */}
+            <div style={{ minHeight: 44, marginBottom: 12 }}>
+              <Paragraph
+                type="secondary"
+                ellipsis={{ rows: 2 }}
+                style={{ margin: 0, fontSize: 13 }}
+              >
+                {pool.description || '-'}
+              </Paragraph>
+            </div>
 
-            <Space direction="vertical" size={4} style={{ width: '100%' }}>
-              <div>
-                <ClusterOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
-                <Text type="secondary" style={{ fontSize: 13 }}>
-                  节点数：
-                </Text>
-                <Text style={{ fontSize: 13 }}>{nodeCount}</Text>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
-                {storageCount > 0 && (
-                  <Tag color="green">存储 {storageCount}</Tag>
-                )}
-                {monitorCount > 0 && (
-                  <Tag color="orange">监控 {monitorCount}</Tag>
-                )}
-              </div>
-            </Space>
+            {/* Slot 2: Node Count */}
+            <div style={{ marginBottom: 8 }}>
+              <ClusterOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                节点数：
+              </Text>
+              <Text strong style={{ fontSize: 13 }}>{nodeCount}</Text>
+            </div>
+
+            {/* Slot 3: Accelerators */}
+            <div style={{ minHeight: 54, marginBottom: 12 }}>
+              {pool.resourcePoolId && poolAccelerators[pool.resourcePoolId]?.length > 0 ? (
+                <>
+                  <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>加速卡：</div>
+                  <Space wrap size={4}>
+                    {poolAccelerators[pool.resourcePoolId].map((type) => (
+                      <Tag key={type} color="purple">
+                        {type}
+                      </Tag>
+                    ))}
+                  </Space>
+                </>
+              ) : (
+                <div style={{ color: '#bfbfbf', fontSize: 12, fontStyle: 'italic', marginTop: 4 }}>暂无加速卡</div>
+              )}
+            </div>
+
+            {/* Slot 4: Extra Metadata (Storage/Monitor) */}
+            <div style={{ minHeight: 32, display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              {storageCount > 0 && (
+                <Tag color="green">存储 {storageCount}</Tag>
+              )}
+              {monitorCount > 0 && (
+                <Tag color="orange">监控 {monitorCount}</Tag>
+              )}
+            </div>
 
             <Text
               type="secondary"
@@ -402,12 +495,121 @@ const ResourcePoolPage: React.FC = () => {
     );
   };
 
+  const renderDefaultPoolSection = () => {
+    if (!configPoolId) return null;
+
+    const defaultPool = pools.find((p) => p.resourcePoolId === configPoolId);
+
+    if (!defaultPool) {
+      return (
+        <Card style={{ marginBottom: 24, borderRadius: 8, border: '1px solid #ffa39e', background: '#fff2f0' }}>
+          <Space size={16}>
+            <CloudServerOutlined style={{ fontSize: 32, color: '#ff4d4f' }} />
+            <div>
+              <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>
+                默认资源池 (ML_PLATFORM_RESOURCE_POOL_ID)
+              </div>
+              <Text strong style={{ fontSize: 16 }}>{configPoolId}</Text>
+              <Tag color="error" style={{ marginLeft: 8 }}>配置异常: 资源池不存在</Tag>
+            </div>
+          </Space>
+        </Card>
+      );
+    }
+
+    const phase = defaultPool.phase || '';
+    const nodeCount = defaultPool.associatedResources?.length || 0;
+
+    return (
+      <Card
+        style={{
+          marginBottom: 24,
+          background: 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)',
+          border: '1px solid #91d5ff',
+          borderRadius: 8,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        }}
+        styles={{ body: { padding: '16px 24px' } }}
+      >
+        <Row align="middle" gutter={24}>
+          <Col>
+            <CloudServerOutlined style={{ fontSize: 40, color: '#1890ff' }} />
+          </Col>
+          <Col flex={1}>
+            <div style={{ marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                当前默认资源池 (ML_PLATFORM_RESOURCE_POOL_ID)
+              </Text>
+            </div>
+            <Space align="center" size={12}>
+              <Title level={4} style={{ margin: 0 }}>
+                {defaultPool.name || defaultPool.resourcePoolId}
+              </Title>
+              <Tag color={phaseColorMap[phase] || 'default'}>
+                {phaseTextMap[phase] || phase || '-'}
+              </Tag>
+              <Text type="secondary" style={{ fontSize: 13 }}>ID: {defaultPool.resourcePoolId}</Text>
+            </Space>
+          </Col>
+          <Col>
+            <Space size={32}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>节点数量</div>
+                <div style={{ fontSize: 20, fontWeight: 500 }}>{nodeCount}</div>
+              </div>
+              {defaultPool.resourcePoolId && poolAccelerators[defaultPool.resourcePoolId]?.length > 0 && (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>加速卡类型</div>
+                  <Space wrap size={4} style={{ justifyContent: 'center' }}>
+                    {poolAccelerators[defaultPool.resourcePoolId].map((type) => (
+                      <Tag key={type} color="purple" style={{ margin: 0 }}>
+                        {type}
+                      </Tag>
+                    ))}
+                  </Space>
+                </div>
+              )}
+              <Button
+                type="primary"
+                ghost
+                icon={<EyeOutlined />}
+                onClick={() => handleViewDetail(defaultPool)}
+              >
+                详情
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+    );
+  };
+
   return (
     <PageContainer
       header={{
         title: '资源池',
         breadcrumb: {},
         extra: [
+          <Select
+            key="accTypes"
+            mode="multiple"
+            placeholder="加速卡类型筛选"
+            allowClear
+            style={{ minWidth: 200 }}
+            value={selectedAccTypes}
+            onChange={setSelectedAccTypes}
+            options={Array.from(new Set(Object.values(poolAccelerators).flat())).map((type) => ({
+              label: type,
+              value: type,
+            }))}
+          />,
+          <Checkbox
+            key="onlyRunning"
+            checked={onlyRunning}
+            onChange={(e) => setOnlyRunning(e.target.checked)}
+          >
+            仅运行中
+          </Checkbox>,
           <Button
             key="refresh"
             icon={<ReloadOutlined />}
@@ -420,8 +622,18 @@ const ResourcePoolPage: React.FC = () => {
       }}
     >
       <Spin spinning={loading}>
+        {renderDefaultPoolSection()}
         {pools.length > 0 ? (
-          <Row gutter={[16, 16]} align="stretch">{pools.map(renderPoolCard)}</Row>
+          <Row gutter={[16, 16]} align="stretch">
+            {pools
+              .filter((p) => !onlyRunning || p.phase === 'running')
+              .filter((p) => {
+                if (selectedAccTypes.length === 0) return true;
+                const poolAccs = poolAccelerators[p.resourcePoolId || ''] || [];
+                return selectedAccTypes.some((type) => poolAccs.includes(type));
+              })
+              .map(renderPoolCard)}
+          </Row>
         ) : !loading ? (
           <Empty description="暂无资源池" />
         ) : null}

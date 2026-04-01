@@ -387,8 +387,8 @@ const Training: React.FC = () => {
       return 'warning';
     }
 
-    // 已停止状态 - 灰色默认
-    if (statusStr === 'stopped') {
+    // 已停止/手动终止状态 - 灰色默认
+    if (statusStr === 'stopped' || statusStr === 'manualtermination') {
       return 'default';
     }
 
@@ -446,6 +446,7 @@ const Training: React.FC = () => {
         Running: { text: '运行中', status: 'Processing' },
         Stopping: { text: '停止中', status: 'Warning' },
         Stopped: { text: '已停止', status: 'Default' },
+        ManualTermination: { text: '手动终止', status: 'Default' },
         Failed: { text: '失败', status: 'Error' },
         Succeeded: { text: '成功', status: 'Success' },
         Abnormal: { text: '异常', status: 'Error' },
@@ -474,6 +475,7 @@ const Training: React.FC = () => {
           Running: '运行中',
           Stopping: '停止中',
           Stopped: '已停止',
+          ManualTermination: '手动终止',
           Failed: '失败',
           Succeeded: '成功',
           Abnormal: '异常',

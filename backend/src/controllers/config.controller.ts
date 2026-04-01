@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
-import { YamlConfigManager } from '@/config/yaml-config';
+import { YamlConfigManager, YamlConfigData } from '@/config/yaml-config';
 
 /**
  * 配置管理控制器
@@ -69,6 +69,8 @@ export class ConfigController {
         'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
         'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'ML_COOKER_COMPONENT_JOB_NAME', 'ML_COOKER_COMPONENT_JOB_IMAGE',
+        'ML_COOKER_COMPONENT_JOB_COMMAND',
         'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ] as string[];
 
@@ -127,28 +129,26 @@ export class ConfigController {
 
       ConfigController.logInfo('获取配置项开始', { key });
 
-      // 获取所有配置并查找指定键
-      const allConfig = ConfigController.configManager.getAllConfig();
-      const value = allConfig[key as keyof typeof allConfig];
-
-      if (value === undefined) {
-        const response = {
-          success: false,
-          error: `配置项 ${key} 不存在`
-        };
-        res.status(404).json(response);
-        return;
-      }
-
-      const response = {
-        success: true,
-        data: {
-          key,
-          value
+      try {
+        const raw = ConfigController.configManager.getConfig(key as keyof YamlConfigData);
+        const value = raw === undefined || raw === null ? '' : raw;
+        res.json({
+          success: true,
+          data: {
+            key,
+            value,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Error && e.message.includes('未知的配置键')) {
+          res.status(404).json({
+            success: false,
+            error: `配置项 ${key} 不存在`,
+          });
+          return;
         }
-      };
-
-      res.json(response);
+        throw e;
+      }
     } catch (error) {
       console.error('获取配置项失败:', error);
       const response = {
@@ -190,6 +190,8 @@ export class ConfigController {
         'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
         'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'ML_COOKER_COMPONENT_JOB_NAME', 'ML_COOKER_COMPONENT_JOB_IMAGE',
+        'ML_COOKER_COMPONENT_JOB_COMMAND',
         'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ];
 

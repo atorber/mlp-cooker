@@ -1,4 +1,4 @@
-import { ReloadOutlined, SaveOutlined } from '@ant-design/icons';
+import { DeleteOutlined, ReloadOutlined, SaveOutlined, ThunderboltOutlined } from '@ant-design/icons';
 import { PageContainer, ProForm, ProFormSelect, ProFormText } from '@ant-design/pro-components';
 import { request } from '@umijs/max';
 import {
@@ -9,11 +9,13 @@ import {
   Form,
   Input,
   Menu,
+  Modal,
   Radio,
   Row,
   Select,
   Space,
   Spin,
+  Tag,
   Typography,
 } from 'antd';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -34,7 +36,9 @@ const GlobalConfig: React.FC = () => {
     ML_PLATFORM_RESOURCE_BUCKET: '',
     ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: '',
   });
-
+  const [mlpCookerJob, setMlpCookerJob] = useState<any | null>(null);
+  const [mlpCookerJobLoading, setMlpCookerJobLoading] = useState(false);
+  const [mlpCookerOperating, setMlpCookerOperating] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
   const [saveSubmitting, setSaveSubmitting] = useState(false);
 
@@ -50,16 +54,23 @@ const GlobalConfig: React.FC = () => {
 
   const [resourcePoolId, setResourcePoolId] = useState('');
 
-  const [activeSection, setActiveSection] = useState<'resource' | 'storage'>('resource');
+  const [activeSection, setActiveSection] = useState<'resource' | 'storage' | 'component'>(
+    'resource',
+  );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const resourceSectionRef = useRef<HTMLDivElement>(null);
   const storageSectionRef = useRef<HTMLDivElement>(null);
+  const componentSectionRef = useRef<HTMLDivElement>(null);
   const programmaticScrollRef = useRef(false);
 
-  const scrollToSection = useCallback((key: 'resource' | 'storage') => {
+  const scrollToSection = useCallback((key: 'resource' | 'storage' | 'component') => {
     const container = scrollContainerRef.current;
     const target =
-      key === 'resource' ? resourceSectionRef.current : storageSectionRef.current;
+      key === 'resource'
+        ? resourceSectionRef.current
+        : key === 'storage'
+          ? storageSectionRef.current
+          : componentSectionRef.current;
     if (!container || !target) return;
     programmaticScrollRef.current = true;
     setActiveSection(key);
@@ -78,12 +89,16 @@ const GlobalConfig: React.FC = () => {
     if (programmaticScrollRef.current) return;
     const container = scrollContainerRef.current;
     const storageEl = storageSectionRef.current;
-    if (!container || !storageEl) return;
+    const componentEl = componentSectionRef.current;
+    if (!container || !storageEl || !componentEl) return;
 
     const cRect = container.getBoundingClientRect();
     const sRect = storageEl.getBoundingClientRect();
+    const compRect = componentEl.getBoundingClientRect();
     const referenceY = cRect.top + cRect.height * 0.35;
-    if (sRect.top <= referenceY + 8) {
+    if (compRect.top <= referenceY + 8) {
+      setActiveSection('component');
+    } else if (sRect.top <= referenceY + 8) {
       setActiveSection('storage');
     } else {
       setActiveSection('resource');
@@ -239,6 +254,163 @@ const GlobalConfig: React.FC = () => {
     [messageApi],
   );
 
+  const fetchMlpCookerJob = useCallback(async (): Promise<any | null> => {
+    try {
+      const poolRes = await request('/api/config/ML_PLATFORM_RESOURCE_POOL_ID', {
+        method: 'GET',
+      });
+      const poolId = poolRes?.success ? String(poolRes.data?.value || '').trim() : '';
+      const resourcePoolId = poolId || 'aihc-serverless';
+
+      const response = await request('/api/jobs', {
+        method: 'POST',
+        data: {
+          keyword: 'mlp-cooker',
+          resourcePoolId,
+        },
+      });
+
+      if (response.success && response.data) {
+        const jobs = response.data?.jobs || response.data?.data || [];
+        const job = jobs.find((j: any) => j.name === 'mlp-cooker');
+        return job || null;
+      }
+      return null;
+    } catch (e) {
+      console.error('查询 mlp-cooker 任务失败:', e);
+      return null;
+    }
+  }, []);
+
+  const refreshMlpCookerJob = useCallback(async () => {
+    setMlpCookerJobLoading(true);
+    try {
+      const job = await fetchMlpCookerJob();
+      setMlpCookerJob(job);
+    } finally {
+      setMlpCookerJobLoading(false);
+    }
+  }, [fetchMlpCookerJob]);
+
+  const fetchDefaultQueueContext = useCallback(async () => {
+    const queueRes = await request('/api/config/ML_PLATFORM_RESOURCE_QUEUE_ID', {
+      method: 'GET',
+    });
+    const queueId = queueRes?.success ? String(queueRes.data?.value || '').trim() : '';
+    if (!queueId) return null;
+
+    const response = await request(`/api/resources/queues/${queueId}`, {
+      method: 'GET',
+    });
+    if (!response.success) return null;
+
+    const data = response.data;
+    const queue = data?.queue || data || null;
+    let actualQueue: any = null;
+    if (queue?.children && Array.isArray(queue.children) && queue.children.length > 0) {
+      actualQueue = queue.children[0];
+      if (actualQueue && !actualQueue.bindingNodes && queue.bindingNodes) {
+        actualQueue.bindingNodes = queue.bindingNodes;
+      }
+    } else {
+      actualQueue = queue || null;
+    }
+
+    const resourcePoolId = actualQueue?.resourcePoolId;
+    if (!resourcePoolId) return null;
+    return { queueId, resourcePoolId };
+  }, []);
+
+  const handleInitializeMlpCooker = useCallback(async () => {
+    setMlpCookerOperating(true);
+    try {
+      const ctx = await fetchDefaultQueueContext();
+      if (!ctx) {
+        messageApi.error('缺少默认队列或资源池信息，请在上方配置默认队列与资源池');
+        return;
+      }
+
+      const taskParams = {
+        name: 'mlp-cooker',
+        queue: ctx.queueId,
+        jobType: 'PyTorchJob',
+        command: 'sleep 10000d',
+        jobSpec: {
+          replicas: 1,
+          image: 'registry.baidubce.com/inference/aibox-ubuntu:v2.0-22.04',
+          resources: [],
+          envs: [],
+          enableRDMA: false,
+        },
+        labels: [],
+        datasources: [
+          {
+            type: 'pfs',
+            name: '',
+            sourcePath: '/',
+            mountPath: '/data',
+          },
+        ],
+      };
+
+      const response = await request('/api/jobs/create', {
+        method: 'POST',
+        data: {
+          taskParams: JSON.stringify(taskParams),
+        },
+      });
+
+      if (response.success) {
+        messageApi.success('mlp-cooker 组件已初始化');
+        await refreshMlpCookerJob();
+      } else {
+        messageApi.error(response.message || '初始化失败');
+      }
+    } catch (error: any) {
+      console.error(error);
+      messageApi.error(
+        error?.info?.errorMessage || error?.message || '初始化失败',
+      );
+    } finally {
+      setMlpCookerOperating(false);
+    }
+  }, [fetchDefaultQueueContext, messageApi, refreshMlpCookerJob]);
+
+  const handleUninstallMlpCooker = useCallback(() => {
+    const jobId = String(mlpCookerJob?.jobId ?? mlpCookerJob?.id ?? '').trim();
+    if (!jobId) {
+      messageApi.error('无法获取任务 ID');
+      return;
+    }
+    Modal.confirm({
+      title: '确认卸载 mlp-cooker 组件？',
+      content:
+        '将删除对应的训练任务，存储管理中 PFS 浏览等依赖该任务的能力将不可用，直至再次初始化。',
+      okText: '卸载',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        setMlpCookerOperating(true);
+        try {
+          const res = await request(`/api/jobs/${encodeURIComponent(jobId)}`, {
+            method: 'DELETE',
+          });
+          if (res.success) {
+            messageApi.success('已卸载 mlp-cooker 组件');
+            await refreshMlpCookerJob();
+          } else {
+            messageApi.error(res.message || '卸载失败');
+          }
+        } catch (e: any) {
+          console.error(e);
+          messageApi.error(e?.info?.errorMessage || e?.message || '卸载失败');
+        } finally {
+          setMlpCookerOperating(false);
+        }
+      },
+    });
+  }, [mlpCookerJob, messageApi, refreshMlpCookerJob]);
+
   const loadAll = useCallback(async () => {
     setConfigLoading(true);
     try {
@@ -275,6 +447,7 @@ const GlobalConfig: React.FC = () => {
         ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: pfsId,
       });
       setFormVersion((v) => v + 1);
+      await refreshMlpCookerJob();
     } catch (e) {
       console.error(e);
       messageApi.error('加载配置失败');
@@ -286,6 +459,7 @@ const GlobalConfig: React.FC = () => {
     fetchQueueOptions,
     fetchPfsOptions,
     messageApi,
+    refreshMlpCookerJob,
   ]);
 
   useEffect(() => {
@@ -387,9 +561,10 @@ const GlobalConfig: React.FC = () => {
                 items={[
                   { key: 'resource', label: '资源配置' },
                   { key: 'storage', label: '存储配置' },
+                  { key: 'component', label: '组件' },
                 ]}
                 onClick={({ key }) =>
-                  scrollToSection(key as 'resource' | 'storage')
+                  scrollToSection(key as 'resource' | 'storage' | 'component')
                 }
                 style={{
                   width: 168,
@@ -557,6 +732,70 @@ const GlobalConfig: React.FC = () => {
                       )}
                     </ProForm.Item>
                   </ProForm>
+                </div>
+
+                <div
+                  ref={componentSectionRef}
+                  style={{
+                    padding: '8px 24px 48px 16px',
+                    maxWidth: 720,
+                    borderTop: '1px solid #f0f0f0',
+                  }}
+                >
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                    组件
+                  </Text>
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                    平台组件：按需初始化或卸载。当前提供 MLP Cooker（mlp-cooker），后续可在此增加其他组件卡片。
+                  </Text>
+                  <Card size="small" title="mlp-cooker" styles={{ body: { paddingBottom: 8 } }}>
+                    <Spin spinning={mlpCookerJobLoading}>
+                      <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                        <div>
+                          <Text type="secondary" style={{ marginRight: 8 }}>
+                            状态
+                          </Text>
+                          {mlpCookerJob ? (
+                            <Space wrap>
+                              <Tag color="success">已部署</Tag>
+                              <Text code>
+                                {mlpCookerJob.jobId || mlpCookerJob.id || '-'}
+                              </Text>
+                              {mlpCookerJob.status != null ? (
+                                <Tag>{String(mlpCookerJob.status)}</Tag>
+                              ) : null}
+                            </Space>
+                          ) : (
+                            <Tag>未部署</Tag>
+                          )}
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 13 }}>
+                          用于 PFS 挂载等能力；初始化将创建名称为 mlp-cooker 的训练常驻任务。卸载将删除该任务。
+                        </Text>
+                        {mlpCookerJob ? (
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            loading={mlpCookerOperating}
+                            disabled={configLoading}
+                            onClick={handleUninstallMlpCooker}
+                          >
+                            卸载
+                          </Button>
+                        ) : (
+                          <Button
+                            type="primary"
+                            icon={<ThunderboltOutlined />}
+                            loading={mlpCookerOperating}
+                            disabled={configLoading}
+                            onClick={handleInitializeMlpCooker}
+                          >
+                            初始化
+                          </Button>
+                        )}
+                      </Space>
+                    </Spin>
+                  </Card>
                 </div>
               </div>
             </Col>

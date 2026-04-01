@@ -2,6 +2,7 @@ import {
   CheckCircleFilled,
   CheckOutlined,
   EyeOutlined,
+  PartitionOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
@@ -10,14 +11,17 @@ import {
   App,
   Button,
   Card,
+  Checkbox,
+  Col,
   Descriptions,
+  Drawer,
   Progress,
+  Row,
   Space,
   Spin,
   Table,
   Tag,
   Typography,
-  Drawer,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { updateConfig } from '@/services/aihc-mentor/api';
@@ -192,6 +196,7 @@ const Resource: React.FC = () => {
   const [queueRowDetail, setQueueRowDetail] = useState<QueueDetail | null>(null);
   const [queueRowDetailLoading, setQueueRowDetailLoading] = useState(false);
   const [settingDefaultQueueId, setSettingDefaultQueueId] = useState('');
+  const [onlyWithAcc, setOnlyWithAcc] = useState(false);
 
   // 配置相关状态
   const [resourceConfig, setResourceConfig] = useState({
@@ -624,6 +629,119 @@ const Resource: React.FC = () => {
     );
   };
 
+  const defaultQueueStatistics = React.useMemo(
+    () => computeQueueStatistics(actualQueueDetail),
+    [actualQueueDetail],
+  );
+
+  const renderDefaultQueueSection = () => {
+    if (!configQueueId) return null;
+
+    if (!actualQueueDetail) {
+      return (
+        <Card
+          style={{
+            marginBottom: 24,
+            borderRadius: 8,
+            border: '1px solid #ffd666',
+            background: '#fffbe6',
+          }}
+          styles={{ body: { padding: '16px 24px' } }}
+        >
+          <Space size={16}>
+            <PartitionOutlined style={{ fontSize: 32, color: '#faad14' }} />
+            <div>
+              <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>
+                默认队列 (ML_PLATFORM_RESOURCE_QUEUE_ID)
+              </div>
+              <Text strong style={{ fontSize: 16 }}>
+                {configQueueId}
+              </Text>
+              <Tag color="warning" style={{ marginLeft: 8 }}>
+                正在加载队列详情或 ID 不存在
+              </Tag>
+            </div>
+          </Space>
+        </Card>
+      );
+    }
+
+    const stats = defaultQueueStatistics;
+
+    return (
+      <Card
+        style={{
+          marginBottom: 24,
+          background: 'linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%)',
+          border: '1px solid #91d5ff',
+          borderRadius: 8,
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        }}
+        styles={{ body: { padding: '16px 24px' } }}
+      >
+        <Row align="middle" gutter={24}>
+          <Col>
+            <PartitionOutlined style={{ fontSize: 40, color: '#1890ff' }} />
+          </Col>
+          <Col flex={1}>
+            <div style={{ marginBottom: 4 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                当前默认队列 (ML_PLATFORM_RESOURCE_QUEUE_ID)
+              </Text>
+            </div>
+            <Space align="center" size={12}>
+              <Title level={4} style={{ margin: 0 }}>
+                {actualQueueDetail.queueName || actualQueueDetail.queueId}
+              </Title>
+              <Tag color={actualQueueDetail.opened ? 'success' : 'default'}>
+                {actualQueueDetail.opened ? '已开启' : '已关闭'}
+              </Tag>
+              <Text type="secondary" style={{ fontSize: 13 }}>
+                所属资源池: {actualQueueDetail.resourcePoolId || '-'}
+              </Text>
+            </Space>
+          </Col>
+          <Col>
+            <Space size={32}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>
+                  加速卡配额
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 500, color: '#722ed1' }}>
+                  {stats.totalAccelerators}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>
+                  CPU 配额
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 500 }}>
+                  {stats.totalCpuCores.toFixed(1)}
+                </div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ color: 'rgba(0, 0, 0, 0.45)', fontSize: 12, marginBottom: 4 }}>
+                  内存配额 (GB)
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 500 }}>
+                  {stats.totalMemoryGi.toFixed(1)}
+                </div>
+              </div>
+              <Button
+                type="primary"
+                ghost
+                icon={<EyeOutlined />}
+                onClick={() => openQueueRowDetail(actualQueueDetail.queueId || '')}
+              >
+                详情
+              </Button>
+            </Space>
+          </Col>
+        </Row>
+      </Card>
+    );
+  };
+
   const drawerQueueStatistics = React.useMemo(
     () => computeQueueStatistics(queueRowDetail),
     [queueRowDetail],
@@ -635,6 +753,13 @@ const Resource: React.FC = () => {
         title: '队列管理',
         breadcrumb: {},
         extra: [
+          <Checkbox
+            key="onlyWithAcc"
+            checked={onlyWithAcc}
+            onChange={(e) => setOnlyWithAcc(e.target.checked)}
+          >
+            仅显示有加速卡
+          </Checkbox>,
           <Button
             key="refresh"
             type="primary"
@@ -655,10 +780,12 @@ const Resource: React.FC = () => {
         <Card>
           <Text type="warning">
             未配置默认资源池。请在「资源池」页面将目标资源池设为默认，或配置 ML_PLATFORM_RESOURCE_POOL_ID。
-                </Text>
+          </Text>
         </Card>
       ) : (
-        <Card>
+        <>
+          {renderDefaultQueueSection()}
+          <Card>
             <Spin spinning={queueListLoading}>
             <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
               当前资源池（{resourceConfig.resourcePoolId}）下的所有队列
@@ -810,7 +937,11 @@ const Resource: React.FC = () => {
                     },
                   },
                   ]}
-                  dataSource={queueList}
+                  dataSource={queueList.filter(
+                    (q) =>
+                      !onlyWithAcc ||
+                      (q.deserved?.acceleratorCardList?.length ?? 0) > 0,
+                  )}
                   rowKey={(record) => record.queueId || `queue-${Math.random()}`}
                   pagination={{
                     pageSize: 10,
@@ -825,7 +956,8 @@ const Resource: React.FC = () => {
               ) : null}
             </Spin>
           </Card>
-        )}
+        </>
+      )}
 
       <Drawer
         title={queueRowDetail?.queueName || '队列详情'}
