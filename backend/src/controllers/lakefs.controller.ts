@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
-import { lakefsService } from '@/services/lakefs.service';
+import { LakeFSService } from '@/services/lakefs.service';
 
 /**
  * LakeFS 控制器
@@ -12,6 +12,7 @@ export class LakeFSController {
    */
   public static async getRepositories(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { prefix, after, amount } = req.query;
       const data = await lakefsService.getRepositories(
         prefix as string,
@@ -30,6 +31,7 @@ export class LakeFSController {
    */
   public static async createRepository(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { id, defaultBranch, storageNamespace } = req.body;
       if (!id || !storageNamespace) {
         ResponseUtils.error(res, '仓库名称和存储命名空间不能为空');
@@ -48,6 +50,7 @@ export class LakeFSController {
    */
   public static async getBranches(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository } = req.params;
       const { prefix, after, amount } = req.query;
       const data = await lakefsService.getBranches(
@@ -68,6 +71,7 @@ export class LakeFSController {
    */
   public static async listObjects(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository, ref } = req.params;
       const { prefix, after, amount, delimiter } = req.query;
       const data = await lakefsService.listObjects(
@@ -90,6 +94,7 @@ export class LakeFSController {
    */
   public static async logCommits(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository, ref } = req.params;
       const { after, amount } = req.query;
       const data = await lakefsService.logCommits(
@@ -110,6 +115,7 @@ export class LakeFSController {
    */
   public static async getObjectContent(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository, ref } = req.params;
       const { path } = req.query;
       if (!path) {
@@ -129,6 +135,7 @@ export class LakeFSController {
    */
   public static async commitChanges(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository, branch } = req.params;
       const { message, metadata } = req.body;
 
@@ -150,6 +157,7 @@ export class LakeFSController {
    */
   public static async createBranch(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository } = req.params;
       const { name, source } = req.body;
 
@@ -171,6 +179,7 @@ export class LakeFSController {
    */
   public static async getBranchDiff(req: Request, res: Response): Promise<void> {
     try {
+      const lakefsService = new LakeFSService(req.user!.ak!);
       const { repository, branch } = req.params;
       const data = await lakefsService.getBranchDiff(repository, branch);
       ResponseUtils.success(res, data, `获取分支差异成功`);

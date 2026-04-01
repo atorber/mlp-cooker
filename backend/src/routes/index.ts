@@ -62,60 +62,60 @@ router.get('/api/health', (req, res) => {
  * 数据集相关路由
  */
 // 查询数据集列表
-router.get('/api/datasets', DatasetController.list);
+router.get('/api/datasets', authMiddleware, DatasetController.list);
 
 // 查询数据集详情
-router.get('/api/datasets/:datasetId', DatasetController.get);
+router.get('/api/datasets/:datasetId', authMiddleware, DatasetController.get);
 
 // 查询数据集版本列表
-router.get('/api/datasets/:datasetId/versions', DatasetController.listVersions);
+router.get('/api/datasets/:datasetId/versions', authMiddleware, DatasetController.listVersions);
 
 // 创建数据集
-router.post('/api/datasets', DatasetController.create);
+router.post('/api/datasets', authMiddleware, DatasetController.create);
 
 // 删除数据集
-router.delete('/api/datasets/:datasetId', DatasetController.delete);
+router.delete('/api/datasets/:datasetId', authMiddleware, DatasetController.delete);
 
 // 创建数据集版本
-router.post('/api/datasets/:datasetId/versions', DatasetController.createVersion);
+router.post('/api/datasets/:datasetId/versions', authMiddleware, DatasetController.createVersion);
 
 // 删除数据集版本
-router.delete('/api/datasets/:datasetId/versions/:versionId', DatasetController.deleteVersion);
+router.delete('/api/datasets/:datasetId/versions/:versionId', authMiddleware, DatasetController.deleteVersion);
 
 // 获取数据集单个文件访问 URL（预签名，用于下载）
-router.get('/api/datasets/:datasetId/files/access-url', DatasetController.getFileAccessUrl);
+router.get('/api/datasets/:datasetId/files/access-url', authMiddleware, DatasetController.getFileAccessUrl);
 // 获取数据集文本文件内容（用于前端预览）
-router.get('/api/datasets/:datasetId/files/content', DatasetController.getFileContent);
+router.get('/api/datasets/:datasetId/files/content', authMiddleware, DatasetController.getFileContent);
 // 获取数据集文件列表（BOS存储）
-router.get('/api/datasets/:datasetId/files', DatasetController.listFiles);
+router.get('/api/datasets/:datasetId/files', authMiddleware, DatasetController.listFiles);
 // Lance 格式检测
-router.get('/api/datasets/:datasetId/lance-check', DatasetController.checkLance);
+router.get('/api/datasets/:datasetId/lance-check', authMiddleware, DatasetController.checkLance);
 // Lance 数据集 SQL 查询
-router.post('/api/datasets/:datasetId/query', DatasetController.queryLance);
+router.post('/api/datasets/:datasetId/query', authMiddleware, DatasetController.queryLance);
 
 /**
  * 模型相关路由
  */
 // 查询模型列表
-router.get('/api/models', ModelController.list);
+router.get('/api/models', authMiddleware, ModelController.list);
 
 // 查询模型详情
-router.get('/api/models/:modelId', ModelController.get);
+router.get('/api/models/:modelId', authMiddleware, ModelController.get);
 
 // 查询模型版本列表
-router.get('/api/models/:modelId/versions', ModelController.listVersions);
+router.get('/api/models/:modelId/versions', authMiddleware, ModelController.listVersions);
 
 // 创建模型
-router.post('/api/models', ModelController.create);
+router.post('/api/models', authMiddleware, ModelController.create);
 
 // 删除模型
-router.delete('/api/models/:modelId', ModelController.delete);
+router.delete('/api/models/:modelId', authMiddleware, ModelController.delete);
 
 // 创建模型版本
-router.post('/api/models/:modelId/versions', ModelController.createVersion);
+router.post('/api/models/:modelId/versions', authMiddleware, ModelController.createVersion);
 
 // 删除模型版本
-router.delete('/api/models/:modelId/versions/:versionId', ModelController.deleteVersion);
+router.delete('/api/models/:modelId/versions/:versionId', authMiddleware, ModelController.deleteVersion);
 
 /**
  * 服务部署相关路由

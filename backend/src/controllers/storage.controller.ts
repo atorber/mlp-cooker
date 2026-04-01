@@ -8,8 +8,8 @@ import { runWebShellCommand, stripAnsi } from '@/utils/webterminal-exec';
 const MLP_COOKER_JOB_NAME = 'mlp-cooker';
 const PFS_MOUNT = '/data';
 
-function getPfsJobSdk(): AihcSDK {
-  const yamlConfig = YamlConfigManager.getInstance();
+function getPfsJobSdk(ak: string): AihcSDK {
+  const yamlConfig = YamlConfigManager.getInstance(ak);
   const mlResourceConfig = yamlConfig.getMLResourceConfig();
   return new AihcSDK({
     accessKey: mlResourceConfig.ak,
@@ -109,8 +109,8 @@ function buildListCommand(fsPath: string): string {
  * 平台存储浏览（对象存储桶 / PFS）
  */
 export class StorageController {
-  private static getS3Client(): S3Client {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getS3Client(ak: string): S3Client {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     const endpoint = `https://s3.${mlResourceConfig.region || 'bj'}.bcebos.com`;
     return new S3Client({
@@ -130,7 +130,7 @@ export class StorageController {
    */
   public static async listBucketFiles(req: Request, res: Response): Promise<void> {
     try {
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       const bucket = mlResourceConfig.bucket?.trim();
       if (!bucket) {
@@ -144,7 +144,7 @@ export class StorageController {
         ? rawPrefix.replace(/^\/+/, '').replace(/([^/])$/, '$1/')
         : undefined;
 
-      const s3Client = StorageController.getS3Client();
+      const s3Client = StorageController.getS3Client(req.user!.ak!);
       const listCommand = new ListObjectsV2Command({
         Bucket: bucket,
         Prefix: prefixForS3,
@@ -226,7 +226,7 @@ export class StorageController {
    */
   public static async listPfsFiles(req: Request, res: Response): Promise<void> {
     try {
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       const instanceId = mlResourceConfig.pfsInstanceId?.trim();
       if (!instanceId) {
@@ -245,7 +245,7 @@ export class StorageController {
       const poolId = 'aihc-serverless';
       const queueId = mlResourceConfig.queueId?.trim() || '';
 
-      const sdk = getPfsJobSdk();
+      const sdk = getPfsJobSdk(req.user!.ak!);
       const jobsResult = await sdk.describeJobs(poolId, queueId, {
         keyword: MLP_COOKER_JOB_NAME,
       });

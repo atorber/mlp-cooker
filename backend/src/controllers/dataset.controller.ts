@@ -12,8 +12,8 @@ export class DatasetController {
   /**
    * 获取数据集SDK实例（使用机器学习平台资源配置）
    */
-  private static getDatasetSDK(): AihcSDK {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getDatasetSDK(ak: string): AihcSDK {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
@@ -31,8 +31,8 @@ export class DatasetController {
   /**
    * 获取 S3 客户端实例（BOS S3 兼容协议）
    */
-  private static getS3Client(): S3Client {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getS3Client(ak: string): S3Client {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
     // 使用 BOS S3 兼容 endpoint（文档：https://cloud.baidu.com/doc/BOS/s/Hjwvyq84s）
@@ -57,8 +57,8 @@ export class DatasetController {
     try {
       const { pageNumber = 1, pageSize = 10, keyword, storageType, importFormat } = req.query;
       
-      const sdk = DatasetController.getDatasetSDK();
-      const yamlConfig = YamlConfigManager.getInstance();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       const result = await sdk.describeDatasets({
         pageNumber: Number(pageNumber),
@@ -90,8 +90,8 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
-      const result = await sdk.describeDataset(datasetId);
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
+      const result = await sdk.describeDataset(datasetId as string);
 
       ResponseUtils.success(res, result, '获取数据集详情成功');
     } catch (error) {
@@ -115,9 +115,9 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const result = await sdk.describeDatasetVersions(
-        datasetId,
+        datasetId as string,
         Number(pageNumber),
         Number(pageSize)
       );
@@ -143,7 +143,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const result = await sdk.createDataset(requestBody);
 
       ResponseUtils.success(res, result, '创建数据集成功');
@@ -167,8 +167,8 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
-      const result = await sdk.deleteDataset(datasetId);
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
+      const result = await sdk.deleteDataset(datasetId as string);
 
       ResponseUtils.success(res, result, '删除数据集成功');
     } catch (error) {
@@ -197,8 +197,8 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
-      const result = await sdk.createDatasetVersion(datasetId, requestBody);
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
+      const result = await sdk.createDatasetVersion(datasetId as string, requestBody);
 
       ResponseUtils.success(res, result, '创建数据集版本成功');
     } catch (error) {
@@ -226,8 +226,8 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
-      const result = await sdk.deleteDatasetVersion(datasetId, versionId);
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
+      const result = await sdk.deleteDatasetVersion(datasetId as string, versionId as string);
 
       ResponseUtils.success(res, result, '删除数据集版本成功');
     } catch (error) {
@@ -251,7 +251,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
 
       // 获取数据集详情
       const datasetDetail = await sdk.describeDataset(datasetId);
@@ -307,7 +307,7 @@ export class DatasetController {
       const prefixDisplay = basePath ? (basePath.startsWith('/') ? basePath : '/' + basePath) : '';
 
       // 使用 S3 协议获取文件列表
-      const s3Client = DatasetController.getS3Client();
+      const s3Client = DatasetController.getS3Client(req.user!.ak!);
       const listCommand = new ListObjectsV2Command({
         Bucket: storageInstance,
         Prefix: prefixForS3,
@@ -381,7 +381,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const datasetDetail = await sdk.describeDataset(datasetId);
       if (!datasetDetail) {
         ResponseUtils.error(res, '数据集不存在');
@@ -409,7 +409,7 @@ export class DatasetController {
         }),
       });
 
-      const s3Client = DatasetController.getS3Client();
+      const s3Client = DatasetController.getS3Client(req.user!.ak!);
       const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
       const suggestedFilename = objectKey.replace(/^.*\//, '');
 
@@ -451,7 +451,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const datasetDetail = await sdk.describeDataset(datasetId);
       if (!datasetDetail) {
         ResponseUtils.error(res, '数据集不存在');
@@ -469,7 +469,7 @@ export class DatasetController {
         return;
       }
 
-      const s3Client = DatasetController.getS3Client();
+      const s3Client = DatasetController.getS3Client(req.user!.ak!);
 
       const headCommand = new HeadObjectCommand({ Bucket: bucket, Key: objectKey });
       const headResult = await s3Client.send(headCommand);
@@ -512,7 +512,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const datasetDetail = await sdk.describeDataset(datasetId);
       if (!datasetDetail || datasetDetail.storageType !== 'BOS' || !datasetDetail.storageInstance) {
         ResponseUtils.success(res, { isLance: false }, 'ok');
@@ -530,7 +530,7 @@ export class DatasetController {
         ? storagePath.replace(/^\/+/, '').replace(/([^/])$/, '$1/')
         : '';
 
-      const s3Client = DatasetController.getS3Client();
+      const s3Client = DatasetController.getS3Client(req.user!.ak!);
       const listCommand = new ListObjectsV2Command({
         Bucket: datasetDetail.storageInstance,
         Prefix: prefixForS3,
@@ -592,7 +592,7 @@ export class DatasetController {
         return;
       }
 
-      const sdk = DatasetController.getDatasetSDK();
+      const sdk = DatasetController.getDatasetSDK(req.user!.ak!);
       const datasetDetail = await sdk.describeDataset(datasetId);
       if (!datasetDetail || datasetDetail.storageType !== 'BOS' || !datasetDetail.storageInstance) {
         ResponseUtils.error(res, '仅支持 BOS 存储类型的数据集');
@@ -609,7 +609,7 @@ export class DatasetController {
       const bucket = datasetDetail.storageInstance;
       const uri = `s3://${bucket}/${prefix}`;
 
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const ml = yamlConfig.getMLResourceConfig();
       const region = ml?.region || 'bj';
       const endpoint = `https://s3.${region}.bcebos.com`;

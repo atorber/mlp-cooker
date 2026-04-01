@@ -11,8 +11,8 @@ export class ServiceController {
   /**
    * 获取服务SDK实例（使用机器学习平台资源配置）
    */
-  private static getServiceSDK(): AihcSDK {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getServiceSDK(ak: string): AihcSDK {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
@@ -36,7 +36,7 @@ export class ServiceController {
     try {
       const { pageNumber = 1, pageSize = 1000, orderBy, order, serviceId, serviceName, keyword } = req.query;
 
-      const sdk = ServiceController.getServiceSDK();
+      const sdk = ServiceController.getServiceSDK(req.user!.ak!);
       const result = await sdk.describeServices({
         pageNumber: Number(pageNumber),
         pageSize: Number(pageSize),
@@ -55,7 +55,7 @@ export class ServiceController {
       }
 
       // 从配置文件获取队列ID，用于过滤服务
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       const configQueueId = mlResourceConfig.queueId;
 
@@ -119,8 +119,8 @@ export class ServiceController {
         return;
       }
 
-      const sdk = ServiceController.getServiceSDK();
-      const result = await sdk.describeService(serviceId);
+      const sdk = ServiceController.getServiceSDK(req.user!.ak!);
+      const result = await sdk.describeService(serviceId as string);
 
       ResponseUtils.success(res, result);
     } catch (error) {
@@ -143,8 +143,8 @@ export class ServiceController {
         return;
       }
 
-      const sdk = ServiceController.getServiceSDK();
-      const result = await sdk.describeServiceStatus(serviceId);
+      const sdk = ServiceController.getServiceSDK(req.user!.ak!);
+      const result = await sdk.describeServiceStatus(serviceId as string);
 
       // 提取对应serviceId的状态信息
       if (result && result.service && result.service[serviceId]) {
@@ -196,7 +196,7 @@ export class ServiceController {
         return;
       }
 
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
       const resourcePoolId = mlResourceConfig.poolId;
@@ -204,7 +204,7 @@ export class ServiceController {
 
       // 检查是否为新版统一数据结构
       if (TaskConverter.isUnifiedServiceParams(requestBody)) {
-        requestBody = TaskConverter.toServiceSDKParams(requestBody);
+        requestBody = TaskConverter.toServiceSDKParams(requestBody, req.user!.ak!);
       } else {
 
         if (!resourcePoolId || !queueName) {
@@ -223,7 +223,7 @@ export class ServiceController {
         requestBody.resourcePool.resourcePoolType = 'serverless';
       }
 
-      const sdk = ServiceController.getServiceSDK();
+      const sdk = ServiceController.getServiceSDK(req.user!.ak!);
       const result = await sdk.createService(requestBody, clientToken as string);
 
       ResponseUtils.success(res, result, '服务创建成功');
@@ -247,8 +247,8 @@ export class ServiceController {
         return;
       }
 
-      const sdk = ServiceController.getServiceSDK();
-      const result = await sdk.deleteService(serviceId);
+      const sdk = ServiceController.getServiceSDK(req.user!.ak!);
+      const result = await sdk.deleteService(serviceId as string);
 
       ResponseUtils.success(res, result, '服务删除成功');
     } catch (error) {

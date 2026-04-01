@@ -11,8 +11,8 @@ export class JobController {
   /**
    * 获取训练任务SDK实例（使用机器学习平台资源配置）
    */
-  private static getJobSDK(): AihcSDK {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getJobSDK(ak: string): AihcSDK {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
@@ -51,10 +51,10 @@ export class JobController {
       if (owner) requestBody.owner = owner;
 
       // 从配置文件读取poolId/queueId
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const pool = 'aihc-serverless' ;
       const result = await sdk.describeJobs(
         pool,
@@ -84,7 +84,7 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.describeJob(
         jobId,
         'aihc-serverless',
@@ -134,7 +134,7 @@ export class JobController {
       }
 
       // 从配置文件读取资源池ID和队列ID
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
       const resourcePoolId = mlResourceConfig.poolId;
@@ -147,7 +147,7 @@ export class JobController {
 
       // 检查是否为新版统一数据结构
       if (TaskConverter.isUnifiedJobParams(requestBody)) {
-        requestBody = TaskConverter.toJobSDKParams(requestBody);
+        requestBody = TaskConverter.toJobSDKParams(requestBody, req.user!.ak!);
       } else {
         // 旧版逻辑
         // 确保请求体中的 queue 字段和配置的 queueID 一致
@@ -177,7 +177,7 @@ export class JobController {
         }
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.createJob(
         requestBody,
         // resourcePoolId,
@@ -207,7 +207,7 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.stopJob(jobId, 'aihc-serverless');
 
       ResponseUtils.success(res, result, '训练任务停止成功');
@@ -232,7 +232,7 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.deleteJob(jobId, 'aihc-serverless');
 
       ResponseUtils.success(res, result, '训练任务删除成功');
@@ -257,7 +257,7 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.describeJobEvents(
         jobId,
         'aihc-serverless',
@@ -287,7 +287,7 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       const result = await sdk.describeJobLogs(
         jobId,
         podName,
@@ -324,10 +324,10 @@ export class JobController {
         return;
       }
 
-      const sdk = JobController.getJobSDK();
+      const sdk = JobController.getJobSDK(req.user!.ak!);
       
       // 从配置文件读取资源池ID（如果查询参数中未提供）
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       
       const finalResourcePoolId = mlResourceConfig.poolId;

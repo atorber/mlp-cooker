@@ -10,8 +10,8 @@ export class ModelController {
   /**
    * 获取模型SDK实例（使用机器学习平台资源配置）
    */
-  private static getModelSDK(): AihcSDK {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getModelSDK(ak: string): AihcSDK {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     
     // 获取baseURL：优先使用机器学习平台配置，其次使用数据集管理配置，最后使用默认地址
@@ -45,7 +45,7 @@ export class ModelController {
     try {
       const { pageNumber = 1, keyword } = req.query;
       
-      const sdk = ModelController.getModelSDK();
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
       const result = await sdk.describeModels(
         Number(pageNumber),
         keyword as string
@@ -72,8 +72,8 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
-      const result = await sdk.describeModel(modelId);
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
+      const result = await sdk.describeModel(modelId as string);
 
       ResponseUtils.success(res, result, '获取模型详情成功');
     } catch (error) {
@@ -97,9 +97,9 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
       const result = await sdk.describeModelVersions(
-        modelId,
+        modelId as string,
         Number(pageNumber),
         Number(pageSize)
       );
@@ -125,7 +125,7 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
       const result = await sdk.createModel(requestBody);
 
       ResponseUtils.success(res, result, '创建模型成功');
@@ -149,8 +149,8 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
-      const result = await sdk.deleteModel(modelId);
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
+      const result = await sdk.deleteModel(modelId as string);
 
       ResponseUtils.success(res, result, '删除模型成功');
     } catch (error) {
@@ -179,8 +179,8 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
-      const result = await sdk.createModelVersion(modelId, requestBody);
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
+      const result = await sdk.createModelVersion(modelId as string, requestBody);
 
       ResponseUtils.success(res, result, '创建模型版本成功');
     } catch (error) {
@@ -208,8 +208,8 @@ export class ModelController {
         return;
       }
 
-      const sdk = ModelController.getModelSDK();
-      const result = await sdk.deleteModelVersion(modelId, versionId);
+      const sdk = ModelController.getModelSDK(req.user!.ak!);
+      const result = await sdk.deleteModelVersion(modelId as string, versionId as string);
 
       ResponseUtils.success(res, result, '删除模型版本成功');
     } catch (error) {

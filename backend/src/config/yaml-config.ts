@@ -15,10 +15,7 @@ export interface YamlConfigData {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: string;
   ML_PLATFORM_RESOURCE_BUCKET: string;
   ML_PLATFORM_RESOURCE_REGION: string;
-  /** MLP Cooker 常驻任务（组件）相关，供存储/PFS 等能力使用 */
-  ML_COOKER_COMPONENT_JOB_NAME: string;
-  ML_COOKER_COMPONENT_JOB_IMAGE: string;
-  ML_COOKER_COMPONENT_JOB_COMMAND: string;
+
   // LakeFS 资源配置
   LAKEFS_ENDPOINT: string;
   LAKEFS_ACCESS_KEY_ID: string;
@@ -48,9 +45,7 @@ const CONFIG_TYPE_DEFINITIONS: {
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_BUCKET: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_REGION: { type: 'string', required: false, default: 'bj' },
-  ML_COOKER_COMPONENT_JOB_NAME: { type: 'string', required: false },
-  ML_COOKER_COMPONENT_JOB_IMAGE: { type: 'string', required: false },
-  ML_COOKER_COMPONENT_JOB_COMMAND: { type: 'string', required: false },
+
   LAKEFS_ENDPOINT: { type: 'string', required: false },
   LAKEFS_ACCESS_KEY_ID: { type: 'string', required: false },
   LAKEFS_SECRET_ACCESS_KEY: { type: 'string', required: false },
@@ -60,23 +55,28 @@ const CONFIG_TYPE_DEFINITIONS: {
  * YAML配置管理器 - 与Python版本逻辑完全一致
  */
 export class YamlConfigManager {
-  private static instance: YamlConfigManager;
+  private static instances: Map<string, YamlConfigManager> = new Map();
   private configData: Partial<YamlConfigData> = {};
   private configFilePath: string;
+  private currentAk: string;
 
-  private constructor(configFilePath?: string) {
-    this.configFilePath = configFilePath || path.join(process.cwd(), '..', 'config.yaml');
+  private constructor(ak: string) {
+    this.currentAk = ak;
+    this.configFilePath = path.join(process.cwd(), 'data', 'users', ak, 'config.yaml');
     this.loadConfig();
   }
 
   /**
-   * 获取单例实例
+   * 获取针对特定用户的单例实例
    */
-  public static getInstance(configFilePath?: string): YamlConfigManager {
-    if (!YamlConfigManager.instance) {
-      YamlConfigManager.instance = new YamlConfigManager(configFilePath);
+  public static getInstance(ak: string): YamlConfigManager {
+    if (!ak) {
+      throw new Error('AK is required to get a YamlConfigManager instance');
     }
-    return YamlConfigManager.instance;
+    if (!YamlConfigManager.instances.has(ak)) {
+      YamlConfigManager.instances.set(ak, new YamlConfigManager(ak));
+    }
+    return YamlConfigManager.instances.get(ak)!;
   }
 
   /**
@@ -205,7 +205,7 @@ export class YamlConfigManager {
    */
   public reloadConfig(): void {
     this.loadConfig();
-    console.log('🔄 YAML配置文件已重新加载');
+    console.log(`🔄 YAML配置文件已重新加载 (AK: ${this.currentAk})`);
   }
 
   /**

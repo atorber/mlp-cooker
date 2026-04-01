@@ -6,13 +6,18 @@ import { YamlConfigManager } from '@/config/yaml-config';
  * 用于和独立的 LakeFS 实例通过 REST API 交互
  */
 export class LakeFSService {
-  private configManager = YamlConfigManager.getInstance();
+  private ak: string;
+
+  constructor(ak: string) {
+    this.ak = ak;
+  }
 
   /**
    * 获取 Axios 实例
    */
   private getClient(): AxiosInstance {
-    const config = this.configManager.getLakeFSConfig();
+    const configManager = YamlConfigManager.getInstance(this.ak);
+    const config = configManager.getLakeFSConfig();
     if (!config.endpoint || !config.accessKeyId || !config.secretAccessKey) {
       throw new Error('LakeFS 配置不完整，请前往系统设置中完善配置');
     }
@@ -203,4 +208,3 @@ export class LakeFSService {
   }
 }
 
-export const lakefsService = new LakeFSService();
