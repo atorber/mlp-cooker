@@ -944,8 +944,9 @@ const Resource: React.FC = () => {
                   )}
                   rowKey={(record) => record.queueId || `queue-${Math.random()}`}
                   pagination={{
-                    pageSize: 10,
+                    defaultPageSize: 100,
                     showSizeChanger: true,
+                    pageSizeOptions: ['10', '20', '50', '100', '200'],
                     showTotal: (total) => `共 ${total} 条队列`,
                   }}
                   size="small"
