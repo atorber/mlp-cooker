@@ -187,6 +187,9 @@ const Settings: React.FC = () => {
       // AK 直接显示，SK 使用密码输入框（带显示/隐藏按钮）
       const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK' || key === 'LAKEFS_SECRET_ACCESS_KEY';
       const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK' || key === 'LAKEFS_ACCESS_KEY_ID';
+      const isDisabled = isSecretKey || isAccessKey;
+      const extra = isDisabled ? '登录时自动配置，不可在此修改' : undefined;
+
       const isOtherPassword =
         (key.toLowerCase().includes('password') ||
          key.toLowerCase().includes('secret') ||
@@ -235,10 +238,12 @@ const Settings: React.FC = () => {
             name={key}
             label={label}
             tooltip={tooltip}
+            extra={extra}
             initialValue={value || ''}
             fieldProps={{
               placeholder: `请输入${label}`,
               autoComplete: 'new-password',
+              disabled: isDisabled,
             }}
           />
         );
@@ -292,11 +297,13 @@ const Settings: React.FC = () => {
             name={key}
             label={label}
             tooltip={tooltip}
+            extra={extra}
             initialValue={value || ''}
             fieldProps={{
               type: isOtherPassword ? 'password' : 'text',
               placeholder: `请输入${label}`,
               autoComplete: isOtherPassword ? 'new-password' : 'off',
+              disabled: isDisabled,
             }}
           />
         );
