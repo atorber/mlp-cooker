@@ -532,7 +532,7 @@ function WorkflowEditorInner() {
     setOrganizing(true);
     try {
       const { nodes: layoutedNodes, edges: layoutedEdges } = await getLayoutedElements(nodes, edges, 'RIGHT');
-      setNodes(layoutedNodes);
+      setNodes(layoutedNodes as WorkflowNode[]);
       setEdges(layoutedEdges);
       window.requestAnimationFrame(() => {
         fitView({ padding: 0.3, duration: 300 });

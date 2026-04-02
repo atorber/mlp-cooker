@@ -1,10 +1,8 @@
 import {
   DatabaseOutlined,
   DownOutlined,
-  EyeOutlined,
   ReloadOutlined,
   SettingOutlined,
-  UploadOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';

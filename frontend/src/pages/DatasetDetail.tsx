@@ -794,7 +794,7 @@ const DatasetDetail: React.FC = () => {
                                 <div style={{ padding: 12, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, minWidth: 0 }}>
                                   {SQL_TEMPLATES.map((tpl, index) => (
                                     <div
-                                      key={index}
+                                      key={`${tpl.title}-${index}`}
                                       onClick={() => setSqlText(tpl.sql)}
                                       style={{
                                         padding: 10,
@@ -860,9 +860,9 @@ const DatasetDetail: React.FC = () => {
                                     size="small"
                                     icon={<DownloadOutlined />}
                                     onClick={() => {
-                                      const cols = queryResult!.columns;
+                                      const cols = queryResult?.columns || [];
                                       const header = ['序号', ...cols].join(',');
-                                      const rows = queryResult!.rows.map((row, i) => [i + 1, ...row].map((c) => (c != null ? String(c).replace(/"/g, '""') : '')).join(','));
+                                      const rows = (queryResult?.rows || []).map((row, i) => [i + 1, ...row].map((c) => (c != null ? String(c).replace(/"/g, '""') : '')).join(','));
                                       const csv = [header, ...rows].join('\n');
                                       const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
                                       const url = URL.createObjectURL(blob);

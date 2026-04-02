@@ -19,13 +19,12 @@ import {
   Row,
   Select,
   Space,
-  Statistic,
   Tag,
   Tabs,
   Typography,
 } from 'antd';
 import type { MenuProps } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { history } from '@umijs/max';
 import { request } from '@umijs/max';
 

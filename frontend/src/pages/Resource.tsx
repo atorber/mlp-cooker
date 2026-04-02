@@ -876,11 +876,11 @@ const Resource: React.FC = () => {
                         }
                         return (
                           <Space wrap size="small">
-                            {record.deserved.acceleratorCardList.map((card, index) => (
-                              <Tag key={index} color="purple">
-                                {card.acceleratorType}: {card.acceleratorCount}
-                              </Tag>
-                            ))}
+                             {record.deserved.acceleratorCardList.map((card, index) => (
+                               <Tag key={`${card.acceleratorType}-${index}`} color="purple">
+                                 {card.acceleratorType}: {card.acceleratorCount}
+                               </Tag>
+                             ))}
                           </Space>
                         );
                       },

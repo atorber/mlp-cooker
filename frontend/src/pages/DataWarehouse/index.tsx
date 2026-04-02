@@ -1,11 +1,7 @@
-import {
-  EyeOutlined,
-  ReloadOutlined,
-  FolderOpenOutlined,
-} from '@ant-design/icons';
+import { FolderOpenOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
-import { App, Button, Space, Tag, Typography, Card, Descriptions, Modal, Form, Input } from 'antd';
+import { App, Button, Space, Tag, Typography, Card, Descriptions } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { getRepositories } from '@/services/aihc-mentor/lakefs';
 import { getConfig } from '@/services/aihc-mentor/api';

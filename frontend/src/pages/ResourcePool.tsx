@@ -885,7 +885,7 @@ const ResourcePoolPage: React.FC = () => {
                         return (
                           <Space wrap size={4}>
                             {record.deserved.acceleratorCardList.map((card, i) => (
-                              <Tag key={i} color="purple">
+                              <Tag key={`${card.acceleratorType}-${i}`} color="purple">
                                 {card.acceleratorType}: {card.acceleratorCount}
                               </Tag>
                             ))}

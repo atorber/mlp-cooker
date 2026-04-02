@@ -147,7 +147,7 @@ const ModelDetail: React.FC = () => {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 180,
-      render: (text) => (text ? new Date(text).toLocaleString('zh-CN') : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '创建用户',

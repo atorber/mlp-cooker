@@ -2,7 +2,6 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  CopyOutlined,
   DownOutlined,
   ExclamationCircleOutlined,
   PlusOutlined,

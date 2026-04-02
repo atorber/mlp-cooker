@@ -689,7 +689,7 @@ const GlobalConfig: React.FC = () => {
                       label="对象存储桶"
                       tooltip="机器学习平台对象存储桶名称（BOS 等）"
                       placeholder="请选择或输入存储桶名称"
-                      options={(function() {
+                      options={(() => {
                         const opts = buckets.map(b => ({ label: b, value: b }));
                         const manualVal = storageInitial.ML_PLATFORM_RESOURCE_BUCKET;
                         if (manualVal && !buckets.includes(manualVal)) {

@@ -188,7 +188,7 @@ const DevMachine = () => {
       } else {
         message.error(result.message || '停止失败');
       }
-    } catch (e) {
+    } catch (_e) {
       message.error('请求失败');
     }
   };
@@ -205,7 +205,7 @@ const DevMachine = () => {
       } else {
         message.error(result.message || '删除失败');
       }
-    } catch (e) {
+    } catch (_e) {
       message.error('请求失败');
     }
   };
@@ -223,7 +223,7 @@ const DevMachine = () => {
       dataIndex: 'name',
       key: 'name',
       width: 250,
-      render: (dom: any, record: DevInstance) => (
+      render: (_dom: any, record: DevInstance) => (
         <div>
           <div style={{ fontWeight: 500 }}>{record.name}</div>
           <div style={{ fontSize: 12, color: '#999' }}>{record.id}</div>
@@ -234,7 +234,7 @@ const DevMachine = () => {
       title: '状态',
       dataIndex: 'status',
       width: 120,
-      render: (dom: any, record: DevInstance) =>
+      render: (_dom: any, record: DevInstance) =>
         getStatusBadge(record.status, record.statusReason),
     },
     {
@@ -276,7 +276,7 @@ const DevMachine = () => {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 160,
-      render: (dom: any, record: DevInstance) => (
+      render: (_dom: any, record: DevInstance) => (
         <span style={{ fontSize: 13, color: '#666' }}>
           {new Date(record.createdAt * 1000).toLocaleString()}
         </span>

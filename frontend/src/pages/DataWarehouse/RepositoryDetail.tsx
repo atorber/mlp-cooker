@@ -166,7 +166,7 @@ const RepositoryDetail: React.FC = () => {
       if (values.metadata) {
         try {
           parsedMetadata = JSON.parse(values.metadata);
-        } catch (e) {
+        } catch (_e) {
           messageApi.error('附加元数据必须是合法的 JSON 对象');
           return false;
         }
