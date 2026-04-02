@@ -1,0 +1,48 @@
+{
+  "taskParams": {
+    "jobSpec": {
+      "image": "registry.baidubce.com/inference/aibox-ubuntu:v2.0-22.04",
+      "imageConfig": {
+        "username": "",
+        "password": ""
+      },
+      "replicas": 1,
+      "resources": [
+        {
+          "name": "sharedMemory",
+          "quantity": 10
+        }
+      ],
+      "envs": [
+        {
+          "name": "AIHC_JOB_NAME",
+          "value": "mlp-cooker-copy2"
+        },
+        {
+          "name": "AIHC_TENSORBOARD_LOG_PATH",
+          "value": ""
+        },
+        {
+          "name": "CUDA_DEVICE_MAX_CONNECTIONS",
+          "value": "1"
+        },
+        {
+          "name": "LOG_COLLECTION",
+          "value": "true"
+        },
+        {
+          "name": "NCCL_DEBUG",
+          "value": "INFO"
+        },
+        {
+          "name": "NCCL_IB_DISABLE",
+          "value": "1"
+        }
+      ],
+      "enableRDMA": false,
+      "hostNetwork": false
+    }
+  },
+  "command": "# 增加 -vvv 输出详细的网络和安装调试信息\npip install -vvv lakefs\n\nexport HTTPS_PROXY=\"http://10.0.7.40:18000\"\nexport HTTP_PROXY=\"http://10.0.7.40:18000\"\n\n# (可选) 查看帮助以寻找官方调试参数\n# python -m lakefs.quickstart --help\n\n# 尝试带上常用的通用调试环境变量及 Python 详细模式启动\nexport LAKEFS_LOG_LEVEL=\"debug\" # 尝试利用常见的系统环境变量开启日志\npython -v -m lakefs.quickstart",
+  "accelerators": {}
+}

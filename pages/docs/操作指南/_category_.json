@@ -1,0 +1,8 @@
+{
+  "label": "操作指南",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "本章节提供 MLP Cooker 平台各核心模块的最终用户使用指南。"
+  }
+}

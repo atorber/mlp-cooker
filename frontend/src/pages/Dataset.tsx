@@ -1,9 +1,7 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
-  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -11,18 +9,20 @@ import {
   App,
   Button,
   Card,
-  Descriptions,
-  Drawer,
+  Dropdown,
   Form,
   Input,
   Modal,
-  Popconfirm,
   Space,
   Tag,
   Tabs,
+  Typography,
 } from 'antd';
-import React, { useRef, useState } from 'react';
-import { request } from '@umijs/max';
+import type { MenuProps } from 'antd';
+import React, { useRef, useState, useEffect } from 'react';
+import { history, request } from '@umijs/max';
+import { createRepository, getRepositories } from '@/services/aihc-mentor/lakefs';
+
 
 const { TextArea } = Input;
 
@@ -36,26 +36,43 @@ interface Dataset {
   storageInstance?: string;
   importFormat?: string;
   owner?: string;
+  ownerName?: string;
   visibilityScope?: string;
-  createTime?: string;
-  updateTime?: string;
+  createdAt?: string;
+  updatedAt?: string;
   latestVersion?: any;
 }
 
 const Dataset: React.FC = () => {
   const { message: messageApi } = App.useApp();
   const proTableRef = useRef<ActionType>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
-  const [detailLoading, setDetailLoading] = useState(false);
   const [activeStorageType, setActiveStorageType] = useState<string>('BOS'); // 当前选择的存储类型：BOS 或 PFS
-  const [versionDrawerVisible, setVersionDrawerVisible] = useState(false);
-  const [versionLoading, setVersionLoading] = useState(false);
-  const [selectedDatasetId, setSelectedDatasetId] = useState<string>('');
-  const [selectedDatasetName, setSelectedDatasetName] = useState<string>('');
-  const [versions, setVersions] = useState<any[]>([]);
+
+  // 创建仓库相关的状态
+  const [repoModalVisible, setRepoModalVisible] = useState(false);
+  const [repoForm] = Form.useForm();
+  const [submittingRepo, setSubmittingRepo] = useState(false);
+  const [existingRepos, setExistingRepos] = useState<Set<string>>(new Set());
+
+  // 独立获取已存在的 LakeFS 仓库，由于数量可能较多，可以不阻塞 Dataset 列表的加载
+  const fetchExistingRepos = async () => {
+    try {
+      // 在实际生产中如果仓库过百可能需要处理分页（after 游标），这里假设前1000条足够涵盖大部分业务场景
+      const response = await getRepositories({ amount: 1000 });
+      if (response.success && response.data?.results) {
+        const ids = response.data.results.map((r: any) => r.id);
+        setExistingRepos(new Set(ids));
+      }
+    } catch (error) {
+      console.error('获取现有仓库列表失败，创建仓库按钮的防冲突检查可能失效', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchExistingRepos();
+  }, []);
 
   // 获取数据集列表
   const fetchDatasets = async (params: any) => {
@@ -83,7 +100,7 @@ const Dataset: React.FC = () => {
           total = data.length;
         } else if (data?.datasets && Array.isArray(data.datasets)) {
           datasets = data.datasets;
-          total = data.total || data.datasets.length;
+          total = data.totalCount || data.total || data.datasets.length;
         } else if (data?.result && Array.isArray(data.result)) {
           datasets = data.result;
           total = data.total || data.result.length;
@@ -116,25 +133,13 @@ const Dataset: React.FC = () => {
     }
   };
 
-  // 获取数据集详情
-  const fetchDatasetDetail = async (datasetId: string) => {
-    setDetailLoading(true);
-    try {
-      const response = await request(`/api/datasets/${datasetId}`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        setSelectedDataset(response.data);
-        setDrawerVisible(true);
-      } else {
-        messageApi.error(response.message || '获取数据集详情失败');
-      }
-    } catch (error) {
-      console.error('获取数据集详情失败:', error);
-      messageApi.error('获取数据集详情失败');
-    } finally {
-      setDetailLoading(false);
+  // 跳转数据集详情页
+  const goToDetail = (record: Dataset, tab?: 'versions') => {
+    const id = record.datasetId || record.id || '';
+    if (tab) {
+      history.push(`/ai-assets/dataset/detail/${id}?tab=${tab}`);
+    } else {
+      history.push(`/ai-assets/dataset/detail/${id}`);
     }
   };
 
@@ -160,6 +165,33 @@ const Dataset: React.FC = () => {
     }
   };
 
+  // 处理创建 LakeFS 仓库
+  const handleCreateRepo = async (values: any) => {
+    setSubmittingRepo(true);
+    try {
+      const response = await createRepository({
+        id: values.id,
+        defaultBranch: values.defaultBranch,
+        storageNamespace: values.storageNamespace,
+      });
+
+      if (response.success) {
+        messageApi.success('创建数据仓库成功');
+        setRepoModalVisible(false);
+        repoForm.resetFields();
+        // 重新拉取已存在仓库，以刷新按钮状态
+        fetchExistingRepos();
+      } else {
+        messageApi.error(response.message || '创建数据仓库失败');
+      }
+    } catch (error: any) {
+      console.error('创建仓库出错:', error);
+      messageApi.error(error?.info?.errorMessage || error.message || '创建数据仓库异常');
+    } finally {
+      setSubmittingRepo(false);
+    }
+  };
+
   // 删除数据集
   const handleDelete = async (datasetId: string) => {
     try {
@@ -179,62 +211,34 @@ const Dataset: React.FC = () => {
     }
   };
 
-  // 查看数据集版本
-  const handleViewVersions = async (record: Dataset) => {
-    const datasetId = record.datasetId || record.id || '';
-    setSelectedDatasetId(datasetId);
-    setSelectedDatasetName(record.name || '');
-    setVersionDrawerVisible(true);
-    setVersionLoading(true);
-    try {
-      const response = await request(`/api/datasets/${datasetId}/versions`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        const data = response.data;
-        let versionList: any[] = [];
-        
-        if (Array.isArray(data)) {
-          versionList = data;
-        } else if (data?.versions && Array.isArray(data.versions)) {
-          versionList = data.versions;
-        } else if (data?.result && Array.isArray(data.result)) {
-          versionList = data.result;
-        } else if (data?.data && Array.isArray(data.data)) {
-          versionList = data.data;
-        } else if (data?.list && Array.isArray(data.list)) {
-          versionList = data.list;
-        }
-        
-        setVersions(versionList);
-      } else {
-        messageApi.error(response.message || '获取版本列表失败');
-      }
-    } catch (error) {
-      console.error('获取版本列表失败:', error);
-      messageApi.error('获取版本列表失败');
-    } finally {
-      setVersionLoading(false);
-    }
-  };
-
   // 表格列定义
   const columns: ProColumns<Dataset>[] = [
     {
-      title: '数据集ID',
-      dataIndex: 'datasetId',
-      key: 'datasetId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.datasetId || record.id,
-    },
-    {
-      title: '名称',
+      title: '名称 / 数据集ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Dataset) => {
+        const id = record.datasetId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => goToDetail(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '存储类型',
@@ -267,57 +271,100 @@ const Dataset: React.FC = () => {
     },
     {
       title: '创建时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '更新时间',
-      dataIndex: 'updateTime',
-      key: 'updateTime',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: Dataset) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => fetchDatasetDetail(record.datasetId || record.id || '')}
-            style={{ color: '#1890ff' }}
-          >
-            详情
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<BranchesOutlined />}
-            onClick={() => handleViewVersions(record)}
-            style={{ color: '#722ed1' }}
-          >
-            版本
-          </Button>
-          <Popconfirm
-            title="确定要删除这个数据集吗？"
-            onConfirm={() => handleDelete(record.datasetId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: Dataset) => {
+        const datasetId = record.datasetId || record.id || '';
+
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => goToDetail(record) },
+          { key: 'versions', label: '版本', onClick: () => goToDetail(record, 'versions') },
+        ];
+
+        if (record.storageType === 'BOS') {
+          const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+          const hasRepo = existingRepos.has(safeRepoId);
+          if (!hasRepo) {
+            actions.push({
+              key: 'createRepo',
+              label: '创建仓库',
+              onClick: () => {
+                repoForm.setFieldsValue({
+                  id: safeRepoId,
+                  storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
+                  defaultBranch: 'main',
+                });
+                setRepoModalVisible(true);
+              },
+            });
+          }
+        }
+
+        actions.push({
+          key: 'delete',
+          danger: true,
+          label: '删除',
+          onClick: () => {
+            Modal.confirm({
+              title: '确定要删除这个数据集吗？',
+              okText: '确定',
+              okType: 'danger',
+              cancelText: '取消',
+              onOk: () => handleDelete(datasetId),
+            });
+          },
+        });
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.danger && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -381,6 +428,7 @@ const Dataset: React.FC = () => {
             showQuickJumper: true,
           }}
           dateFormatter="string"
+          scroll={{ x: 1300 }}
           headerTitle="数据集列表"
           toolBarRender={() => []}
         />
@@ -439,135 +487,50 @@ const Dataset: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* 数据集详情抽屉 */}
-      <Drawer
-        title="数据集详情"
-        width={800}
-        open={drawerVisible}
-        onClose={() => {
-          setDrawerVisible(false);
-          setSelectedDataset(null);
+      {/* 创建数据仓库模态框 */}
+      <Modal
+        title="基于当前数据集创建 LakeFS 仓库"
+        open={repoModalVisible}
+        onCancel={() => {
+          setRepoModalVisible(false);
+          repoForm.resetFields();
         }}
-        loading={detailLoading}
-      >
-        {selectedDataset && (
-          <Descriptions column={1} bordered>
-            <Descriptions.Item label="数据集ID">
-              {selectedDataset.datasetId || selectedDataset.id || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="名称">
-              {selectedDataset.name || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="存储类型">
-              {selectedDataset.storageType ? (
-                <Tag>{selectedDataset.storageType}</Tag>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="存储实例">
-              {selectedDataset.storageInstance || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="导入格式">
-              {selectedDataset.importFormat ? (
-                <Tag>{selectedDataset.importFormat}</Tag>
-              ) : (
-                '-'
-              )}
-            </Descriptions.Item>
-            <Descriptions.Item label="描述">
-              {selectedDataset.description || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="所有者">
-              {selectedDataset.owner || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="可见范围">
-              {selectedDataset.visibilityScope || '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">
-              {selectedDataset.createTime
-                ? new Date(selectedDataset.createTime).toLocaleString()
-                : '-'}
-            </Descriptions.Item>
-            <Descriptions.Item label="更新时间">
-              {selectedDataset.updateTime
-                ? new Date(selectedDataset.updateTime).toLocaleString()
-                : '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Drawer>
-
-      {/* 版本列表抽屉 */}
-      <Drawer
-        title={`数据集版本列表 - ${selectedDatasetName || ''}`}
-        placement="right"
-        width={1000}
-        open={versionDrawerVisible}
-        onClose={() => {
-          setVersionDrawerVisible(false);
-          setVersions([]);
-          setSelectedDatasetId('');
-          setSelectedDatasetName('');
-        }}
-        loading={versionLoading}
+        onOk={() => repoForm.submit()}
+        confirmLoading={submittingRepo}
         destroyOnClose
       >
-        <ProTable
-          rowKey={(record) => record.id || record.versionId || record.version || ''}
-          columns={[
-            {
-              title: '版本号',
-              dataIndex: 'version',
-              width: 150,
-            },
-            {
-              title: '版本ID',
-              dataIndex: 'id',
-              width: 200,
-              ellipsis: true,
-              render: (text, record) => text || record.versionId || '-',
-            },
-            {
-              title: '源路径',
-              dataIndex: 'sourcePath',
-              ellipsis: true,
-            },
-            {
-              title: '存储桶',
-              dataIndex: 'storageBucket',
-              width: 150,
-              ellipsis: true,
-            },
-            {
-              title: '存储路径',
-              dataIndex: 'storagePath',
-              ellipsis: true,
-            },
-            {
-              title: '创建时间',
-              dataIndex: 'createdAt',
-              width: 180,
-              render: (text) => (text ? new Date(text).toLocaleString() : '-'),
-            },
-            {
-              title: '创建用户',
-              dataIndex: 'createUserName',
-              width: 120,
-              render: (text, record) => text || record.createUser || '-',
-            },
-          ]}
-          dataSource={versions}
-          loading={versionLoading}
-          search={false}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-          }}
-          options={false}
-          toolBarRender={false}
-        />
-      </Drawer>
+        <Form
+          form={repoForm}
+          layout="vertical"
+          onFinish={handleCreateRepo}
+        >
+          <Form.Item
+            name="id"
+            label="仓库名称 (Repository ID)"
+            rules={[
+              { required: true, message: '请输入仓库名称' },
+              { pattern: /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/, message: '由小写字母、数字、连字符构成，以字母或数字起止' }
+            ]}
+          >
+            <Input disabled placeholder="例如: my-new-repo" />
+          </Form.Item>
+          <Form.Item
+            name="storageNamespace"
+            label="存储命名空间 (Storage Namespace)"
+            rules={[{ required: true, message: '系统未能获取到 BOS 桶信息' }]}
+            tooltip="底层存储路径，由系统基于关联的 BOS 桶和仓库名自动映射，无需编辑"
+          >
+            <Input disabled placeholder="例如: s3://bucket/lakefs/repository/" />
+          </Form.Item>
+          <Form.Item
+            name="defaultBranch"
+            label="默认分支 (Default Branch)"
+            rules={[{ required: true, message: '请输入默认分支名称' }]}
+          >
+            <Input placeholder="输入默认分支，如 main 或 master" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </PageContainer>
   );
 };

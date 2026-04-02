@@ -1,10 +1,8 @@
 import {
   DatabaseOutlined,
   DownOutlined,
-  EyeOutlined,
   ReloadOutlined,
   SettingOutlined,
-  UploadOutlined,
 } from '@ant-design/icons';
 import type { ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProCard, ProTable } from '@ant-design/pro-components';
@@ -513,41 +511,17 @@ const PublicDatasetManage: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 160,
       fixed: 'right',
       hideInSearch: true,
       render: (_, record) => (
-        <Space>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record.recordId || '')}
-            style={{ color: '#1890ff' }}
-          >
-            查看
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => handleViewDetail(record.recordId || '')}>详情</Button>
           {record.publishStatus === 'unpublished' && (
-            <Button
-              type="text"
-              size="small"
-              icon={<UploadOutlined />}
-              onClick={() => handlePublishDataset(record)}
-              style={{ color: '#1890ff' }}
-            >
-              发布数据集
-            </Button>
+            <Button type="link" size="small" onClick={() => handlePublishDataset(record)}>发布</Button>
           )}
           {record.publishStatus === 'unknown' && (
-            <Button
-              type="text"
-              size="small"
-              icon={<ReloadOutlined />}
-              onClick={() => fetchDatasets()}
-              style={{ color: '#1890ff' }}
-            >
-              刷新状态
-            </Button>
+            <Button type="link" size="small" onClick={() => fetchDatasets()}>刷新</Button>
           )}
         </Space>
       ),

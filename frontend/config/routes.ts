@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @name umi 的路由配置
  * @description 只支持 path,component,routes,redirect,wrappers,name,icon 的配置
  * @param path  path 只支持两种占位符配置，第一种是动态参数 :id 的形式，第二种是 * 通配符，通配符只能出现路由字符串的最后。
@@ -35,10 +35,22 @@ export default [
     component: './Application',
   },
   {
+    name: 'dev-machine',
+    icon: 'desktop',
+    path: '/dev-machine',
+    component: './DevMachine',
+  },
+  {
     name: 'deployment',
     icon: 'rocket',
     path: '/deployment',
     component: './Deployment',
+  },
+  {
+    name: 'quick-app-debug',
+    path: '/quick-app/debug/:id',
+    component: './QuickAppDebug',
+    hideInMenu: true,
   },
   {
     name: 'training',
@@ -47,34 +59,90 @@ export default [
     component: './Training',
   },
   {
-    name: 'task',
-    icon: 'fileDone',
-    path: '/task',
-    component: './Task',
+    name: 'workflow',
+    icon: 'apartment',
+    path: '/workflow',
+    component: './Workflow',
   },
   {
-    name: 'dataset',
-    icon: 'database',
-    path: '/dataset',
-    component: './Dataset',
-  },
-  {
-    name: 'model',
-    icon: 'appstore',
-    path: '/model',
-    component: './Model',
-  },
-  {
-    name: 'image',
-    icon: 'cloud',
-    path: '/image',
-    component: './Image',
-  },
-  {
-    name: 'image-detail',
-    path: '/image/detail/:id',
-    component: './ImageDetail',
+    name: 'workflow-editor',
+    path: '/workflow/editor/:id',
+    component: './WorkflowEditor',
     hideInMenu: true,
+    layout: false,
+  },
+  // AI资产菜单组
+  {
+    name: 'ai-assets',
+    icon: 'DatabaseOutlined',
+    path: '/ai-assets',
+    routes: [
+      {
+        name: 'dataset',
+        icon: 'database',
+        path: '/ai-assets/dataset',
+        component: './Dataset',
+      },
+      {
+        name: 'dataset-detail',
+        path: '/ai-assets/dataset/detail/:id',
+        component: './DatasetDetail',
+        hideInMenu: true,
+      },
+      {
+        name: 'model',
+        icon: 'appstore',
+        path: '/ai-assets/model',
+        component: './Model',
+      },
+      {
+        name: 'model-detail',
+        path: '/ai-assets/model/detail/:id',
+        component: './ModelDetail',
+        hideInMenu: true,
+      },
+      {
+        name: 'image',
+        icon: 'cloud',
+        path: '/ai-assets/image',
+        component: './Image',
+      },
+      {
+        name: 'image-detail',
+        path: '/ai-assets/image/detail/:id',
+        component: './ImageDetail',
+        hideInMenu: true,
+      },
+      {
+        name: 'task',
+        icon: 'fileDone',
+        path: '/ai-assets/task',
+        component: './Task',
+      },
+      {
+        name: 'storage',
+        icon: 'hdd',
+        path: '/ai-assets/storage',
+        component: './StorageManagement',
+      },
+    ],
+  },
+  {
+    name: 'data-warehouse',
+    icon: 'DatabaseOutlined',
+    path: '/data-warehouse',
+    routes: [
+      {
+        path: '/data-warehouse',
+        component: './DataWarehouse',
+      },
+      {
+        name: 'repository-detail',
+        path: '/data-warehouse/repository/:id',
+        component: './DataWarehouse/RepositoryDetail',
+        hideInMenu: true,
+      },
+    ],
   },
   {
     name: 'terminal',
@@ -87,12 +155,43 @@ export default [
     name: 'resource',
     icon: 'database',
     path: '/resource',
-    component: './Resource',
+    routes: [
+      {
+        path: '/resource',
+        redirect: '/resource/queue',
+      },
+      {
+        name: 'queue',
+        path: '/resource/queue',
+        component: './Resource',
+      },
+      {
+        path: '/resource/group',
+        redirect: '/resource/pool',
+        hideInMenu: true,
+      },
+      {
+        name: 'pool',
+        path: '/resource/pool',
+        component: './ResourcePool',
+      },
+    ],
+  },
+  {
+    path: '/settings',
+    redirect: '/settings/system',
+    hideInMenu: true,
+  },
+  {
+    name: 'global-config',
+    icon: 'control',
+    path: '/settings/global',
+    component: './GlobalConfig',
   },
   {
     name: 'settings',
     icon: 'setting',
-    path: '/settings',
+    path: '/settings/system',
     component: './Settings',
   },
   {

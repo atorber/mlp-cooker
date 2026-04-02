@@ -12,8 +12,10 @@ export const corsMiddleware = (
   const allowedOrigins = [
     'http://localhost:3000',  // React开发服务器
     'http://localhost:8000',  // 可能的其他开发端口
+    'http://localhost:8001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:8000',
+    'http://127.0.0.1:8001',
   ];
 
   const origin = req.headers.origin;

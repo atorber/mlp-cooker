@@ -10,8 +10,8 @@ export class ResourceController {
   /**
    * 获取资源SDK实例（使用机器学习平台资源配置）
    */
-  private static getResourceSDK(): AihcSDK {
-    const yamlConfig = YamlConfigManager.getInstance();
+  private static getResourceSDK(ak: string): AihcSDK {
+    const yamlConfig = YamlConfigManager.getInstance(ak);
     const mlResourceConfig = yamlConfig.getMLResourceConfig();
     
     return new AihcSDK({
@@ -31,7 +31,7 @@ export class ResourceController {
     try {
       const { resourcePoolId, pageNumber, pageSize, keywordType, keyword, includeDetails } = req.query;
       
-      const sdk = ResourceController.getResourceSDK();
+      const sdk = ResourceController.getResourceSDK(req.user!.ak!);
       let result = await sdk.describeQueues({
         resourcePoolId: resourcePoolId as string,
         pageNumber: pageNumber ? Number(pageNumber) : undefined,
@@ -117,8 +117,8 @@ export class ResourceController {
         return;
       }
 
-      const sdk = ResourceController.getResourceSDK();
-      const result = await sdk.describeQueue(queueId);
+      const sdk = ResourceController.getResourceSDK(req.user!.ak!);
+      const result = await sdk.describeQueue(queueId as string);
 
       // console.log(result);
 
@@ -138,7 +138,7 @@ export class ResourceController {
     try {
       const { resourcePoolType, pageSize, pageNumber } = req.query;
       
-      const sdk = ResourceController.getResourceSDK();
+      const sdk = ResourceController.getResourceSDK(req.user!.ak!);
       const result = await sdk.describeResourcePools((resourcePoolType as string) || 'dedicatedV2', Number(pageSize) || 100, Number(pageNumber) || 1);
 
       ResponseUtils.success(res, result, '查询资源池列表成功');
@@ -162,8 +162,8 @@ export class ResourceController {
         return;
       }
 
-      const sdk = ResourceController.getResourceSDK();
-      const result = await sdk.describeResourcePool(resourcePoolId);
+      const sdk = ResourceController.getResourceSDK(req.user!.ak!);
+      const result = await sdk.describeResourcePool(resourcePoolId as string);
 
       ResponseUtils.success(res, result, '查询资源池详情成功');
     } catch (error) {

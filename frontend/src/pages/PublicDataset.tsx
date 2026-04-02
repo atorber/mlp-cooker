@@ -586,31 +586,12 @@ const PublicDataset = () => {
     },
     {
       title: '操作',
-      width: 200,
+      width: 160,
       fixed: 'right' as const,
       render: (_: any, record: DatasetItem) => (
-        <Space>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDataset(record)}
-            style={{ color: '#1890ff' }}
-          >
-            查看
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<CloudUploadOutlined />}
-            onClick={() => {
-              setSelectedDataset(record);
-              setVersionModalVisible(true);
-            }}
-            style={{ color: '#1890ff' }}
-          >
-            创建版本
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => handleViewDataset(record)}>详情</Button>
+          <Button type="link" size="small" onClick={() => { setSelectedDataset(record); setVersionModalVisible(true); }}>创建版本</Button>
         </Space>
       ),
     },

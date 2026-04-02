@@ -1,5 +1,4 @@
 import {
-  EyeOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -11,6 +10,7 @@ import {
   Drawer,
   Space,
   Tag,
+  Typography,
 } from 'antd';
 import React, { useRef, useState } from 'react';
 import { request } from '@umijs/max';
@@ -207,20 +207,31 @@ const Task: React.FC = () => {
 
   const columns: ProColumns<Task>[] = [
     {
-      title: '任务ID',
-      dataIndex: 'jobId',
-      key: 'jobId',
-      width: 200,
-      render: (_: any, record: Task) => {
-        return record.jobId || record.id || '-';
-      },
-    },
-    {
-      title: '任务名称',
+      title: '任务名称 / 任务ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Task) => {
+        const id = record.jobId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => handleViewDetail(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '状态',
@@ -287,22 +298,13 @@ const Task: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 100,
+      width: 160,
       fixed: 'right',
-      render: (_: any, record: Task) => {
-        return (
-          <Space>
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            >
-              查看详情
-            </Button>
-          </Space>
-        );
-      },
+      render: (_: any, record: Task) => (
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => handleViewDetail(record)}>详情</Button>
+        </Space>
+      ),
     },
   ];
 

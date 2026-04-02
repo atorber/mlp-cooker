@@ -322,5 +322,124 @@ export class AppController {
       });
     }
   }
+
+  /**
+   * 创建应用模板（从训练任务导入）
+   */
+  public static async create(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, description, type, categoryType, tags, jobId, taskParams, command } = req.body;
+
+      if (!name) {
+        ResponseUtils.error(res, '应用名称不能为空');
+        return;
+      }
+
+      if (!type) {
+        ResponseUtils.error(res, '应用类型不能为空');
+        return;
+      }
+
+      // 生成应用ID（使用名称的拼音或英文名称slug）
+      const appId = name.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-').replace(/^-|-$/g, '');
+
+      const appDir = path.join(process.cwd(), 'data', 'app', appId);
+
+      // 检查应用目录是否已存在
+      if (fs.existsSync(appDir)) {
+        ResponseUtils.error(res, '应用模板已存在，请使用不同的名称');
+        return;
+      }
+
+      // 创建应用目录
+      fs.mkdirSync(appDir, { recursive: true });
+
+      // 创建 app.json 元数据文件
+      const appJson = {
+        name,
+        description: description || '',
+        type,
+        categoryType: categoryType || (type === 'training' ? 'model' : 'task'),
+        tags: tags || [],
+        actions: [
+          {
+            type: type === 'training' ? 'train' : type === 'deployment' ? 'deploy' : 'create-job',
+            label: type === 'training' ? '创建训练任务' : type === 'deployment' ? '部署推理服务' : '创建任务',
+            templateKey: type === 'training' ? 'train' : type === 'deployment' ? 'deploy' : 'create-job',
+          },
+        ],
+      };
+
+      fs.writeFileSync(
+        path.join(appDir, 'app.json'),
+        JSON.stringify(appJson, null, 2),
+        'utf-8'
+      );
+
+      // 创建操作模板文件
+      let templateData: any = {};
+
+      // 如果传入了 taskParams，直接使用
+      if (taskParams) {
+        if (typeof taskParams === 'string') {
+          try {
+            templateData.taskParams = JSON.parse(taskParams);
+          } catch {
+            templateData.taskParams = taskParams;
+          }
+        } else {
+          templateData.taskParams = taskParams;
+        }
+      } else if (jobId) {
+        // 如果传入了 jobId，需要从训练任务中获取 taskParams
+        // 这里我们使用传入的 taskParams，如果前端已经获取了任务详情并提取了 taskParams
+        templateData.taskParams = {};
+      }
+
+      // 添加启动命令
+      if (command) {
+        templateData.command = command;
+      }
+
+      // 根据类型选择模板文件名
+      let templateFileName: string;
+      switch (type) {
+        case 'training':
+          templateFileName = 'train.json';
+          break;
+        case 'deployment':
+          templateFileName = 'deploy.json';
+          break;
+        default:
+          templateFileName = 'create-job.json';
+      }
+
+      // 添加默认的 accelerators（可以为空对象）
+      templateData.accelerators = {};
+
+      // 写入模板文件
+      fs.writeFileSync(
+        path.join(appDir, templateFileName),
+        JSON.stringify(templateData, null, 2),
+        'utf-8'
+      );
+
+      // 如果有 command，写入 command.sh 文件
+      if (command) {
+        fs.writeFileSync(
+          path.join(appDir, 'command.sh'),
+          command,
+          'utf-8'
+        );
+      }
+
+      ResponseUtils.success(res, { id: appId, ...appJson }, '应用模板创建成功');
+    } catch (error) {
+      console.error('创建应用模板失败:', error);
+      ResponseUtils.error(res, '创建应用模板失败', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
 }
 

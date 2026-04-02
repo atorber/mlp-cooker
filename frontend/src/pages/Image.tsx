@@ -1,11 +1,7 @@
 import {
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
-  FileTextOutlined,
-  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -16,18 +12,19 @@ import {
   Col,
   Descriptions,
   Drawer,
+  Dropdown,
   Form,
   Input,
   Modal,
   Row,
   Select,
   Space,
-  Statistic,
   Tag,
   Tabs,
   Typography,
 } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import type { MenuProps } from 'antd';
+import React, { useRef, useState } from 'react';
 import { history } from '@umijs/max';
 import { request } from '@umijs/max';
 
@@ -213,12 +210,12 @@ const Image: React.FC = () => {
 
   // 查看镜像简介
   const handleViewIntroduction = (record: Image) => {
-    history.push(`/image/detail/${record.id}?tab=intro`);
+    history.push(`/ai-assets/image/detail/${record.id}?tab=intro`);
   };
 
   // 查看镜像版本
   const handleViewVersions = (record: Image) => {
-    history.push(`/image/detail/${record.id}?tab=versions`);
+    history.push(`/ai-assets/image/detail/${record.id}?tab=versions`);
   };
 
   // 打开编辑模态框
@@ -238,17 +235,30 @@ const Image: React.FC = () => {
   // 表格列定义
   const columns = [
     {
-      title: '镜像名称/ID',
+      title: '镜像名称 / 镜像ID',
       dataIndex: 'name',
-      width: 250,
+      width: 280,
       ellipsis: true,
-      copyable: true,
-      render: (text: any, record: Image) => (
-        <div>
-          <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{text}</div>
-          <div style={{ fontSize: '12px', color: '#666' }}>{record.imageId}</div>
-        </div>
-      ),
+      render: (text: any, record: Image) => {
+        const name = text || '-';
+        const id = record.imageId || record.id || '';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => handleViewImage(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '框架',
@@ -312,64 +322,53 @@ const Image: React.FC = () => {
     },
     {
       title: '操作',
-      width: 360,
+      key: 'action',
+      width: 160,
       fixed: 'right' as const,
       render: (_: any, record: Image) => {
-        // 公共镜像只显示查看相关操作，不显示编辑、删除等操作
         const isPublicImage = activeTab === 'public' || record.type === 'public' || !record.type;
 
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => handleViewImage(record) },
+          { key: 'intro', label: '简介', onClick: () => handleViewIntroduction(record) },
+          { key: 'versions', label: '版本', onClick: () => handleViewVersions(record) },
+        ];
+
+        if (!isPublicImage) {
+          actions.push({ key: 'edit', label: '编辑', onClick: () => openEditModal(record) });
+          actions.push({ key: 'delete', danger: true, label: '删除', onClick: () => handleDelete(record) });
+        }
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.danger && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
         return (
-          <Space wrap>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewImage(record)}
-              style={{ color: '#1890ff' }}
-            >
-              查看
-            </Button>
-            <Button
-              type="text"
-              size="small"
-              icon={<FileTextOutlined />}
-              onClick={() => handleViewIntroduction(record)}
-              style={{ color: '#52c41a' }}
-            >
-              简介
-            </Button>
-            <Button
-              type="text"
-              size="small"
-              icon={<BranchesOutlined />}
-              onClick={() => handleViewVersions(record)}
-              style={{ color: '#722ed1' }}
-            >
-              版本
-            </Button>
-            {/* 只有自定义镜像才显示编辑、删除操作 */}
-            {!isPublicImage && (
-              <>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => openEditModal(record)}
-                  style={{ color: '#1890ff' }}
-                >
-                  编辑
-                </Button>
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDelete(record)}
-                >
-                  删除
-                </Button>
-              </>
-            )}
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
           </Space>
         );
       },
@@ -747,7 +746,7 @@ const Image: React.FC = () => {
                   type="primary"
                   onClick={() => {
                     setDrawerVisible(false);
-                    history.push(`/image/detail/${selectedImage.id}`);
+                    history.push(`/ai-assets/image/detail/${selectedImage.id}`);
                   }}
                 >
                   查看详情

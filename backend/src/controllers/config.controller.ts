@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
-import { YamlConfigManager } from '@/config/yaml-config';
+import { YamlConfigManager, YamlConfigData } from '@/config/yaml-config';
 
 /**
  * 配置管理控制器
  */
 export class ConfigController {
-  private static configManager = YamlConfigManager.getInstance();
 
   /**
    * 配置数据脱敏处理
@@ -14,7 +13,10 @@ export class ConfigController {
    */
   private static sanitizeConfig(config: any): any {
     // 不需要脱敏的配置项（AK和SK直接显示）
-    const noSanitizeKeys = ['ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK'];
+    const noSanitizeKeys = [
+      'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK',
+      'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
+    ];
     
     const sensitiveKeys = [
       'PASSWORD', 'SECRET', 'TOKEN'
@@ -35,7 +37,9 @@ export class ConfigController {
       const isSensitive = sensitiveKeys.some(sensitiveKey =>
         key.toUpperCase().includes(sensitiveKey) && 
         !key.toUpperCase().includes('PLATFORM_RESOURCE_AK') &&
-        !key.toUpperCase().includes('PLATFORM_RESOURCE_SK')
+        !key.toUpperCase().includes('PLATFORM_RESOURCE_SK') &&
+        !key.toUpperCase().includes('LAKEFS_ACCESS_KEY_ID') &&
+        !key.toUpperCase().includes('LAKEFS_SECRET_ACCESS_KEY')
       );
 
       if (isSensitive && sanitized[key]) {
@@ -59,18 +63,19 @@ export class ConfigController {
     try {
       ConfigController.logInfo('获取配置文件开始');
 
-      // 定义所有标准配置项（只包含机器学习平台资源配置）
+      // 定义所有标准配置项（包含机器学习平台与LakeFS资源配置）
       const standardKeys = [
-        'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
+        'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_REGION',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
-        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET'
+        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ] as string[];
 
       // 遍历所有标准配置项，确保即使为空也会返回（与Python版本保持一致）
       const allConfig: Record<string, any> = {};
       for (const key of standardKeys) {
         try {
-          const value = ConfigController.configManager.getConfig(key as any);
+          const value = YamlConfigManager.getInstance(req.user!.ak!).getConfig(key as any);
           // 如果值为 undefined 或 null，设置为空字符串（与Python版本保持一致）
           allConfig[key] = value !== undefined && value !== null ? value : '';
         } catch (error) {
@@ -121,28 +126,26 @@ export class ConfigController {
 
       ConfigController.logInfo('获取配置项开始', { key });
 
-      // 获取所有配置并查找指定键
-      const allConfig = ConfigController.configManager.getAllConfig();
-      const value = allConfig[key as keyof typeof allConfig];
-
-      if (value === undefined) {
-        const response = {
-          success: false,
-          error: `配置项 ${key} 不存在`
-        };
-        res.status(404).json(response);
-        return;
-      }
-
-      const response = {
-        success: true,
-        data: {
-          key,
-          value
+      try {
+        const raw = YamlConfigManager.getInstance(req.user!.ak!).getConfig(key as keyof YamlConfigData);
+        const value = raw === undefined || raw === null ? '' : raw;
+        res.json({
+          success: true,
+          data: {
+            key,
+            value,
+          },
+        });
+      } catch (e) {
+        if (e instanceof Error && e.message.includes('未知的配置键')) {
+          res.status(404).json({
+            success: false,
+            error: `配置项 ${key} 不存在`,
+          });
+          return;
         }
-      };
-
-      res.json(response);
+        throw e;
+      }
     } catch (error) {
       console.error('获取配置项失败:', error);
       const response = {
@@ -175,15 +178,17 @@ export class ConfigController {
 
       ConfigController.logInfo('更新配置开始', { configData });
 
+      const configManager = YamlConfigManager.getInstance(req.user!.ak!);
       // 获取当前配置
-      const currentConfig = ConfigController.configManager.getAllConfig();
+      const currentConfig = configManager.getAllConfig();
 
-      // 获取所有标准配置项（只包含机器学习平台资源配置）
+      // 获取所有标准配置项（包含机器学习平台与LakeFS资源配置）
       // 使用 Record<string, any> 类型来避免类型检查问题
       const standardKeys = [
-        'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_BASE_URL',
+        'ML_PLATFORM_RESOURCE_AK', 'ML_PLATFORM_RESOURCE_SK', 'ML_PLATFORM_RESOURCE_REGION',
         'ML_PLATFORM_RESOURCE_POOL_ID', 'ML_PLATFORM_RESOURCE_QUEUE_ID',
-        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET'
+        'ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', 'ML_PLATFORM_RESOURCE_BUCKET',
+        'LAKEFS_ENDPOINT', 'LAKEFS_ACCESS_KEY_ID', 'LAKEFS_SECRET_ACCESS_KEY'
       ];
 
       // 合并配置：保留原有的所有配置项，只更新传入的值
@@ -217,7 +222,7 @@ export class ConfigController {
       }
 
       // 保存配置到文件
-      const success = ConfigController.configManager.saveConfig(mergedConfig);
+      const success = configManager.saveConfig(mergedConfig);
 
       if (success) {
         ConfigController.logInfo('配置保存成功');
@@ -247,7 +252,7 @@ export class ConfigController {
       ConfigController.logInfo('重置配置开始', { keys });
 
       // 获取当前配置
-      const currentConfig = ConfigController.configManager.getAllConfig();
+      const currentConfig = YamlConfigManager.getInstance(req.user!.ak!).getAllConfig();
 
       let resetConfig: any = {};
 
@@ -297,7 +302,7 @@ export class ConfigController {
         version: process.version,
         memoryUsage: process.memoryUsage(),
         uptime: process.uptime(),
-        configWarnings: ConfigController.configManager.validateConfig()
+        configWarnings: YamlConfigManager.getInstance(req.user!.ak!).validateConfig()
       };
 
       const response = {
@@ -323,7 +328,7 @@ export class ConfigController {
     try {
       ConfigController.logInfo('验证配置开始');
 
-      const validationResult = ConfigController.configManager.validateConfig();
+      const validationResult = YamlConfigManager.getInstance(req.user!.ak!).validateConfig();
 
       const response = {
         success: true,
@@ -348,7 +353,7 @@ export class ConfigController {
     try {
       ConfigController.logInfo('获取配置文件元信息开始');
 
-      const config = ConfigController.configManager.getAllConfig();
+      const config = YamlConfigManager.getInstance(req.user!.ak!).getAllConfig();
 
       const metadata = {
         totalItems: Object.keys(config).length,
@@ -392,7 +397,7 @@ export class ConfigController {
 
       ConfigController.logInfo('批量获取配置项开始', { keys });
 
-      const allConfig = ConfigController.configManager.getAllConfig();
+      const allConfig = YamlConfigManager.getInstance(req.user!.ak!).getAllConfig();
       const result: any = {};
 
       keys.forEach((key: string) => {

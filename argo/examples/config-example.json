@@ -1,0 +1,31 @@
+{
+  "mlp-cooker-api": "http://localhost:5002",
+  "task-params": {
+    "name": "my-training-job",
+    "jobType": "PyTorchJob",
+    "command": "python train.py --epochs 100",
+    "jobSpec": {
+      "replicas": 1,
+      "image": "registry.baidubce.com/aihc-aiak/pytorch:2.1.0-cuda11.8",
+      "resources": [],
+      "envs": [
+        {
+          "name": "NCCL_DEBUG",
+          "value": "INFO"
+        },
+        {
+          "name": "NCCL_IB_DISABLE",
+          "value": "0"
+        }
+      ],
+      "enableRDMA": true
+    },
+    "datasources": [
+      {
+        "type": "pfs",
+        "mountPath": "/data"
+      }
+    ]
+  }
+}
+

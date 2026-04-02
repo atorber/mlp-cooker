@@ -38,6 +38,7 @@ const Settings: React.FC = () => {
   const [configFileExists, setConfigFileExists] = useState(false);
   const [configFilePath, setConfigFilePath] = useState('');
   const [formRef, setFormRef] = useState<any>(null);
+  const [buckets, setBuckets] = useState<string[]>([]);
 
   // 加载配置数据
   const loadConfig = async () => {
@@ -127,9 +128,18 @@ const Settings: React.FC = () => {
     }
   };
 
-  // 组件挂载时加载配置
+  // 组件挂载时加载配置与桶列表
   useEffect(() => {
     loadConfig();
+    
+    // Fetch bucket list
+    request('/api/storage/buckets', { method: 'GET' })
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setBuckets(res.data);
+        }
+      })
+      .catch((e) => console.log('拉取Bucket列表失败, 用户尚未配置合法鉴权', e));
   }, []);
 
 
@@ -144,35 +154,39 @@ const Settings: React.FC = () => {
         label: 'Secret Key',
         tooltip: '机器学习平台的 Secret Key（密钥）'
       },
-      'ML_PLATFORM_RESOURCE_BASE_URL': {
-        label: '基础URL',
-        tooltip: '机器学习平台的基础URL，如：aihc.bj.baidubce.com'
+      'ML_PLATFORM_RESOURCE_REGION': {
+        label: '集群地域 (Region)',
+        tooltip: '选择您的资源所在的区域，系统将自动映射基础URL'
       },
       'ML_PLATFORM_RESOURCE_BUCKET': {
         label: '对象存储桶',
         tooltip: '机器学习平台的对象存储桶名称'
+      },
+      'LAKEFS_ENDPOINT': {
+        label: 'LakeFS 地址',
+        tooltip: 'LakeFS 实例的访问地址，例如：http://lakefs.example.com'
+      },
+      'LAKEFS_ACCESS_KEY_ID': {
+        label: 'LakeFS Access Key',
+        tooltip: '访问 LakeFS 的 Access Key ID'
+      },
+      'LAKEFS_SECRET_ACCESS_KEY': {
+        label: 'LakeFS Secret Key',
+        tooltip: '访问 LakeFS 的 Secret Access Key'
       },
     };
     return labelMap[key] || { label: key };
   };
 
   // 渲染配置表单项
-  const renderFormItems = () => {
-    // 按照配置项顺序排序（移除了资源池ID、队列ID、存储实例ID，这些已在计算资源页面配置）
-    const configKeys = [
-      'ML_PLATFORM_RESOURCE_AK',
-      'ML_PLATFORM_RESOURCE_SK',
-      'ML_PLATFORM_RESOURCE_BASE_URL',
-      'ML_PLATFORM_RESOURCE_BUCKET',
-    ];
-
+  const renderFormItems = (configKeys: string[]) => {
     return configKeys.map((key) => {
       const value = configData[key];
       const { label, tooltip } = getConfigLabel(key);
 
       // AK 直接显示，SK 使用密码输入框（带显示/隐藏按钮）
-      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK';
-      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK';
+      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK' || key === 'LAKEFS_SECRET_ACCESS_KEY';
+      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK' || key === 'LAKEFS_ACCESS_KEY_ID';
       const isOtherPassword =
         (key.toLowerCase().includes('password') ||
          key.toLowerCase().includes('secret') ||
@@ -225,6 +239,48 @@ const Settings: React.FC = () => {
             fieldProps={{
               placeholder: `请输入${label}`,
               autoComplete: 'new-password',
+            }}
+          />
+        );
+      } else if (key === 'ML_PLATFORM_RESOURCE_REGION') {
+        return (
+          <ProFormSelect
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value || 'bj'}
+            options={[
+              { label: '北京 (bj)', value: 'bj' },
+              { label: '广州 (gz)', value: 'gz' },
+              { label: '苏州 (su)', value: 'su' },
+              { label: '保定 (bd)', value: 'bd' },
+              { label: '武汉 (fwh)', value: 'fwh' },
+              { label: '阳泉 (yq)', value: 'yq' },
+            ]}
+            fieldProps={{
+              allowClear: false,
+            }}
+          />
+        );
+      } else if (key === 'ML_PLATFORM_RESOURCE_BUCKET') {
+        const bucketOptions = buckets.map(b => ({ label: b, value: b }));
+        // 如果当前取值不在下拉列表中且有值，则加入下拉避免空载
+        if (value && !buckets.includes(value)) {
+          bucketOptions.push({ label: value + ' (未知/无权限)', value });
+        }
+        return (
+          <ProFormSelect
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value}
+            options={bucketOptions}
+            fieldProps={{
+              allowClear: true,
+              placeholder: `请选择${label}`,
+              showSearch: true,
             }}
           />
         );
@@ -312,30 +368,43 @@ const Settings: React.FC = () => {
             showIcon
           />
 
-          <ProCard title="机器学习平台资源配置">
-            <ProForm
-              formRef={setFormRef as any}
-              onFinish={handleSaveConfig}
-              submitter={{
-                render: (props, _doms) => [
-                  <Button
-                    key="submit"
-                    type="primary"
-                    icon={<SaveOutlined />}
-                    loading={submitting}
-                    onClick={() => props.form?.submit?.()}
-                  >
-                    保存配置
-                  </Button>,
-                ],
-                submitButtonProps: {
-                  loading: submitting,
-                },
-              }}
-            >
-              {renderFormItems()}
-            </ProForm>
-          </ProCard>
+          <ProForm
+            formRef={setFormRef as any}
+            onFinish={handleSaveConfig}
+            submitter={{
+              render: (props, _doms) => [
+                <Button
+                  key="submit"
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  loading={submitting}
+                  onClick={() => props.form?.submit?.()}
+                >
+                  保存配置
+                </Button>,
+              ],
+              submitButtonProps: {
+                loading: submitting,
+              },
+            }}
+          >
+            <ProCard title="机器学习平台资源配置" style={{ marginBottom: 16 }}>
+              {renderFormItems([
+                'ML_PLATFORM_RESOURCE_AK',
+                'ML_PLATFORM_RESOURCE_SK',
+                'ML_PLATFORM_RESOURCE_REGION',
+                'ML_PLATFORM_RESOURCE_BUCKET',
+              ])}
+            </ProCard>
+            
+            <ProCard title="数据仓库 (LakeFS) 配置">
+              {renderFormItems([
+                'LAKEFS_ENDPOINT',
+                'LAKEFS_ACCESS_KEY_ID',
+                'LAKEFS_SECRET_ACCESS_KEY',
+              ])}
+            </ProCard>
+          </ProForm>
         </>
       )}
     </PageContainer>

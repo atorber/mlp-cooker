@@ -2,10 +2,8 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  CopyOutlined,
-  DeleteOutlined,
+  DownOutlined,
   ExclamationCircleOutlined,
-  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
   SyncOutlined,
@@ -26,13 +24,14 @@ import {
   Card,
   Descriptions,
   Drawer,
+  Dropdown,
   Modal,
-  Popconfirm,
   Progress,
   Space,
   Tag,
   Tooltip,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 // 任务类型定义
@@ -479,42 +478,27 @@ const PublicDatasetDownload: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 160,
       fixed: 'right',
-      render: (_, record: DownloadTask) => (
-        <Space size="small">
-          <Tooltip title="查看任务详情">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            >
-              详情
-            </Button>
-          </Tooltip>
-          <Tooltip title="复制任务信息创建新任务">
-            <Button
-              type="link"
-              size="small"
-              icon={<CopyOutlined />}
-              onClick={() => handleCopyTask(record)}
-            >
-              复制
-            </Button>
-          </Tooltip>
-          <Popconfirm
-            title="确定要删除这个任务吗？"
-            onConfirm={() => handleDeleteTask(record.taskId)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_, record: DownloadTask) => {
+        const moreItems: MenuProps['items'] = [
+          { key: 'copy', label: '复制', onClick: () => handleCopyTask(record) },
+          { type: 'divider' },
+          { key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个任务吗？', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDeleteTask(record.taskId) });
+          }},
+        ];
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={() => handleViewDetail(record)}>详情</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 

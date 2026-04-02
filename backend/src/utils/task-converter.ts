@@ -21,8 +21,8 @@ export class TaskConverter {
     /**
      * 转换为创建服务参数 (SDK格式)
      */
-    public static toServiceSDKParams(params: CreateServiceParams): any {
-        const yamlConfig = YamlConfigManager.getInstance();
+    public static toServiceSDKParams(params: CreateServiceParams, ak: string): any {
+        const yamlConfig = YamlConfigManager.getInstance(ak);
         const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
         const { container } = params;
@@ -76,8 +76,8 @@ export class TaskConverter {
     /**
      * 转换为创建训练任务参数 (SDK格式)
      */
-    public static toJobSDKParams(params: CreateJobParams): any {
-        const yamlConfig = YamlConfigManager.getInstance();
+    public static toJobSDKParams(params: CreateJobParams, ak: string): any {
+        const yamlConfig = YamlConfigManager.getInstance(ak);
         const mlResourceConfig = yamlConfig.getMLResourceConfig();
 
         const { container } = params;

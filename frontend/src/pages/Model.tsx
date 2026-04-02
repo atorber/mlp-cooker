@@ -1,9 +1,7 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
-  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -11,18 +9,18 @@ import {
   App,
   Button,
   Card,
-  Descriptions,
-  Drawer,
+  Dropdown,
   Form,
   Input,
   Modal,
-  Popconfirm,
   Select,
   Space,
   Tag,
+  Typography,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useRef, useState } from 'react';
-import { request } from '@umijs/max';
+import { history, request } from '@umijs/max';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -48,16 +46,18 @@ interface Model {
 const Model: React.FC = () => {
   const { message: messageApi } = App.useApp();
   const proTableRef = useRef<ActionType>(null);
-  const [drawerVisible, setDrawerVisible] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createForm] = Form.useForm();
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [versionDrawerVisible, setVersionDrawerVisible] = useState(false);
-  const [versionLoading, setVersionLoading] = useState(false);
-  const [selectedModelId, setSelectedModelId] = useState<string>('');
-  const [selectedModelName, setSelectedModelName] = useState<string>('');
-  const [versions, setVersions] = useState<any[]>([]);
+
+  // 跳转到详情页
+  const goToDetail = (record: Model, tab?: 'versions') => {
+    const id = record.modelId || record.id || '';
+    if (tab) {
+      history.push(`/ai-assets/model/detail/${id}?tab=${tab}`);
+    } else {
+      history.push(`/ai-assets/model/detail/${id}`);
+    }
+  };
 
   // 获取模型列表
   const fetchModels = async (params: any) => {
@@ -111,28 +111,6 @@ const Model: React.FC = () => {
         success: false,
         total: 0,
       };
-    }
-  };
-
-  // 获取模型详情
-  const fetchModelDetail = async (modelId: string) => {
-    setDetailLoading(true);
-    try {
-      const response = await request(`/api/models/${modelId}`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        setSelectedModel(response.data);
-        setDrawerVisible(true);
-      } else {
-        messageApi.error(response.message || '获取模型详情失败');
-      }
-    } catch (error) {
-      console.error('获取模型详情失败:', error);
-      messageApi.error('获取模型详情失败');
-    } finally {
-      setDetailLoading(false);
     }
   };
 
@@ -197,62 +175,34 @@ const Model: React.FC = () => {
     }
   };
 
-  // 查看模型版本
-  const handleViewVersions = async (record: Model) => {
-    const modelId = record.modelId || record.id || '';
-    setSelectedModelId(modelId);
-    setSelectedModelName(record.name || '');
-    setVersionDrawerVisible(true);
-    setVersionLoading(true);
-    try {
-      const response = await request(`/api/models/${modelId}/versions`, {
-        method: 'GET',
-      });
-
-      if (response.success) {
-        const data = response.data;
-        let versionList: any[] = [];
-        
-        if (Array.isArray(data)) {
-          versionList = data;
-        } else if (data?.versions && Array.isArray(data.versions)) {
-          versionList = data.versions;
-        } else if (data?.result && Array.isArray(data.result)) {
-          versionList = data.result;
-        } else if (data?.data && Array.isArray(data.data)) {
-          versionList = data.data;
-        } else if (data?.list && Array.isArray(data.list)) {
-          versionList = data.list;
-        }
-        
-        setVersions(versionList);
-      } else {
-        messageApi.error(response.message || '获取版本列表失败');
-      }
-    } catch (error) {
-      console.error('获取版本列表失败:', error);
-      messageApi.error('获取版本列表失败');
-    } finally {
-      setVersionLoading(false);
-    }
-  };
-
   // 表格列定义
   const columns: ProColumns<Model>[] = [
     {
-      title: '模型ID',
-      dataIndex: 'modelId',
-      key: 'modelId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.modelId || record.id,
-    },
-    {
-      title: '名称',
+      title: '名称 / 模型ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Model) => {
+        const id = record.modelId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => goToDetail(record)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '模型格式',
@@ -298,7 +248,7 @@ const Model: React.FC = () => {
       key: 'createdAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '更新时间',
@@ -306,45 +256,33 @@ const Model: React.FC = () => {
       key: 'updatedAt',
       width: 180,
       hideInSearch: true,
-      render: (text) => (text ? new Date(text as any).toLocaleString() : '-'),
+      render: (text: any) => (text ? new Date(String(text)).toLocaleString('zh-CN') : '-'),
     },
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: Model) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => fetchModelDetail(record.modelId || record.id || '')}
-            style={{ color: '#1890ff' }}
-          >
-            详情
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<BranchesOutlined />}
-            onClick={() => handleViewVersions(record)}
-            style={{ color: '#722ed1' }}
-          >
-            版本
-          </Button>
-          <Popconfirm
-            title="确定要删除这个模型吗？"
-            onConfirm={() => handleDelete(record.modelId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: Model) => {
+        const modelId = record.modelId || record.id || '';
+        const moreItems: MenuProps['items'] = [
+          { key: 'versions', label: '版本', onClick: () => goToDetail(record, 'versions') },
+          { type: 'divider' },
+          { key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个模型吗？', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(modelId) });
+          }},
+        ];
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={() => goToDetail(record)}>详情</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -385,6 +323,7 @@ const Model: React.FC = () => {
           showQuickJumper: true,
         }}
         dateFormatter="string"
+        scroll={{ x: 1300 }}
         headerTitle="模型列表"
         toolBarRender={() => []}
       />
@@ -483,168 +422,6 @@ const Model: React.FC = () => {
           </Card>
         </Form>
       </Modal>
-
-      {/* 模型详情抽屉 */}
-      <Drawer
-        title="模型详情"
-        width={800}
-        open={drawerVisible}
-        onClose={() => {
-          setDrawerVisible(false);
-          setSelectedModel(null);
-        }}
-        loading={detailLoading}
-      >
-        {selectedModel && (
-          <>
-            <Descriptions column={1} bordered>
-              <Descriptions.Item label="模型ID">
-                {selectedModel.modelId || selectedModel.id || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="名称">
-                {selectedModel.name || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="模型格式">
-                {selectedModel.modelFormat ? (
-                  <Tag>{selectedModel.modelFormat}</Tag>
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="创建来源">
-                {selectedModel.initSource ? (
-                  <Tag>{selectedModel.initSource}</Tag>
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="描述">
-                {selectedModel.description || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="所有者">
-                {selectedModel.ownerName || selectedModel.owner || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="可见范围">
-                {selectedModel.visibilityScope || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="最新版本">
-                {selectedModel.latestVersion || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="创建时间">
-                {selectedModel.createdAt
-                  ? new Date(selectedModel.createdAt).toLocaleString()
-                  : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="更新时间">
-                {selectedModel.updatedAt
-                  ? new Date(selectedModel.updatedAt).toLocaleString()
-                  : '-'}
-              </Descriptions.Item>
-            </Descriptions>
-            {selectedModel.versionEntry && (
-              <Card title="最新版本详情" style={{ marginTop: 16 }}>
-                <Descriptions column={1} bordered>
-                  <Descriptions.Item label="版本号">
-                    {selectedModel.versionEntry.version || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="版本ID">
-                    {selectedModel.versionEntry.id || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="来源">
-                    {selectedModel.versionEntry.source || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="存储桶">
-                    {selectedModel.versionEntry.storageBucket || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="存储路径">
-                    {selectedModel.versionEntry.storagePath || '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="创建时间">
-                    {selectedModel.versionEntry.createdAt
-                      ? new Date(selectedModel.versionEntry.createdAt).toLocaleString()
-                      : '-'}
-                  </Descriptions.Item>
-                  <Descriptions.Item label="创建用户">
-                    {selectedModel.versionEntry.createUserName || selectedModel.versionEntry.createUser || '-'}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Card>
-            )}
-          </>
-        )}
-      </Drawer>
-
-      {/* 版本列表抽屉 */}
-      <Drawer
-        title={`模型版本列表 - ${selectedModelName || ''}`}
-        placement="right"
-        width={1000}
-        open={versionDrawerVisible}
-        onClose={() => {
-          setVersionDrawerVisible(false);
-          setVersions([]);
-          setSelectedModelId('');
-          setSelectedModelName('');
-        }}
-        loading={versionLoading}
-        destroyOnClose
-      >
-        <ProTable
-          rowKey={(record) => record.id || record.versionId || record.version || ''}
-          columns={[
-            {
-              title: '版本号',
-              dataIndex: 'version',
-              width: 150,
-            },
-            {
-              title: '版本ID',
-              dataIndex: 'id',
-              width: 200,
-              ellipsis: true,
-              render: (text, record) => text || record.versionId || '-',
-            },
-            {
-              title: '来源',
-              dataIndex: 'source',
-              width: 150,
-              render: (text) => text ? <Tag>{text}</Tag> : '-',
-            },
-            {
-              title: '存储桶',
-              dataIndex: 'storageBucket',
-              width: 150,
-              ellipsis: true,
-            },
-            {
-              title: '存储路径',
-              dataIndex: 'storagePath',
-              ellipsis: true,
-            },
-            {
-              title: '创建时间',
-              dataIndex: 'createdAt',
-              width: 180,
-              render: (text) => (text ? new Date(text).toLocaleString() : '-'),
-            },
-            {
-              title: '创建用户',
-              dataIndex: 'createUserName',
-              width: 120,
-              render: (text, record) => text || record.createUser || '-',
-            },
-          ]}
-          dataSource={versions}
-          loading={versionLoading}
-          search={false}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-          }}
-          options={false}
-          toolBarRender={false}
-        />
-      </Drawer>
     </PageContainer>
   );
 };

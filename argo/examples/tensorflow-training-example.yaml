@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: tensorflow-training-
+  namespace: argo
+spec:
+  entrypoint: main
+  
+  templates:
+    - name: main
+      steps:
+        - - name: create-training-job
+            templateRef:
+              name: mlp-cooker-training-job
+              template: create-training-job
+            arguments:
+              parameters:
+                - name: mlp-cooker-api
+                  value: "http://mlp-cooker-backend:5002"
+                
+                - name: task-params
+                  value: |
+                    {
+                      "name": "tensorflow-distributed-training",
+                      "jobType": "TensorFlowJob",
+                      "command": "python train.py --epochs 50 --batch-size 32",
+                      "jobSpec": {
+                        "replicas": 2,
+                        "image": "registry.baidubce.com/aihc-aiak/tensorflow:2.15.0-cuda12.0",
+                        "resources": [],
+                        "envs": [
+                          {
+                            "name": "TF_CONFIG",
+                            "value": "{}"
+                          },
+                          {
+                            "name": "CUDA_VISIBLE_DEVICES",
+                            "value": "0,1,2,3"
+                          }
+                        ],
+                        "enableRDMA": false
+                      },
+                      "datasources": [
+                        {
+                          "type": "pfs",
+                          "sourcePath": "/models",
+                          "mountPath": "/workspace/models"
+                        },
+                        {
+                          "type": "bos",
+                          "sourcePath": "training-data/imagenet/",
+                          "mountPath": "/data/imagenet",
+                          "readOnly": true
+                        }
+                      ]
+                    }
+

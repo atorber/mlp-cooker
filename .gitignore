@@ -78,6 +78,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.venv-lance
 env/
 venv/
 ENV/
@@ -139,3 +140,8 @@ backend/node_modules/*
 .docs/*
 .docs/api/
 .knowledge/*
+.claude/*
+lakeFS/start_lakefs.sh.sh
+config.backup.yaml
+lakeFS/*.sh
+lakeFS-test/*

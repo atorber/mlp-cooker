@@ -37,7 +37,7 @@ export class TaskController {
       if (owner) requestBody.owner = owner;
       
       // 从配置文件读取poolId/queueId
-      const yamlConfig = YamlConfigManager.getInstance();
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
       const mlResourceConfig = yamlConfig.getMLResourceConfig();
       
       // 验证必要的配置是否存在

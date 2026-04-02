@@ -44,9 +44,14 @@ export class AihcSDK extends BaseService {
   private client: BceBaseClient;
   private config: AihcConfig;
 
-  constructor(config?: Partial<AihcConfig>) {
+  constructor(config?: Partial<AihcConfig>, ak?: string) {
     super('AihcSDK');
-    const yamlConfig = YamlConfigManager.getInstance();
+    // 如果没有传入完整的ak（通过参数或配置），这是非法的，因为AihcSDK需要确定上下文
+    const resolvedAk = ak || config?.accessKey;
+    if (!resolvedAk) {
+      throw new Error('AihcSDK instantiation requires an AK context.');
+    }
+    const yamlConfig = YamlConfigManager.getInstance(resolvedAk);
 
     // 优先使用传入的配置，其次使用机器学习平台资源配置，最后使用数据集配置
     const mlResourceConfig = yamlConfig.getMLResourceConfig();

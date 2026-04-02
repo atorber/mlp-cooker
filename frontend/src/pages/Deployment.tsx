@@ -1,6 +1,4 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -14,10 +12,10 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Radio,
   Space,
   Tag,
+  Typography,
 } from 'antd';
 import { UNIFIED_TASK_PARAMS, NATIVE_TASK_PARAMS } from './Deployment_constants';
 import React, { useRef, useState } from 'react';
@@ -399,19 +397,31 @@ const Deployment: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Service>[] = [
     {
-      title: '服务ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 200,
-      ellipsis: true,
-      render: (text, record) => text || record.serviceId || record.id || '-',
-    },
-    {
-      title: '服务名称',
+      title: '服务名称 / 服务ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Service) => {
+        const id = record.serviceId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => fetchServiceDetail(id)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '状态',
@@ -541,27 +551,33 @@ const Deployment: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 160,
       fixed: 'right',
       render: (_: any, record: Service) => (
-        <Space>
+        <Space size={4}>
           <Button
             type="link"
-            icon={<EyeOutlined />}
+            size="small"
             onClick={() => fetchServiceDetail(record.serviceId || record.id || '')}
           >
             详情
           </Button>
-          <Popconfirm
-            title="确定要删除这个服务吗？"
-            onConfirm={() => handleDelete(record.serviceId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: '确定要删除这个服务吗？',
+                okText: '确定',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: () => handleDelete(record.serviceId || record.id || ''),
+              });
+            }}
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -604,6 +620,7 @@ const Deployment: React.FC = () => {
           showQuickJumper: true,
         }}
         dateFormatter="string"
+        scroll={{ x: 1200 }}
         headerTitle="服务列表"
         toolBarRender={() => []}
       />

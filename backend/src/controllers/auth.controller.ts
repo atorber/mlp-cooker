@@ -29,7 +29,7 @@ export class AuthController {
 
       // 通过调用数据集接口验证AK/SK是否有效
       try {
-        const yamlConfig = YamlConfigManager.getInstance();
+        const yamlConfig = YamlConfigManager.getInstance(ak);
         const mlResourceConfig = yamlConfig.getMLResourceConfig();
         
         // 获取baseURL：优先使用机器学习平台配置，其次使用默认地址
@@ -55,8 +55,8 @@ export class AuthController {
 
         // 验证成功，自动更新配置文件中的AK/SK
         try {
-          const yamlConfig = YamlConfigManager.getInstance();
-          const currentConfig = yamlConfig.getAllConfig();
+          const cfgManager = YamlConfigManager.getInstance(ak);
+          const currentConfig = cfgManager.getAllConfig();
           
           // 准备更新配置（只更新AK/SK，保留其他配置）
           const updatedConfig: Partial<typeof currentConfig> = {
@@ -65,14 +65,13 @@ export class AuthController {
             ML_PLATFORM_RESOURCE_SK: sk,
           };
           
-          // 如果baseURL为空或未配置，也自动设置
-          if (!mlResourceConfig.baseURL) {
-            // 保存时保留协议前缀，支持 http:// 和 https://
-            updatedConfig.ML_PLATFORM_RESOURCE_BASE_URL = 'https://aihc.bj.baidubce.com';
+          // 如果实际配置中region为空或未设置，也自动赋初值bj并保存
+          if (!currentConfig.ML_PLATFORM_RESOURCE_REGION) {
+            updatedConfig.ML_PLATFORM_RESOURCE_REGION = 'bj';
           }
           
           // 保存配置到文件（saveConfig是同步方法，不需要await）
-          const saveSuccess = yamlConfig.saveConfig(updatedConfig);
+          const saveSuccess = cfgManager.saveConfig(updatedConfig);
           if (saveSuccess) {
             console.log('✅ 登录成功，已自动更新配置文件中的AK/SK');
           } else {

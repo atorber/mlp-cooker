@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: pytorch-training-
+  namespace: argo
+spec:
+  entrypoint: main
+  
+  templates:
+    - name: main
+      steps:
+        - - name: create-training-job
+            templateRef:
+              name: mlp-cooker-training-job
+              template: create-training-job
+            arguments:
+              parameters:
+                - name: mlp-cooker-api
+                  value: "http://mlp-cooker-backend:5002"
+                
+                - name: task-params
+                  value: |
+                    {
+                      "name": "pytorch-distributed-training",
+                      "jobType": "PyTorchJob",
+                      "command": "torchrun --nproc_per_node=8 train.py --epochs 100 --lr 0.001",
+                      "jobSpec": {
+                        "replicas": 4,
+                        "image": "registry.baidubce.com/aihc-aiak/pytorch:2.1.0-cuda11.8",
+                        "resources": [],
+                        "envs": [
+                          {
+                            "name": "NCCL_DEBUG",
+                            "value": "INFO"
+                          },
+                          {
+                            "name": "NCCL_IB_DISABLE",
+                            "value": "0"
+                          },
+                          {
+                            "name": "MASTER_PORT",
+                            "value": "29500"
+                          }
+                        ],
+                        "enableRDMA": true
+                      },
+                      "datasources": [
+                        {
+                          "type": "pfs",
+                          "sourcePath": "/",
+                          "mountPath": "/workspace"
+                        },
+                        {
+                          "type": "bos",
+                          "sourcePath": "my-bucket/datasets/",
+                          "mountPath": "/data",
+                          "readOnly": true
+                        }
+                      ]
+                    }
+

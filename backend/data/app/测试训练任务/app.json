@@ -1,0 +1,16 @@
+{
+  "name": "测试训练任务",
+  "description": "从训练任务 mlp-cooker-copy2 导入",
+  "type": "training",
+  "categoryType": "model",
+  "tags": [
+    "数据处理"
+  ],
+  "actions": [
+    {
+      "type": "train",
+      "label": "创建训练任务",
+      "templateKey": "train"
+    }
+  ]
+}

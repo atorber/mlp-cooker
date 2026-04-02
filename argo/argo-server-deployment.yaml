@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argo-server
+  namespace: argo
+  labels:
+    app: argo-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: argo-server
+  template:
+    metadata:
+      labels:
+        app: argo-server
+    spec:
+      containers:
+      - name: argo-server
+        image: quay.io/argoproj/argocli:v3.7.4
+        args:
+        - server
+        - --auth-mode=server
+        - --secure=false
+        - --base-href=/
+        ports:
+        - containerPort: 2746
+          name: web
+        env:
+        - name: BASE_HREF
+          value: "/"

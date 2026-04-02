@@ -1,0 +1,69 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: deepspeed-training-
+  namespace: argo
+spec:
+  entrypoint: main
+  
+  templates:
+    - name: main
+      steps:
+        - - name: create-training-job
+            templateRef:
+              name: mlp-cooker-training-job
+              template: create-training-job
+            arguments:
+              parameters:
+                - name: mlp-cooker-api
+                  value: "http://mlp-cooker-backend:5002"
+                
+                - name: task-params
+                  value: |
+                    {
+                      "name": "deepspeed-llm-training",
+                      "jobType": "PyTorchJob",
+                      "command": "deepspeed --num_gpus=8 train.py --deepspeed_config ds_config.json",
+                      "jobSpec": {
+                        "replicas": 8,
+                        "image": "registry.baidubce.com/aihc-aiak/deepspeed:0.12.0",
+                        "resources": [],
+                        "envs": [
+                          {
+                            "name": "NCCL_DEBUG",
+                            "value": "INFO"
+                          },
+                          {
+                            "name": "NCCL_IB_DISABLE",
+                            "value": "0"
+                          },
+                          {
+                            "name": "NCCL_SOCKET_IFNAME",
+                            "value": "eth0"
+                          },
+                          {
+                            "name": "MASTER_PORT",
+                            "value": "29500"
+                          },
+                          {
+                            "name": "DEEPSPEED_HOSTFILE",
+                            "value": "/workspace/hostfile"
+                          }
+                        ],
+                        "enableRDMA": true
+                      },
+                      "datasources": [
+                        {
+                          "type": "pfs",
+                          "sourcePath": "/checkpoints",
+                          "mountPath": "/workspace/checkpoints"
+                        },
+                        {
+                          "type": "bos",
+                          "sourcePath": "llm-training-data/",
+                          "mountPath": "/data",
+                          "readOnly": true
+                        }
+                      ]
+                    }
+

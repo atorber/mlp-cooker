@@ -14,6 +14,12 @@ export interface YamlConfigData {
   ML_PLATFORM_RESOURCE_QUEUE_ID: string;
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: string;
   ML_PLATFORM_RESOURCE_BUCKET: string;
+  ML_PLATFORM_RESOURCE_REGION: string;
+
+  // LakeFS 资源配置
+  LAKEFS_ENDPOINT: string;
+  LAKEFS_ACCESS_KEY_ID: string;
+  LAKEFS_SECRET_ACCESS_KEY: string;
 }
 
 /**
@@ -38,29 +44,39 @@ const CONFIG_TYPE_DEFINITIONS: {
   ML_PLATFORM_RESOURCE_QUEUE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID: { type: 'string', required: false },
   ML_PLATFORM_RESOURCE_BUCKET: { type: 'string', required: false },
+  ML_PLATFORM_RESOURCE_REGION: { type: 'string', required: false, default: 'bj' },
+
+  LAKEFS_ENDPOINT: { type: 'string', required: false },
+  LAKEFS_ACCESS_KEY_ID: { type: 'string', required: false },
+  LAKEFS_SECRET_ACCESS_KEY: { type: 'string', required: false },
 };
 
 /**
  * YAML配置管理器 - 与Python版本逻辑完全一致
  */
 export class YamlConfigManager {
-  private static instance: YamlConfigManager;
+  private static instances: Map<string, YamlConfigManager> = new Map();
   private configData: Partial<YamlConfigData> = {};
   private configFilePath: string;
+  private currentAk: string;
 
-  private constructor(configFilePath?: string) {
-    this.configFilePath = configFilePath || path.join(process.cwd(), '..', 'config.yaml');
+  private constructor(ak: string) {
+    this.currentAk = ak;
+    this.configFilePath = path.join(process.cwd(), 'data', 'users', ak, 'config.yaml');
     this.loadConfig();
   }
 
   /**
-   * 获取单例实例
+   * 获取针对特定用户的单例实例
    */
-  public static getInstance(configFilePath?: string): YamlConfigManager {
-    if (!YamlConfigManager.instance) {
-      YamlConfigManager.instance = new YamlConfigManager(configFilePath);
+  public static getInstance(ak: string): YamlConfigManager {
+    if (!ak) {
+      throw new Error('AK is required to get a YamlConfigManager instance');
     }
-    return YamlConfigManager.instance;
+    if (!YamlConfigManager.instances.has(ak)) {
+      YamlConfigManager.instances.set(ak, new YamlConfigManager(ak));
+    }
+    return YamlConfigManager.instances.get(ak)!;
   }
 
   /**
@@ -189,7 +205,7 @@ export class YamlConfigManager {
    */
   public reloadConfig(): void {
     this.loadConfig();
-    console.log('🔄 YAML配置文件已重新加载');
+    console.log(`🔄 YAML配置文件已重新加载 (AK: ${this.currentAk})`);
   }
 
   /**
@@ -320,17 +336,42 @@ export class YamlConfigManager {
   }
 
   /**
+   * 获取 LakeFS 资源配置
+   */
+  public getLakeFSConfig() {
+    return {
+      endpoint: this.getConfig('LAKEFS_ENDPOINT'),
+      accessKeyId: this.getConfig('LAKEFS_ACCESS_KEY_ID'),
+      secretAccessKey: this.getConfig('LAKEFS_SECRET_ACCESS_KEY'),
+    };
+  }
+
+  /**
    * 获取机器学习平台资源配置
    */
   public getMLResourceConfig() {
+    const region = this.getConfig('ML_PLATFORM_RESOURCE_REGION') || 'bj';
+    
+    const regionMapping: Record<string, string> = {
+      'bj': 'https://aihc.bj.baidubce.com',
+      'gz': 'https://aihc.gz.baidubce.com',
+      'su': 'https://aihc.su.baidubce.com',
+      'bd': 'https://aihc.bd.baidubce.com',
+      'fwh': 'https://aihc.fwh.baidubce.com',
+      'yq': 'https://aihc.yq.baidubce.com',
+    };
+    
+    let derivedBaseUrl = regionMapping[region] || this.getConfig('ML_PLATFORM_RESOURCE_BASE_URL');
+
     return {
       ak: this.getConfig('ML_PLATFORM_RESOURCE_AK'),
       sk: this.getConfig('ML_PLATFORM_RESOURCE_SK'),
-      baseURL: this.getConfig('ML_PLATFORM_RESOURCE_BASE_URL'),
+      baseURL: derivedBaseUrl,
       poolId: this.getConfig('ML_PLATFORM_RESOURCE_POOL_ID'),
       queueId: this.getConfig('ML_PLATFORM_RESOURCE_QUEUE_ID'),
       pfsInstanceId: this.getConfig('ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID'),
       bucket: this.getConfig('ML_PLATFORM_RESOURCE_BUCKET'),
+      region: region,
     };
   }
 }

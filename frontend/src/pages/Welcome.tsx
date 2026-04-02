@@ -404,7 +404,7 @@ const Welcome: React.FC = () => {
             extra={
               <Button
                 type="link"
-                onClick={() => history.push('/resource')}
+                onClick={() => history.push('/resource/queue')}
                 icon={<ClusterOutlined />}
               >
                 查看详情

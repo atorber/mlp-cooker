@@ -1,10 +1,7 @@
 import {
-  CodeOutlined,
-  DeleteOutlined,
-  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
-  StopOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -16,13 +13,15 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Radio,
   Space,
   Table,
   Tag,
   Tabs,
+  Typography,
+  Dropdown,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
 import React, { useRef, useState } from 'react';
 import { request, history } from '@umijs/max';
@@ -370,24 +369,35 @@ const Training: React.FC = () => {
     if (!status) return 'default';
     const statusStr = String(status).toLowerCase();
 
-    // 运行中状态
-    if (statusStr === 'running' || statusStr.includes('running') || statusStr === 'pending') {
+    // 运行/启动/排队/重启中状态 - 蓝色进行中
+    if (
+      statusStr === 'running' ||
+      statusStr === 'starting' ||
+      statusStr === 'created' ||
+      statusStr === 'restarting' ||
+      statusStr === 'pending'
+    ) {
       return 'processing';
     }
 
-    // 已完成/已停止状态
-    if (statusStr === 'completed' || statusStr === 'stopped' || statusStr === 'manualtermination' || statusStr.includes('termination')) {
+    // 停止中状态 - 橙色警告
+    if (statusStr === 'stopping') {
+      return 'warning';
+    }
+
+    // 已停止/手动终止状态 - 灰色默认
+    if (statusStr === 'stopped' || statusStr === 'manualtermination') {
+      return 'default';
+    }
+
+    // 成功状态 - 绿色
+    if (statusStr === 'succeeded' || statusStr === 'completed') {
       return 'success';
     }
 
-    // 错误状态
-    if (statusStr === 'error' || statusStr === 'failed' || statusStr.includes('error') || statusStr.includes('failed')) {
+    // 失败/异常状态 - 红色错误
+    if (statusStr === 'failed' || statusStr === 'abnormal' || statusStr === 'error') {
       return 'error';
-    }
-
-    // 创建中状态
-    if (statusStr === 'creating' || statusStr.includes('creating')) {
-      return 'processing';
     }
 
     return 'default';
@@ -396,19 +406,31 @@ const Training: React.FC = () => {
   // 表格列定义
   const columns: ProColumns<Job>[] = [
     {
-      title: '任务ID',
-      dataIndex: 'jobId',
-      key: 'jobId',
-      width: 200,
-      ellipsis: true,
-      render: (_text, record) => record.jobId || record.id,
-    },
-    {
-      title: '任务名称',
+      title: '任务名称 / 任务ID',
       dataIndex: 'name',
-      key: 'name',
-      width: 200,
+      key: 'name_id',
+      width: 280,
       ellipsis: true,
+      render: (_: any, record: Job) => {
+        const id = record.jobId || record.id || '';
+        const name = record.name || '-';
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Link
+              onClick={() => fetchJobDetail(id)}
+              style={{ display: 'block', fontWeight: 500 }}
+            >
+              {name}
+            </Typography.Link>
+            <Typography.Text
+              copyable={{ text: id }}
+              style={{ fontSize: 12, color: '#666' }}
+            >
+              {id}
+            </Typography.Text>
+          </div>
+        );
+      },
     },
     {
       title: '状态',
@@ -417,13 +439,16 @@ const Training: React.FC = () => {
       width: 120,
       valueType: 'select',
       valueEnum: {
+        Created: { text: '排队中', status: 'Processing' },
+        Starting: { text: '启动中', status: 'Processing' },
         Running: { text: '运行中', status: 'Processing' },
-        Pending: { text: '等待中', status: 'Processing' },
-        Stopped: { text: '已停止', status: 'Success' },
-        Completed: { text: '已完成', status: 'Success' },
-        ManualTermination: { text: '手动终止', status: 'Success' },
-        Error: { text: '错误', status: 'Error' },
+        Stopping: { text: '停止中', status: 'Warning' },
+        Stopped: { text: '已停止', status: 'Default' },
+        ManualTermination: { text: '手动终止', status: 'Default' },
         Failed: { text: '失败', status: 'Error' },
+        Succeeded: { text: '成功', status: 'Success' },
+        Abnormal: { text: '异常', status: 'Error' },
+        Restarting: { text: '重启中', status: 'Processing' },
       },
       render: (text, record) => {
         // status 可能是字符串或对象（ProTable 的 valueEnum 可能会转换）
@@ -443,13 +468,16 @@ const Training: React.FC = () => {
 
         // 状态文本映射
         const statusTextMap: Record<string, string> = {
+          Created: '排队中',
+          Starting: '启动中',
           Running: '运行中',
-          Pending: '等待中',
+          Stopping: '停止中',
           Stopped: '已停止',
-          Completed: '已完成',
           ManualTermination: '手动终止',
-          Error: '错误',
           Failed: '失败',
+          Succeeded: '成功',
+          Abnormal: '异常',
+          Restarting: '重启中',
         };
 
         const displayText = statusTextMap[statusStr] || statusStr;
@@ -531,44 +559,71 @@ const Training: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 220,
+      width: 160,
       fixed: 'right',
       render: (_: any, record: Job) => {
         const jobId = record.jobId || record.id || '';
         const status = record.status ? String(record.status).toLowerCase() : '';
         const canStop = status.includes('running') || status.includes('pending');
 
-        return (
-          <Space>
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => fetchJobDetail(jobId)}
-            >
-              详情
-            </Button>
-            {canStop && (
-              <Popconfirm
-                title="确定要停止这个训练任务吗？"
-                onConfirm={() => handleStop(jobId)}
-                okText="确定"
-                cancelText="取消"
-              >
-                <Button type="link" icon={<StopOutlined />}>
-                  停止
+        const openConsole = () => {
+          const k8sNamespace = record.namespace || 'default';
+          const currentStatus = record.status || '';
+          const name = record.name || '';
+          const queueIdParam = record.queueID || record.queue || '';
+          const url = `https://console.bce.baidu.com/aihc/infoTaskIndex/detail?clusterUuid=aihc-serverless&k8sNamespace=${k8sNamespace}&k8sName=${jobId}&kind=PyTorchJob&status=${currentStatus}&name=${name}&jobId=${jobId}&queueID=${queueIdParam}&from=list`;
+          window.open(url, '_blank');
+        };
+
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => fetchJobDetail(jobId) },
+          { key: 'console', label: '去控制台', onClick: openConsole },
+        ];
+
+        if (canStop) {
+          actions.push({
+            key: 'stop', label: '停止', onClick: () => {
+              Modal.confirm({ title: '确定要停止这个训练任务吗？', okText: '确定', cancelText: '取消', onOk: () => handleStop(jobId) });
+            },
+          });
+        }
+
+        actions.push({
+          key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个训练任务吗？', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(jobId) });
+          },
+        });
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
                 </Button>
-              </Popconfirm>
-            )}
-            <Popconfirm
-              title="确定要删除这个训练任务吗？"
-              onConfirm={() => handleDelete(jobId)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="link" danger icon={<DeleteOutlined />}>
-                删除
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.key === 'delete' && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
               </Button>
-            </Popconfirm>
+            </Dropdown>
           </Space>
         );
       },
@@ -611,6 +666,7 @@ const Training: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
         }}
+        scroll={{ x: 1300 }}
         dateFormatter="string"
         headerTitle="训练任务列表"
         toolBarRender={() => []}
@@ -1018,16 +1074,18 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
                     {
                       title: '操作',
                       key: 'action',
-                      width: 120,
+                      width: 160,
                       render: (_: any, record: any) => (
-                        <Button
-                          type="link"
-                          icon={<CodeOutlined />}
-                          onClick={() => handleConnectTerminal(jobId, record.name)}
-                          disabled={!jobId || !record.name}
-                        >
-                          连接终端
-                        </Button>
+                        <Space size={4}>
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={() => handleConnectTerminal(jobId, record.name)}
+                            disabled={!jobId || !record.name}
+                          >
+                            连接终端
+                          </Button>
+                        </Space>
                       ),
                     },
                   ]}

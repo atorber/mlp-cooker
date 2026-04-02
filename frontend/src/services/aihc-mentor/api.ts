@@ -80,9 +80,7 @@ export async function createKuDoc(params: KuDocCreateParams): Promise<ApiRespons
 
 // 配置数据类型定义
 export interface ConfigData {
-  [section: string]: {
-    [key: string]: any;
-  };
+  [key: string]: any;
 }
 
 export interface ConfigResponse {

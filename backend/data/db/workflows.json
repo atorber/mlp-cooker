@@ -1,0 +1,101 @@
+[
+  {
+    "id": "workflow-1773390345926-ih2qgnitb",
+    "name": "aihc-test",
+    "description": "",
+    "type": "workflow",
+    "publishStatus": "draft",
+    "createdAt": "2026-03-13T08:25:45.925Z",
+    "updatedAt": "2026-03-13T09:20:27.422Z",
+    "nodes": [
+      {
+        "id": "end-1",
+        "type": "custom",
+        "position": {
+          "x": 352,
+          "y": 48
+        },
+        "data": {
+          "label": "结束",
+          "nodeType": "end",
+          "description": "输出结果"
+        },
+        "measured": {
+          "width": 240,
+          "height": 97
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "start-1773393531359",
+        "type": "custom",
+        "position": {
+          "x": -32,
+          "y": 16
+        },
+        "data": {
+          "label": "开始",
+          "nodeType": "start",
+          "description": "工作流入口节点"
+        },
+        "measured": {
+          "width": 240,
+          "height": 97
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "knowledge-1773393555109",
+        "type": "custom",
+        "position": {
+          "x": 80,
+          "y": 240
+        },
+        "data": {
+          "label": "知识检索",
+          "nodeType": "knowledge",
+          "description": "从知识库检索信息",
+          "knowledgeBase": "docs"
+        },
+        "measured": {
+          "width": 240,
+          "height": 97
+        },
+        "selected": true,
+        "dragging": false
+      }
+    ],
+    "edges": [
+      {
+        "style": {
+          "strokeWidth": 2,
+          "stroke": "#b1b1b7"
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#b1b1b7"
+        },
+        "type": "smoothstep",
+        "source": "start-1773393531359",
+        "target": "knowledge-1773393555109",
+        "id": "xy-edge__start-1773393531359-knowledge-1773393555109"
+      },
+      {
+        "style": {
+          "strokeWidth": 2,
+          "stroke": "#b1b1b7"
+        },
+        "markerEnd": {
+          "type": "arrowclosed",
+          "color": "#b1b1b7"
+        },
+        "type": "smoothstep",
+        "source": "knowledge-1773393555109",
+        "target": "end-1",
+        "id": "xy-edge__knowledge-1773393555109-end-1"
+      }
+    ]
+  }
+]
