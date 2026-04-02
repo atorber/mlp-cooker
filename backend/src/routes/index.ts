@@ -208,6 +208,7 @@ router.get('/api/resources/pools/:resourcePoolId', authMiddleware, ResourceContr
 /**
  * 存储管理（对象桶 / PFS 浏览）
  */
+router.get('/api/storage/buckets', authMiddleware, StorageController.listBuckets);
 router.get('/api/storage/bucket/files', authMiddleware, StorageController.listBucketFiles);
 router.get('/api/storage/pfs/files', authMiddleware, StorageController.listPfsFiles);
 

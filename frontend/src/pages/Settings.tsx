@@ -38,6 +38,7 @@ const Settings: React.FC = () => {
   const [configFileExists, setConfigFileExists] = useState(false);
   const [configFilePath, setConfigFilePath] = useState('');
   const [formRef, setFormRef] = useState<any>(null);
+  const [buckets, setBuckets] = useState<string[]>([]);
 
   // 加载配置数据
   const loadConfig = async () => {
@@ -127,9 +128,18 @@ const Settings: React.FC = () => {
     }
   };
 
-  // 组件挂载时加载配置
+  // 组件挂载时加载配置与桶列表
   useEffect(() => {
     loadConfig();
+    
+    // Fetch bucket list
+    request('/api/storage/buckets', { method: 'GET' })
+      .then((res) => {
+        if (res.success && Array.isArray(res.data)) {
+          setBuckets(res.data);
+        }
+      })
+      .catch((e) => console.log('拉取Bucket列表失败, 用户尚未配置合法鉴权', e));
   }, []);
 
 
@@ -253,6 +263,27 @@ const Settings: React.FC = () => {
             }}
           />
         );
+      } else if (key === 'ML_PLATFORM_RESOURCE_BUCKET') {
+        const bucketOptions = buckets.map(b => ({ label: b, value: b }));
+        // 如果当前取值不在下拉列表中且有值，则加入下拉避免空载
+        if (value && !buckets.includes(value)) {
+          bucketOptions.push({ label: value + ' (未知/无权限)', value });
+        }
+        return (
+          <ProFormSelect
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value}
+            options={bucketOptions}
+            fieldProps={{
+              allowClear: true,
+              placeholder: `请选择${label}`,
+              showSearch: true,
+            }}
+          />
+        );
       } else {
         // AK 和其他字段使用普通文本输入框（AK 直接显示，不脱敏）
         return (
@@ -362,6 +393,7 @@ const Settings: React.FC = () => {
                 'ML_PLATFORM_RESOURCE_AK',
                 'ML_PLATFORM_RESOURCE_SK',
                 'ML_PLATFORM_RESOURCE_REGION',
+                'ML_PLATFORM_RESOURCE_BUCKET',
               ])}
             </ProCard>
             

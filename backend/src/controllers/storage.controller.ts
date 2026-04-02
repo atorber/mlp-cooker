@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ResponseUtils } from '@/utils/response.utils';
 import { YamlConfigManager } from '@/config/yaml-config';
-import { S3Client, ListObjectsV2Command, ListObjectsV2CommandOutput } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, ListObjectsV2CommandOutput, ListBucketsCommand } from '@aws-sdk/client-s3';
 import { AihcSDK } from '@/utils/sdk/aihc.sdk';
 import { runWebShellCommand, stripAnsi } from '@/utils/webterminal-exec';
 
@@ -122,6 +122,43 @@ export class StorageController {
       endpoint,
       forcePathStyle: false,
     });
+  }
+
+  /**
+   * 获取所有的 S3 Bucket 列表
+   * GET /api/storage/buckets
+   */
+  public static async listBuckets(req: Request, res: Response): Promise<void> {
+    try {
+      const ak = req.user!.ak!;
+      const yamlConfig = YamlConfigManager.getInstance(ak);
+      const s3ak = yamlConfig.getConfig('ML_PLATFORM_RESOURCE_AK');
+      const s3sk = yamlConfig.getConfig('ML_PLATFORM_RESOURCE_SK');
+
+      if (!s3ak || !s3sk) {
+        ResponseUtils.error(res, '用户凭证缺失，无法拉取 Bucket 列表');
+        return;
+      }
+
+      const client = new S3Client({
+        region: 'bj',
+        endpoint: 'https://s3.bj.bcebos.com',
+        credentials: { accessKeyId: s3ak, secretAccessKey: s3sk },
+      });
+
+      const command = new ListBucketsCommand({});
+      const result = await client.send(command);
+
+      const bucketNames = (result.Buckets || []).map(b => b.Name).filter(Boolean);
+
+      res.json({
+        success: true,
+        data: bucketNames,
+      });
+    } catch (e: any) {
+      console.error('List Buckets Error:', e);
+      ResponseUtils.error(res, `无权或暂时尚未创建任何BOS Bucket: ${e.message}`);
+    }
   }
 
   /**

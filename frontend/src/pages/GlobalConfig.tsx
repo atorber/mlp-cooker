@@ -41,6 +41,8 @@ const GlobalConfig: React.FC = () => {
   const [mlpCookerOperating, setMlpCookerOperating] = useState(false);
   const [configLoading, setConfigLoading] = useState(true);
   const [saveSubmitting, setSaveSubmitting] = useState(false);
+  const [buckets, setBuckets] = useState<string[]>([]);
+  const [bucketsLoading, setBucketsLoading] = useState(false);
 
   const [resourcePoolOptions, setResourcePoolOptions] = useState<
     Array<{ label: string; value: string }>
@@ -422,6 +424,16 @@ const GlobalConfig: React.FC = () => {
         request('/api/config/ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID', { method: 'GET' }),
       ]);
 
+      setBucketsLoading(true);
+      request('/api/storage/buckets', { method: 'GET' })
+        .then((res) => {
+          if (res.success && Array.isArray(res.data)) {
+            setBuckets(res.data);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setBucketsLoading(false));
+
       const poolId = poolRes?.success ? poolRes.data?.value || '' : '';
       const queueId = queueRes?.success ? queueRes.data?.value || '' : '';
       const bucket = bucketRes?.success ? bucketRes.data?.value || '' : '';
@@ -672,12 +684,24 @@ const GlobalConfig: React.FC = () => {
                     initialValues={storageInitial}
                     submitter={false}
                   >
-                    <ProFormText
+                    <ProFormSelect
                       name="ML_PLATFORM_RESOURCE_BUCKET"
                       label="对象存储桶"
                       tooltip="机器学习平台对象存储桶名称（BOS 等）"
-                      placeholder="请输入存储桶名称"
-                      fieldProps={{ allowClear: true }}
+                      placeholder="请选择或输入存储桶名称"
+                      options={(function() {
+                        const opts = buckets.map(b => ({ label: b, value: b }));
+                        const manualVal = storageInitial.ML_PLATFORM_RESOURCE_BUCKET;
+                        if (manualVal && !buckets.includes(manualVal)) {
+                          opts.push({ label: `${manualVal} (未知/无权限)`, value: manualVal });
+                        }
+                        return opts;
+                      })()}
+                      fieldProps={{ 
+                        allowClear: true,
+                        showSearch: true,
+                        loading: bucketsLoading,
+                      }}
                     />
                     <ProForm.Item
                       name="ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID"
