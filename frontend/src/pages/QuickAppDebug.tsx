@@ -508,22 +508,11 @@ const QuickAppDebug = () => {
     {
       title: '操作',
       key: 'action',
-      width: 100,
+      width: 160,
       render: (_: any, record: TestTask) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() => {
-            // 查看测试结果
-            Modal.info({
-              title: '测试结果',
-              content: <pre>{JSON.stringify(record.results, null, 2)}</pre>,
-              width: 600,
-            });
-          }}
-        >
-          查看结果
-        </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => { Modal.info({ title: '测试结果', content: <pre>{JSON.stringify(record.results, null, 2)}</pre>, width: 600 }); }}>查看结果</Button>
+        </Space>
       ),
     },
   ];
@@ -597,31 +586,12 @@ const QuickAppDebug = () => {
     {
       title: '操作',
       key: 'action',
-      width: 150,
+      width: 160,
       render: (_: any, record: ImageBuildTask) => (
-        <Space>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => {
-              // 查看构建日志
-              Modal.info({
-                title: '构建日志',
-                content: record.logs || '暂无日志',
-                width: 800,
-              });
-            }}
-          >
-            查看日志
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => { Modal.info({ title: '构建日志', content: record.logs || '暂无日志', width: 800 }); }}>查看日志</Button>
           {record.imageUrl && (
-            <Button
-              type="link"
-              size="small"
-              onClick={() => window.open(record.imageUrl, '_blank')}
-            >
-              查看镜像
-            </Button>
+            <Button type="link" size="small" onClick={() => window.open(record.imageUrl, '_blank')}>查看镜像</Button>
           )}
         </Space>
       ),

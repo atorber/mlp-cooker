@@ -1,10 +1,7 @@
 import {
-  CodeOutlined,
-  DeleteOutlined,
-  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
-  StopOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -16,14 +13,15 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Radio,
   Space,
   Table,
   Tag,
   Tabs,
   Typography,
+  Dropdown,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import { UNIFIED_JOB_PARAMS, NATIVE_JOB_PARAMS } from './Training_constants';
 import React, { useRef, useState } from 'react';
 import { request, history } from '@umijs/max';
@@ -561,44 +559,71 @@ const Training: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 220,
+      width: 160,
       fixed: 'right',
       render: (_: any, record: Job) => {
         const jobId = record.jobId || record.id || '';
         const status = record.status ? String(record.status).toLowerCase() : '';
         const canStop = status.includes('running') || status.includes('pending');
 
-        return (
-          <Space>
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              onClick={() => fetchJobDetail(jobId)}
-            >
-              详情
-            </Button>
-            {canStop && (
-              <Popconfirm
-                title="确定要停止这个训练任务吗？"
-                onConfirm={() => handleStop(jobId)}
-                okText="确定"
-                cancelText="取消"
-              >
-                <Button type="link" icon={<StopOutlined />}>
-                  停止
+        const openConsole = () => {
+          const k8sNamespace = record.namespace || 'default';
+          const currentStatus = record.status || '';
+          const name = record.name || '';
+          const queueIdParam = record.queueID || record.queue || '';
+          const url = `https://console.bce.baidu.com/aihc/infoTaskIndex/detail?clusterUuid=aihc-serverless&k8sNamespace=${k8sNamespace}&k8sName=${jobId}&kind=PyTorchJob&status=${currentStatus}&name=${name}&jobId=${jobId}&queueID=${queueIdParam}&from=list`;
+          window.open(url, '_blank');
+        };
+
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => fetchJobDetail(jobId) },
+          { key: 'console', label: '去控制台', onClick: openConsole },
+        ];
+
+        if (canStop) {
+          actions.push({
+            key: 'stop', label: '停止', onClick: () => {
+              Modal.confirm({ title: '确定要停止这个训练任务吗？', okText: '确定', cancelText: '取消', onOk: () => handleStop(jobId) });
+            },
+          });
+        }
+
+        actions.push({
+          key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个训练任务吗？', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(jobId) });
+          },
+        });
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
                 </Button>
-              </Popconfirm>
-            )}
-            <Popconfirm
-              title="确定要删除这个训练任务吗？"
-              onConfirm={() => handleDelete(jobId)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="link" danger icon={<DeleteOutlined />}>
-                删除
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.key === 'delete' && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
               </Button>
-            </Popconfirm>
+            </Dropdown>
           </Space>
         );
       },
@@ -641,6 +666,7 @@ const Training: React.FC = () => {
           showSizeChanger: true,
           showQuickJumper: true,
         }}
+        scroll={{ x: 1300 }}
         dateFormatter="string"
         headerTitle="训练任务列表"
         toolBarRender={() => []}
@@ -1048,16 +1074,18 @@ ${paramFormat === 'unified' ? UNIFIED_JOB_PARAMS : NATIVE_JOB_PARAMS}
                     {
                       title: '操作',
                       key: 'action',
-                      width: 120,
+                      width: 160,
                       render: (_: any, record: any) => (
-                        <Button
-                          type="link"
-                          icon={<CodeOutlined />}
-                          onClick={() => handleConnectTerminal(jobId, record.name)}
-                          disabled={!jobId || !record.name}
-                        >
-                          连接终端
-                        </Button>
+                        <Space size={4}>
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={() => handleConnectTerminal(jobId, record.name)}
+                            disabled={!jobId || !record.name}
+                          >
+                            连接终端
+                          </Button>
+                        </Space>
                       ),
                     },
                   ]}

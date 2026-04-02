@@ -137,20 +137,12 @@ const DataWarehouse: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 120,
+      width: 160,
       fixed: 'right' as const,
       hideInSearch: true,
       render: (_: any, record: Repository) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => goToRepositoryDetail(record)}
-            style={{ color: '#1890ff' }}
-          >
-            浏览文件
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => goToRepositoryDetail(record)}>浏览文件</Button>
         </Space>
       ),
     },

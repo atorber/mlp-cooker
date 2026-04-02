@@ -896,36 +896,27 @@ const Resource: React.FC = () => {
                   {
                     title: '操作',
                     key: 'actions',
-                    width: 180,
+                    width: 160,
                     fixed: 'right',
                     render: (_: unknown, record: QueueDetail) => {
                       const qid = record.queueId;
                       if (!qid) return '-';
                       const isDefault = qid === configQueueId;
                       return (
-                        <Space size={0} wrap>
+                        <Space size={4}>
                           <Button
                             type="link"
                             size="small"
-                            icon={<EyeOutlined />}
                             onClick={() => openQueueRowDetail(qid)}
                           >
                             详情
                           </Button>
                           {isDefault ? (
-                            <Button
-                              type="link"
-                              size="small"
-                              disabled
-                              icon={<CheckCircleFilled />}
-                            >
-                              默认
-                            </Button>
+                            <Button type="link" size="small" disabled>默认</Button>
                           ) : (
                             <Button
                               type="link"
                               size="small"
-                              icon={<CheckOutlined />}
                               loading={settingDefaultQueueId === qid}
                               onClick={() => handleSetDefaultQueue(qid)}
                             >

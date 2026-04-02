@@ -1,6 +1,5 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -10,15 +9,16 @@ import {
   App,
   Button,
   Card,
+  Dropdown,
   Form,
   Input,
   Modal,
-  Popconfirm,
   Select,
   Space,
   Tag,
   Typography,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useRef, useState } from 'react';
 import { history, request } from '@umijs/max';
 
@@ -261,40 +261,28 @@ const Model: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: Model) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => goToDetail(record)}
-            style={{ color: '#1890ff' }}
-          >
-            详情
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => goToDetail(record, 'versions')}
-            style={{ color: '#722ed1' }}
-          >
-            版本
-          </Button>
-          <Popconfirm
-            title="确定要删除这个模型吗？"
-            onConfirm={() => handleDelete(record.modelId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: Model) => {
+        const modelId = record.modelId || record.id || '';
+        const moreItems: MenuProps['items'] = [
+          { key: 'versions', label: '版本', onClick: () => goToDetail(record, 'versions') },
+          { type: 'divider' },
+          { key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个模型吗？', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(modelId) });
+          }},
+        ];
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={() => goToDetail(record)}>详情</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -335,6 +323,7 @@ const Model: React.FC = () => {
           showQuickJumper: true,
         }}
         dateFormatter="string"
+        scroll={{ x: 1300 }}
         headerTitle="模型列表"
         toolBarRender={() => []}
       />

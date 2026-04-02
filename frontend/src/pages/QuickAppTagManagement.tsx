@@ -348,16 +348,12 @@ const QuickAppTagManagement: React.FC = () => {
       title: '操作',
       valueType: 'option',
       key: 'action',
-      width: 180,
+      width: 160,
       fixed: 'right',
       render: (_, record: FastTag) => (
-        <Space size="small">
-          <a onClick={() => handleViewDetail(record.tagId)}>
-            <EyeOutlined /> 详情
-          </a>
-          <a onClick={() => handleManageApps(record)}>
-            <AppstoreOutlined /> 管理应用
-          </a>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => handleViewDetail(record.tagId)}>详情</Button>
+          <Button type="link" size="small" onClick={() => handleManageApps(record)}>管理应用</Button>
         </Space>
       ),
     },

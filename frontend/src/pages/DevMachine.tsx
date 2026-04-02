@@ -1,9 +1,6 @@
 import {
-  CodeOutlined,
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
-  PoweroffOutlined,
 } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -17,15 +14,16 @@ import {
   Descriptions,
   Drawer,
   Form,
+  Dropdown,
   Input,
   InputNumber,
   Modal,
-  Popconfirm,
   Row,
   Select,
   Space,
   Tag,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 
 const { Option } = Select;
@@ -287,47 +285,67 @@ const DevMachine = () => {
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: DevInstance) => (
-        <Space>
-          <Button
-            type="link"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => {
-              setSelectedInstance(record);
-              setDrawerVisible(true);
-            }}
-          >
-            详情
-          </Button>
-          {(record.status === 3 || record.status === 19) && (
-            <Popconfirm title="确定停止该开发机?" onConfirm={() => handleStop(record.id)}>
-              <Button type="link" danger size="small" icon={<PoweroffOutlined />}>
-                停止
+      render: (_: any, record: DevInstance) => {
+        const canStop = record.status === 3 || record.status === 19;
+        const canWebTerminal = record.status === 3;
+
+        // Build list of functional actions
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean; type?: 'divider' }[] = [
+          { key: 'detail', label: '详情', onClick: () => { setSelectedInstance(record); setDrawerVisible(true); } },
+        ];
+
+        if (canWebTerminal) {
+          actions.push({ key: 'terminal', label: 'Web终端', onClick: () => {
+            window.open(`https://aihc.console.bce.baidu.com/aihc/development/instance/dev-machine/${record.id}?region=bj`, '_blank');
+          }});
+        }
+
+        if (canStop) {
+          actions.push({ key: 'stop', label: '停止', onClick: () => {
+            Modal.confirm({ title: '确定停止该开发机?', okText: '确定', cancelText: '取消', onOk: () => handleStop(record.id) });
+          }});
+        }
+
+        actions.push({ key: 'delete', label: '删除', danger: true, onClick: () => {
+          Modal.confirm({ title: '此操作不可逆，确定删除该开发机?', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(record.id) });
+        }});
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          // Add divider before 'delete' (which is always the last)
+          if (action.key === 'delete' && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
               </Button>
-            </Popconfirm>
-          )}
-          <Popconfirm title="此操作不可逆，确定删除该开发机?" onConfirm={() => handleDelete(record.id)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-          {record.status === 3 && (
-             <Button
-             type="link"
-             size="small"
-             icon={<CodeOutlined />}
-             onClick={() => {
-               window.open(`https://aihc.console.bce.baidu.com/aihc/development/instance/dev-machine/${record.id}?region=bj`, '_blank');
-             }}
-           >
-             Web终端
-           </Button>
-          )}
-        </Space>
-      ),
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -341,6 +359,7 @@ const DevMachine = () => {
           request={fetchInstances}
           columns={columns}
           pagination={{ pageSize: 10 }}
+          scroll={{ x: 1100 }}
           toolBarRender={() => [
             <Button
               key="create"

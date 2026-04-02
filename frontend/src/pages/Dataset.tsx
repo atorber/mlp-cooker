@@ -1,9 +1,7 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
-  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -11,19 +9,20 @@ import {
   App,
   Button,
   Card,
+  Dropdown,
   Form,
   Input,
   Modal,
-  Popconfirm,
   Space,
   Tag,
   Tabs,
   Typography,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import { history, request } from '@umijs/max';
 import { createRepository, getRepositories } from '@/services/aihc-mentor/lakefs';
-import { Tooltip } from 'antd';
+
 
 const { TextArea } = Input;
 
@@ -289,70 +288,83 @@ const Dataset: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: Dataset) => (
-        <Space wrap>
-          <Button
-            type="text"
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => goToDetail(record)}
-            style={{ color: '#1890ff' }}
-          >
-            详情
-          </Button>
-          <Button
-            type="text"
-            size="small"
-            icon={<BranchesOutlined />}
-            onClick={() => goToDetail(record, 'versions')}
-            style={{ color: '#722ed1' }}
-          >
-            版本
-          </Button>
+      render: (_: any, record: Dataset) => {
+        const datasetId = record.datasetId || record.id || '';
 
-          {record.storageType === 'BOS' && (() => {
-            const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
-            const hasRepo = existingRepos.has(safeRepoId);
-            
-            return (
-              <Tooltip title={hasRepo ? '该数据集已存在对应的关联仓库' : ''}>
-                <span style={hasRepo ? { display: 'inline-block', cursor: 'not-allowed' } : {}}>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<BranchesOutlined />}
-                    disabled={hasRepo}
-                    onClick={() => {
-                      repoForm.setFieldsValue({
-                        id: safeRepoId,
-                        storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
-                        defaultBranch: 'main',
-                      });
-                      setRepoModalVisible(true);
-                    }}
-                    style={hasRepo ? { pointerEvents: 'none' } : { color: '#52c41a' }}
-                  >
-                    创建仓库
-                  </Button>
-                </span>
-              </Tooltip>
-            );
-          })()}
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => goToDetail(record) },
+          { key: 'versions', label: '版本', onClick: () => goToDetail(record, 'versions') },
+        ];
 
-          <Popconfirm
-            title="确定要删除这个数据集吗？"
-            onConfirm={() => handleDelete(record.datasetId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+        if (record.storageType === 'BOS') {
+          const safeRepoId = (record.name || '').toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+          const hasRepo = existingRepos.has(safeRepoId);
+          if (!hasRepo) {
+            actions.push({
+              key: 'createRepo',
+              label: '创建仓库',
+              onClick: () => {
+                repoForm.setFieldsValue({
+                  id: safeRepoId,
+                  storageNamespace: `s3://${record.storageInstance}/lakefs/${safeRepoId}/`,
+                  defaultBranch: 'main',
+                });
+                setRepoModalVisible(true);
+              },
+            });
+          }
+        }
+
+        actions.push({
+          key: 'delete',
+          danger: true,
+          label: '删除',
+          onClick: () => {
+            Modal.confirm({
+              title: '确定要删除这个数据集吗？',
+              okText: '确定',
+              okType: 'danger',
+              cancelText: '取消',
+              onOk: () => handleDelete(datasetId),
+            });
+          },
+        });
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
+                </Button>
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.danger && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -416,6 +428,7 @@ const Dataset: React.FC = () => {
             showQuickJumper: true,
           }}
           dateFormatter="string"
+          scroll={{ x: 1300 }}
           headerTitle="数据集列表"
           toolBarRender={() => []}
         />

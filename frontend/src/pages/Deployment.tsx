@@ -1,6 +1,4 @@
 import {
-  DeleteOutlined,
-  EyeOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -14,7 +12,6 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Radio,
   Space,
   Tag,
@@ -554,27 +551,33 @@ const Deployment: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 160,
       fixed: 'right',
       render: (_: any, record: Service) => (
-        <Space>
+        <Space size={4}>
           <Button
             type="link"
-            icon={<EyeOutlined />}
+            size="small"
             onClick={() => fetchServiceDetail(record.serviceId || record.id || '')}
           >
             详情
           </Button>
-          <Popconfirm
-            title="确定要删除这个服务吗？"
-            onConfirm={() => handleDelete(record.serviceId || record.id || '')}
-            okText="确定"
-            cancelText="取消"
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: '确定要删除这个服务吗？',
+                okText: '确定',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: () => handleDelete(record.serviceId || record.id || ''),
+              });
+            }}
           >
-            <Button type="link" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -617,6 +620,7 @@ const Deployment: React.FC = () => {
           showQuickJumper: true,
         }}
         dateFormatter="string"
+        scroll={{ x: 1200 }}
         headerTitle="服务列表"
         toolBarRender={() => []}
       />

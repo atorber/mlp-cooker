@@ -1,11 +1,7 @@
 import {
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
+  DownOutlined,
   PlusOutlined,
   ReloadOutlined,
-  FileTextOutlined,
-  BranchesOutlined,
 } from '@ant-design/icons';
 import type { ActionType } from '@ant-design/pro-components';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
@@ -16,10 +12,10 @@ import {
   Col,
   Descriptions,
   Drawer,
+  Dropdown,
   Form,
   Input,
   Modal,
-  Popconfirm,
   Row,
   Select,
   Space,
@@ -28,6 +24,7 @@ import {
   Tabs,
   Typography,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { history } from '@umijs/max';
 import { request } from '@umijs/max';
@@ -327,64 +324,52 @@ const Image: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 240,
+      width: 160,
       fixed: 'right' as const,
       render: (_: any, record: Image) => {
-        // 公共镜像只显示查看相关操作，不显示编辑、删除等操作
         const isPublicImage = activeTab === 'public' || record.type === 'public' || !record.type;
 
-        return (
-          <Space wrap>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewImage(record)}
-              style={{ color: '#1890ff' }}
-            >
-              查看
-            </Button>
-            <Button
-              type="text"
-              size="small"
-              icon={<FileTextOutlined />}
-              onClick={() => handleViewIntroduction(record)}
-              style={{ color: '#52c41a' }}
-            >
-              简介
-            </Button>
-            <Button
-              type="text"
-              size="small"
-              icon={<BranchesOutlined />}
-              onClick={() => handleViewVersions(record)}
-              style={{ color: '#722ed1' }}
-            >
-              版本
-            </Button>
-            {!isPublicImage && (
-              <>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => openEditModal(record)}
-                  style={{ color: '#1890ff' }}
-                >
-                  编辑
+        const actions: { key: string; label: string; onClick: () => void; danger?: boolean }[] = [
+          { key: 'detail', label: '详情', onClick: () => handleViewImage(record) },
+          { key: 'intro', label: '简介', onClick: () => handleViewIntroduction(record) },
+          { key: 'versions', label: '版本', onClick: () => handleViewVersions(record) },
+        ];
+
+        if (!isPublicImage) {
+          actions.push({ key: 'edit', label: '编辑', onClick: () => openEditModal(record) });
+          actions.push({ key: 'delete', danger: true, label: '删除', onClick: () => handleDelete(record) });
+        }
+
+        if (actions.length <= 2) {
+          return (
+            <Space size={4}>
+              {actions.map(action => (
+                <Button key={action.key} type="link" size="small" danger={action.danger} onClick={action.onClick}>
+                  {action.label}
                 </Button>
-                <Popconfirm
-                  title="确定要删除这个镜像吗？"
-                  onConfirm={() => handleDelete(record)}
-                  okText="确定"
-                  cancelText="取消"
-                >
-                  <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-                    删除
-                  </Button>
-                </Popconfirm>
-              </>
-            )}
+              ))}
+            </Space>
+          );
+        }
+
+        const [first, ...rest] = actions;
+        const moreItems: MenuProps['items'] = rest.map((action, index) => {
+          const items: any[] = [];
+          if (action.danger && index > 0) {
+            items.push({ type: 'divider' });
+          }
+          items.push({ key: action.key, label: action.label, danger: action.danger, onClick: action.onClick });
+          return items;
+        }).flat();
+
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={first.onClick}>{first.label}</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
           </Space>
         );
       },

@@ -1,8 +1,7 @@
 import {
   AppstoreOutlined,
   DeleteOutlined,
-  EditOutlined,
-  EyeOutlined,
+  DownOutlined,
   FileTextOutlined,
   FilterOutlined,
   LinkOutlined,
@@ -24,18 +23,19 @@ import {
   Descriptions,
   Divider,
   Drawer,
+  Dropdown,
   Form,
   Image,
   Input,
   InputNumber,
   Modal,
-  Popconfirm,
   Row,
   Space,
   Statistic,
   Tag,
   Tooltip,
 } from 'antd';
+import type { MenuProps } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 
 // 快速应用类型定义
@@ -798,53 +798,28 @@ const QuickApp = () => {
     {
       title: '操作',
       key: 'action',
-      width: 280,
+      width: 160,
       fixed: 'right' as const,
-      render: (_: any, record: QuickApp) => (
-        <Space size="small">
-          <Tooltip title="查看详情">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetails(record)}
-            >
-              详情
-            </Button>
-          </Tooltip>
-          <Tooltip title="编辑应用">
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            >
-              编辑
-            </Button>
-          </Tooltip>
-          <Tooltip title="管理标签">
-            <Button
-              type="link"
-              size="small"
-              icon={<TagsOutlined />}
-              onClick={() => handleManageTags(record)}
-            >
-              标签
-            </Button>
-          </Tooltip>
-          <Popconfirm
-            title="确定要删除这个应用模板吗？"
-            description="删除后将无法恢复"
-            onConfirm={() => handleDelete(record.templateID)}
-            okText="确定"
-            cancelText="取消"
-          >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
+      render: (_: any, record: QuickApp) => {
+        const moreItems: MenuProps['items'] = [
+          { key: 'edit', label: '编辑', onClick: () => handleEdit(record) },
+          { key: 'tags', label: '标签', onClick: () => handleManageTags(record) },
+          { type: 'divider' },
+          { key: 'delete', danger: true, label: '删除', onClick: () => {
+            Modal.confirm({ title: '确定要删除这个应用模板吗？', content: '删除后将无法恢复', okText: '确定', okType: 'danger', cancelText: '取消', onOk: () => handleDelete(record.templateID) });
+          }},
+        ];
+        return (
+          <Space size={4}>
+            <Button type="link" size="small" onClick={() => handleViewDetails(record)}>详情</Button>
+            <Dropdown menu={{ items: moreItems }} trigger={['click']}>
+              <Button type="link" size="small" onClick={(e) => e.preventDefault()}>
+                更多 <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Space>
+        );
+      },
     },
   ];
 

@@ -476,16 +476,12 @@ const DatasetDetail: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 160,
       fixed: 'right',
       render: (_: any, record: any) => (
-        <Space>
-          <Button type="link" size="small" onClick={() => handleDataProcess(record)}>
-            数据处理
-          </Button>
-          <Button type="link" size="small" onClick={() => handleDataImport(record)}>
-            数据导入
-          </Button>
+        <Space size={4}>
+          <Button type="link" size="small" onClick={() => handleDataProcess(record)}>数据处理</Button>
+          <Button type="link" size="small" onClick={() => handleDataImport(record)}>数据导入</Button>
         </Space>
       ),
     },
@@ -713,29 +709,15 @@ const DatasetDetail: React.FC = () => {
                             {
                               title: '操作',
                               key: 'action',
-                              width: 140,
+                              width: 160,
                               fixed: 'right',
                               render: (_: any, record: FileItem) =>
                                 record.isDirectory ? (
                                   '-'
                                 ) : (
-                                  <Space>
-                                    <Button
-                                      type="link"
-                                      size="small"
-                                      icon={<EyeOutlined />}
-                                      onClick={() => handlePreview(record)}
-                                    >
-                                      预览
-                                    </Button>
-                                    <Button
-                                      type="link"
-                                      size="small"
-                                      icon={<DownloadOutlined />}
-                                      onClick={() => handleDownload(record)}
-                                    >
-                                      下载
-                                    </Button>
+                                  <Space size={4}>
+                                    <Button type="link" size="small" onClick={() => handlePreview(record)}>预览</Button>
+                                    <Button type="link" size="small" onClick={() => handleDownload(record)}>下载</Button>
                                   </Space>
                                 ),
                             },

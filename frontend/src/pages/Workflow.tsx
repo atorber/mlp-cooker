@@ -1,6 +1,4 @@
 import {
-  DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
@@ -12,7 +10,6 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Space,
   Tag,
   Typography,
@@ -208,29 +205,33 @@ const Workflow: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 180,
+      width: 160,
       fixed: 'right' as const,
       render: (_: any, record: Workflow) => (
-        <Space wrap>
+        <Space size={4}>
           <Button
-            type="text"
+            type="link"
             size="small"
-            icon={<EditOutlined />}
             onClick={() => goToEditor(record)}
-            style={{ color: '#1890ff' }}
           >
             编排
           </Button>
-          <Popconfirm
-            title="确定要删除这个工作流吗？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确定"
-            cancelText="取消"
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => {
+              Modal.confirm({
+                title: '确定要删除这个工作流吗？',
+                okText: '确定',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: () => handleDelete(record.id),
+              });
+            }}
           >
-            <Button type="text" size="small" danger icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
+            删除
+          </Button>
         </Space>
       ),
     },
@@ -273,6 +274,7 @@ const Workflow: React.FC = () => {
           showQuickJumper: true,
         }}
         dateFormatter="string"
+        scroll={{ x: 1100 }}
         headerTitle="工作流列表"
         toolBarRender={() => []}
       />
