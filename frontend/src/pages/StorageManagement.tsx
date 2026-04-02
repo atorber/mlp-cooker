@@ -476,7 +476,7 @@ const StorageManagement: React.FC = () => {
   return (
     <PageContainer
       header={{
-        title: '存储管理',
+        title: '存储',
         breadcrumb: {},
         extra: [
           <Button

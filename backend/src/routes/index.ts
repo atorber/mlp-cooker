@@ -12,6 +12,7 @@ import { TaskController } from '@/controllers/task.controller';
 import { ImageController } from '@/controllers/image.controller';
 import { WorkflowController } from '@/controllers/workflow.controller';
 import { LakeFSController } from '@/controllers/lakefs.controller';
+import { DevInstanceController } from '@/controllers/dev-instance.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
 
 /**
@@ -167,6 +168,15 @@ router.get('/api/jobs/:jobId/pods/:podName/webterminal', authMiddleware, JobCont
  */
 // 查询任务列表
 router.post('/api/tasks', authMiddleware, TaskController.list);
+
+/**
+ * 开发机相关路由
+ */
+router.post('/api/dev-instances', authMiddleware, DevInstanceController.list);
+router.get('/api/dev-instances/:id', authMiddleware, DevInstanceController.get);
+router.post('/api/dev-instances/create', authMiddleware, DevInstanceController.create);
+router.post('/api/dev-instances/:id/stop', authMiddleware, DevInstanceController.stop);
+router.delete('/api/dev-instances/:id', authMiddleware, DevInstanceController.delete);
 
 /**
  * 应用模板相关路由

@@ -37,8 +37,8 @@ export default [
   {
     name: 'dev-machine',
     icon: 'desktop',
-    path: '/quick-app/management',
-    component: './QuickAppManagement',
+    path: '/dev-machine',
+    component: './DevMachine',
   },
   {
     name: 'deployment',
@@ -119,6 +119,12 @@ export default [
         path: '/ai-assets/task',
         component: './Task',
       },
+      {
+        name: 'storage',
+        icon: 'hdd',
+        path: '/ai-assets/storage',
+        component: './StorageManagement',
+      },
     ],
   },
   {
@@ -168,12 +174,6 @@ export default [
         name: 'pool',
         path: '/resource/pool',
         component: './ResourcePool',
-      },
-      {
-        name: 'storage',
-        icon: 'hdd',
-        path: '/resource/storage',
-        component: './StorageManagement',
       },
     ],
   },
