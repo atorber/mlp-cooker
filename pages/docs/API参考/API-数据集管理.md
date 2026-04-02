@@ -15,6 +15,7 @@ sidebar_position: 7
 - <code>DELETE /api/datasets/:datasetId</code>：删除数据集
 - <code>POST /api/datasets/:datasetId/versions</code>：创建数据集版本
 - <code>DELETE /api/datasets/:datasetId/versions/:versionId</code>：删除数据集版本
+- <code>POST /api/lakefs/repositories</code>：为 BOS 数据集创建 lakeFS 仓库
 
 ## 接口详情
 
@@ -174,3 +175,35 @@ sidebar_position: 7
 }
 ```
 
+### POST /api/lakefs/repositories
+
+为指定存储路径创建 lakeFS 仓库。通常用于 BOS 数据集的版本化管理。
+
+**请求参数：**
+- `id`：仓库名称（必填，建议全小写且只包含字母数字和短横线）
+- `storageNamespace`：存储命名空间（必填，例如 `s3://bucket/path/`）
+- `defaultBranch`：默认分支名称（可选，默认为 `main`）
+
+**请求示例：**
+
+```json
+{
+  "id": "my-dataset-repo",
+  "storageNamespace": "s3://my-bucket/datasets/my-data/",
+  "defaultBranch": "main"
+}
+```
+
+**响应示例：**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "my-dataset-repo",
+    "storageNamespace": "s3://my-bucket/datasets/my-data/",
+    "defaultBranch": "main"
+  },
+  "message": "创建仓库成功"
+}
+```
