@@ -350,15 +350,28 @@ export class YamlConfigManager {
    * 获取机器学习平台资源配置
    */
   public getMLResourceConfig() {
+    const region = this.getConfig('ML_PLATFORM_RESOURCE_REGION') || 'bj';
+    
+    const regionMapping: Record<string, string> = {
+      'bj': 'https://aihc.bj.baidubce.com',
+      'gz': 'https://aihc.gz.baidubce.com',
+      'su': 'https://aihc.su.baidubce.com',
+      'bd': 'https://aihc.bd.baidubce.com',
+      'fwh': 'https://aihc.fwh.baidubce.com',
+      'yq': 'https://aihc.yq.baidubce.com',
+    };
+    
+    let derivedBaseUrl = regionMapping[region] || this.getConfig('ML_PLATFORM_RESOURCE_BASE_URL');
+
     return {
       ak: this.getConfig('ML_PLATFORM_RESOURCE_AK'),
       sk: this.getConfig('ML_PLATFORM_RESOURCE_SK'),
-      baseURL: this.getConfig('ML_PLATFORM_RESOURCE_BASE_URL'),
+      baseURL: derivedBaseUrl,
       poolId: this.getConfig('ML_PLATFORM_RESOURCE_POOL_ID'),
       queueId: this.getConfig('ML_PLATFORM_RESOURCE_QUEUE_ID'),
       pfsInstanceId: this.getConfig('ML_PLATFORM_RESOURCE_PFS_INSTANCE_ID'),
       bucket: this.getConfig('ML_PLATFORM_RESOURCE_BUCKET'),
-      region: this.getConfig('ML_PLATFORM_RESOURCE_REGION') || 'bj',
+      region: region,
     };
   }
 }

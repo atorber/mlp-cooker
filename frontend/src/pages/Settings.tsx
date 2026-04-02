@@ -144,9 +144,9 @@ const Settings: React.FC = () => {
         label: 'Secret Key',
         tooltip: '机器学习平台的 Secret Key（密钥）'
       },
-      'ML_PLATFORM_RESOURCE_BASE_URL': {
-        label: '基础URL',
-        tooltip: '机器学习平台的基础URL，如：aihc.bj.baidubce.com'
+      'ML_PLATFORM_RESOURCE_REGION': {
+        label: '集群地域 (Region)',
+        tooltip: '选择您的资源所在的区域，系统将自动映射基础URL'
       },
       'ML_PLATFORM_RESOURCE_BUCKET': {
         label: '对象存储桶',
@@ -229,6 +229,27 @@ const Settings: React.FC = () => {
             fieldProps={{
               placeholder: `请输入${label}`,
               autoComplete: 'new-password',
+            }}
+          />
+        );
+      } else if (key === 'ML_PLATFORM_RESOURCE_REGION') {
+        return (
+          <ProFormSelect
+            key={key}
+            name={key}
+            label={label}
+            tooltip={tooltip}
+            initialValue={value || 'bj'}
+            options={[
+              { label: '北京 (bj)', value: 'bj' },
+              { label: '广州 (gz)', value: 'gz' },
+              { label: '苏州 (su)', value: 'su' },
+              { label: '保定 (bd)', value: 'bd' },
+              { label: '武汉 (fwh)', value: 'fwh' },
+              { label: '阳泉 (yq)', value: 'yq' },
+            ]}
+            fieldProps={{
+              allowClear: false,
             }}
           />
         );
@@ -340,7 +361,7 @@ const Settings: React.FC = () => {
               {renderFormItems([
                 'ML_PLATFORM_RESOURCE_AK',
                 'ML_PLATFORM_RESOURCE_SK',
-                'ML_PLATFORM_RESOURCE_BASE_URL',
+                'ML_PLATFORM_RESOURCE_REGION',
               ])}
             </ProCard>
             

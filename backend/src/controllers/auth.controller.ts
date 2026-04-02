@@ -65,10 +65,9 @@ export class AuthController {
             ML_PLATFORM_RESOURCE_SK: sk,
           };
           
-          // 如果baseURL为空或未配置，也自动设置
-          if (!mlResourceConfig.baseURL) {
-            // 保存时保留协议前缀，支持 http:// 和 https://
-            updatedConfig.ML_PLATFORM_RESOURCE_BASE_URL = 'https://aihc.bj.baidubce.com';
+          // 如果实际配置中region为空或未设置，也自动赋初值bj并保存
+          if (!currentConfig.ML_PLATFORM_RESOURCE_REGION) {
+            updatedConfig.ML_PLATFORM_RESOURCE_REGION = 'bj';
           }
           
           // 保存配置到文件（saveConfig是同步方法，不需要await）
