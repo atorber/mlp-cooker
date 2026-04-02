@@ -141,3 +141,7 @@ backend/node_modules/*
 .docs/api/
 .knowledge/*
 .claude/*
+lakeFS/start_lakefs.sh.sh
+config.backup.yaml
+lakeFS/*.sh
+lakeFS-test/*
