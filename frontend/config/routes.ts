@@ -35,28 +35,10 @@ export default [
     component: './Application',
   },
   {
-    name: 'dev-machine',
-    icon: 'desktop',
-    path: '/dev-machine',
-    component: './DevMachine',
-  },
-  {
-    name: 'deployment',
-    icon: 'rocket',
-    path: '/deployment',
-    component: './Deployment',
-  },
-  {
-    name: 'quick-app-debug',
-    path: '/quick-app/debug/:id',
-    component: './QuickAppDebug',
-    hideInMenu: true,
-  },
-  {
-    name: 'training',
-    icon: 'thunderbolt',
-    path: '/training',
-    component: './Training',
+    name: 'template',
+    icon: 'snippets',
+    path: '/template',
+    component: './Template',
   },
   {
     name: 'workflow',
@@ -159,6 +141,30 @@ export default [
       {
         path: '/resource',
         redirect: '/resource/queue',
+      },
+      {
+        name: 'dev-machine',
+        icon: 'desktop',
+        path: '/resource/dev-machine',
+        component: './DevMachine',
+      },
+      {
+        name: 'deployment',
+        icon: 'rocket',
+        path: '/resource/deployment',
+        component: './Deployment',
+      },
+      {
+        name: 'quick-app-debug',
+        path: '/resource/quick-app/debug/:id',
+        component: './QuickAppDebug',
+        hideInMenu: true,
+      },
+      {
+        name: 'training',
+        icon: 'thunderbolt',
+        path: '/resource/training',
+        component: './Training',
       },
       {
         name: 'queue',
