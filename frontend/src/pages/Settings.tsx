@@ -184,9 +184,9 @@ const Settings: React.FC = () => {
       const value = configData[key];
       const { label, tooltip } = getConfigLabel(key);
 
-      // AK 直接显示，SK 使用密码输入框（带显示/隐藏按钮）
-      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK' || key === 'LAKEFS_SECRET_ACCESS_KEY';
-      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK' || key === 'LAKEFS_ACCESS_KEY_ID';
+      // 仅禁用平台资源的 AK/SK，LakeFS 的 AK/SK 允许手动修改
+      const isSecretKey = key === 'ML_PLATFORM_RESOURCE_SK';
+      const isAccessKey = key === 'ML_PLATFORM_RESOURCE_AK';
       const isDisabled = isSecretKey || isAccessKey;
       const extra = isDisabled ? '登录时自动配置，不可在此修改' : undefined;
 
