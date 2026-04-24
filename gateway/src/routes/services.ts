@@ -61,21 +61,17 @@ export async function servicesRoutes(fastify: FastifyInstance): Promise<void> {
           orderBy: params.orderBy,
           order: params.order,
         }) as {
+          requestId?: string;
           services: BackendServiceBriefInfo[];
           totalCount: number;
-          pageNumber: number;
-          pageSize: number;
         };
 
-        const services = result.services?.map(s => serviceTransformer.fromBackendBrief(s));
+        const items = (result.services || []).map(s => serviceTransformer.fromBackendBrief(s));
 
         return {
-          services,
-          pagination: {
-            pageNumber: result.pageNumber || params.pageNumber,
-            pageSize: result.pageSize || params.pageSize,
-            totalCount: result.totalCount,
-          },
+          requestId: result.requestId,
+          totalCount: result.totalCount || 0,
+          items,
         };
       }
 
@@ -102,11 +98,15 @@ export async function servicesRoutes(fastify: FastifyInstance): Promise<void> {
 
     switch (action) {
       case 'CreateService': {
-        const region = (request.query as { region?: string }).region || 'bd';
-        const body = request.body;
-        logger.debug({ region }, 'Creating service');
+        const query = request.query as { region?: string; clientToken?: string };
+        const region = query.region || 'bd';
+        const clientToken = query.clientToken;
+        const body = request.body as any; // Allow wide interface for now, generic CreateServiceRequest applies
+        logger.debug({ region, clientToken }, 'Creating service via generic gateway transformer');
 
-        const result = await getBackendClient(request).createService(region, body);
+        const backendParams = serviceTransformer.toBackendCreateRequest(body);
+        
+        const result = await getBackendClient(request).createService(region, backendParams, clientToken);
 
         reply.code(201);
         return {

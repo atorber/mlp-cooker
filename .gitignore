@@ -146,3 +146,5 @@ config.backup.yaml
 lakeFS/*.sh
 lakeFS-test/*
 gateway/node_modules/*
+postman/*
+.postman/config.json

@@ -16,8 +16,8 @@ import type {
  * 资源池类型映射
  */
 const POOL_TYPE_FROM_BACKEND: Record<string, string> = {
-  common: 'selfManaged',
-  dedicatedV2: 'managed',
+  common: 'common',
+  dedicatedV2: 'dedicatedV2',
 };
 
 /**
@@ -38,7 +38,7 @@ export class ResourcePoolTransformer {
    */
   toBackendParams(params: ListResourcePoolsParams): Record<string, string> {
     const result: Record<string, string> = {
-      resourcePoolType: params.type === 'selfManaged' ? 'common' : 'dedicatedV2',
+      resourcePoolType: params.type === 'common' ? 'common' : 'dedicatedV2',
     };
 
     if (params.keywordType) {
@@ -72,7 +72,7 @@ export class ResourcePoolTransformer {
       id: pool.resourcePoolId,
       name: pool.name,
       region: pool.region,
-      type: POOL_TYPE_FROM_BACKEND[pool.type] as 'selfManaged' | 'managed',
+      type: POOL_TYPE_FROM_BACKEND[pool.type] as 'common' | 'dedicatedV2',
       description: pool.description,
       status: pool.phase,
       nodeCount: pool.nodeNum,
@@ -80,8 +80,8 @@ export class ResourcePoolTransformer {
       forbidDelete: pool.configuration?.forbidDelete ?? pool.forbidDelete,
       deschedulerEnabled: pool.configuration?.deschedulerEnabled ?? pool.deschedulerEnabled,
       k8sVersion: pool.k8sVersion,
-      createdAt: pool.createdAt,
-      updatedAt: pool.updatedAt,
+      createdAt: pool.createdAt || (pool as any).createTime,
+      updatedAt: pool.updatedAt || (pool as any).updateTime,
       createdBy: pool.createdBy,
     };
   }
@@ -106,8 +106,8 @@ export class ResourcePoolTransformer {
       allocated: queue.allocated ? this.resourceAmountFromBackend(queue.allocated) : undefined,
       runningJobs: queue.runningJobs,
       pendingJobs: queue.pendingJobs,
-      createdAt: queue.createdAt ? String(queue.createdAt) : undefined,
-      updatedAt: queue.updatedAt ? String(queue.updatedAt) : undefined,
+      createdAt: queue.createdAt ? String(queue.createdAt) : ((queue as any).createTime ? String((queue as any).createTime) : undefined),
+      updatedAt: queue.updatedAt ? String(queue.updatedAt) : ((queue as any).updateTime ? String((queue as any).updateTime) : undefined),
     };
   }
 
@@ -123,7 +123,7 @@ export class ResourcePoolTransformer {
       flavorName: node.nodeSpec?.flavorName,
       status: node.nodeStatus?.statusPhase,
       chargingType: node.nodeSpec?.resourceChargingOption?.chargingType?.toLowerCase() as 'prepaid' | 'postpaid' | undefined,
-      createdAt: node.nodeStatus?.createdAt,
+      createdAt: node.nodeStatus?.createdAt || (node.nodeStatus as any)?.createTime || (node as any).createTime,
       resources: node.nodeStatus?.nodeResource?.capacity ? {
         cpuCores: node.nodeStatus.nodeResource.capacity.cpuCores,
         memoryGi: node.nodeStatus.nodeResource.capacity.memoryGi,

@@ -1,15 +1,41 @@
-import type { ComputeResources, ResourcePoolRef } from '../types/unified/index.js';
+import type { ComputeResources, ResourcePoolRef, StorageMount, ImageConfig } from '../types/unified/index.js';
 import type {
   BackendContainerConf,
   BackendServiceBriefInfo,
   BackendServiceConf,
 } from '../types/backend/service.js';
 import { computeResourcesTransformer } from './compute-resources.js';
+import { storageMountTransformer } from './storage-mount.js';
 import { resourcePoolRefTransformer } from './resource-pool-ref.js';
 
 /**
  * 统一的服务详情
  */
+export interface CreateServiceRequest {
+  name: string;
+  resourcePool: ResourcePoolRef;
+  instanceCount: number;
+  workloadType?: string;
+  acceleratorType?: string;
+  containers: {
+    name: string;
+    resources: ComputeResources;
+    image: ImageConfig;
+    command?: string[];
+    ports?: { name: string; port: number }[];
+    envs?: Record<string, string>;
+  }[];
+  storageMounts?: StorageMount[];
+  access?: {
+    publicAccess?: boolean;
+    networkType?: string;
+    aiGateway?: any;
+  };
+  deploy?: any;
+  misc?: any;
+  log?: any;
+}
+
 export interface ServiceDetail {
   /** 服务ID */
   id: string;
@@ -65,6 +91,62 @@ export interface ContainerDetail {
  */
 export class ServiceTransformer {
   /**
+   * 统一结构 -> 后端创建请求 (Backend Create Service Request)
+   */
+  toBackendCreateRequest(request: CreateServiceRequest): any {
+    const backendRequest: any = {
+      name: request.name,
+      instanceCount: request.instanceCount,
+      resourcePool: {
+        resourcePoolId: request.resourcePool.poolId,
+        resourcePoolName: request.resourcePool.poolName || '',
+        queueName: request.resourcePool.queue,
+        resourcePoolType: request.resourcePool.poolType === 'serverless' ? 'serverless' : 'common',
+      },
+    };
+
+    if (request.workloadType) backendRequest.workloadType = request.workloadType;
+    if (request.acceleratorType) backendRequest.acceleratorType = request.acceleratorType;
+    if (request.access) backendRequest.access = request.access;
+    if (request.deploy) backendRequest.deploy = request.deploy;
+    if (request.misc) backendRequest.misc = request.misc;
+    if (request.log) backendRequest.log = request.log;
+
+    // 存储挂载
+    let volumes: any[] = [];
+    let volumeMounts: any[] = [];
+    if (request.storageMounts && request.storageMounts.length > 0) {
+      const storageTranslation = storageMountTransformer.toService(request.storageMounts);
+      volumes = storageTranslation.volumes;
+      volumeMounts = storageTranslation.volumeMounts;
+      backendRequest.storage = { volumns: volumes }; // Note: Baige API typo 'volumns'
+    }
+
+    // 容器配置
+    backendRequest.containers = request.containers.map(c => {
+      const containerConf: any = {
+        name: c.name,
+        ...computeResourcesTransformer.toService(c.resources),
+        image: { imageUrl: c.image.url },
+      };
+      
+      if (c.image.auth) {
+        containerConf.image.repoUsername = c.image.auth.username;
+        containerConf.image.repoPassword = c.image.auth.password;
+      }
+      
+      if (c.command) containerConf.command = c.command;
+      if (c.ports) containerConf.ports = c.ports;
+      if (c.envs) containerConf.envs = c.envs;
+      if (volumeMounts.length > 0) containerConf.volumeMounts = volumeMounts;
+      
+      return containerConf;
+    });
+
+    return backendRequest;
+  }
+
+  /**
    * 后端简要信息 -> 统一简要信息
    */
   fromBackendBrief(info: BackendServiceBriefInfo): ServiceDetail {
@@ -75,12 +157,12 @@ export class ServiceTransformer {
         poolId: info.resourcePoolId,
         poolName: info.resourcePoolName,
         queue: info.queueName || '',
-        poolType: info.resourcePoolType === 'serverless' ? 'serverless' : 'self-managed',
+        poolType: info.resourcePoolType === 'serverless' ? 'serverless' : 'common',
       },
       instanceCount: 0,
       creator: info.creator,
-      createdAt: info.createdAt,
-      updatedAt: info.updatedAt,
+      createdAt: info.createdAt || (info as any).createTime,
+      updatedAt: info.updatedAt || (info as any).updateTime,
       access: {
         publicAccess: info.publicAccess,
         networkType: info.networkType,

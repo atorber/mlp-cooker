@@ -91,8 +91,8 @@ export class DevInstanceTransformer {
       creator: detail.creator,
       creatorId: detail.creatorId,
       region: detail.region,
-      createdAt: detail.createdAt,
-      updatedAt: detail.updatedAt,
+      createdAt: detail.createdAt || (detail as any).createTime,
+      updatedAt: detail.updatedAt || (detail as any).updateTime,
       loginInfo: detail.loginInfo ? {
         jupyter: detail.loginInfo.jupyter?.url,
         vscode: detail.loginInfo.vscode?.url,

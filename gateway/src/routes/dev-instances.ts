@@ -69,21 +69,17 @@ export async function devInstancesRoutes(fastify: FastifyInstance): Promise<void
           queryKey: params.queryKey,
           queryVal: params.queryVal,
         }) as {
+          requestId?: string;
           devInstances: BackendDevInstanceDetail[];
           totalCount: number;
-          pageNumber: number;
-          pageSize: number;
         };
 
-        const instances = result.devInstances?.map(d => devInstanceTransformer.fromBackend(d));
+        const items = (result.devInstances || []).map(d => devInstanceTransformer.fromBackend(d));
 
         return {
-          devInstances: instances,
-          pagination: {
-            pageNumber: result.pageNumber || params.pageNumber,
-            pageSize: result.pageSize || params.pageSize,
-            totalCount: result.totalCount,
-          },
+          requestId: result.requestId,
+          totalCount: result.totalCount || 0,
+          items,
         };
       }
 

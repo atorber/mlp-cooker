@@ -1,5 +1,7 @@
-import { request } from 'undici';
-import crypto from 'crypto';
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { BceBaseClient } = require('@atorber/baiducloud-sdk');
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'PATCH';
 import config from '../config/index.js';
 import { createLogger } from '../utils/logger.js';
 import type { BackendActionType } from '../types/backend/common.js';
@@ -20,7 +22,6 @@ export class BackendClient {
     this.ak = ak || config.auth.ak;
     this.sk = sk || config.auth.sk;
   }
-
   /**
    * 获取区域端点
    */
@@ -37,69 +38,24 @@ export class BackendClient {
   }
 
   /**
-   * 生成百度云签名
+   * 判断是否为 Job 相关接口
    */
-  private generateSignature(
-    method: string,
-    uri: string,
-    params: Record<string, string>,
-    headers: Record<string, string>
-  ): string {
-    const timestamp = new Date().toISOString().replace(/\.\d{3}/, '');
-    const expirationPeriod = 1800;
-
-    // 构建认证字符串前缀
-    const authStringPrefix = `bce-auth-v1/${this.ak}/${timestamp}/${expirationPeriod}`;
-
-    // 计算签名密钥
-    const signingKey = crypto
-      .createHmac('sha256', this.sk)
-      .update(authStringPrefix)
-      .digest('hex');
-
-    // 构建规范请求
-    const canonicalUri = this.normalizeUri(uri);
-    const canonicalQueryString = this.canonicalQueryString(params);
-    const canonicalHeaders = this.canonicalHeaders(headers);
-
-    const canonicalRequest = [
-      method.toUpperCase(),
-      canonicalUri,
-      canonicalQueryString,
-      canonicalHeaders,
-    ].join('\n');
-
-    // 计算签名
-    const signature = crypto
-      .createHmac('sha256', signingKey)
-      .update(canonicalRequest)
-      .digest('hex');
-
-    // 返回 Authorization 头
-    const signedHeaders = Object.keys(headers)
-      .map((k) => k.toLowerCase())
-      .sort()
-      .join(';');
-
-    return `${authStringPrefix}/${signedHeaders}/${signature}`;
-  }
-
-  private normalizeUri(uri: string): string {
-    return encodeURIComponent(uri).replace(/%2F/g, '/');
-  }
-
-  private canonicalQueryString(params: Record<string, string>): string {
-    return Object.keys(params)
-      .sort()
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-      .join('&');
-  }
-
-  private canonicalHeaders(headers: Record<string, string>): string {
-    return Object.keys(headers)
-      .sort()
-      .map((key) => `${key.toLowerCase()}:${headers[key].trim()}`)
-      .join('\n');
+  private isJobAction(action: string): boolean {
+    const jobActions = [
+      'DescribeJobs',
+      'CreateJob',
+      'DeleteJob',
+      'DescribeJob',
+      'ModifyJob',
+      'DescribeJobEvents',
+      'DescribeJobLogs',
+      'DescribePodEvents',
+      'StopJob',
+      'DescribeJobMetrics',
+      'DescribeJobNodes',
+      'DescribeJobWebterminal',
+    ];
+    return jobActions.includes(action);
   }
 
   /**
@@ -116,7 +72,16 @@ export class BackendClient {
     path: string = '/'
   ): Promise<T> {
     const endpoint = this.getEndpoint(product, region);
-    const uri = path;
+    
+    const bceConfig = {
+      endpoint: `https://${endpoint}`,
+      credentials: {
+        ak: this.ak,
+        sk: this.sk,
+      },
+    };
+
+    const client = new BceBaseClient(bceConfig, product);
 
     // 构建 Query 参数
     const params: Record<string, string> = { ...queryParams };
@@ -126,45 +91,90 @@ export class BackendClient {
 
     // 构建请求头
     const headers: Record<string, string> = {
-      Host: endpoint,
-      'x-bce-date': new Date().toISOString().replace(/\.\d{3}/, '') + 'Z',
       ...customHeaders,
     };
     if (body) {
       headers['Content-Type'] = 'application/json';
     }
     if (product === 'aihc') {
-      headers['version'] = 'v2';
+      if (this.isJobAction(action)) {
+        headers['X-API-Version'] = 'v2';
+      } else {
+        headers['version'] = 'v2';
+      }
       if (body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
     }
 
-    // 生成签名
-    headers.Authorization = this.generateSignature(method, uri, params, headers);
+    // 转换参数为字符串格式
+    const stringParams: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== null) {
+        stringParams[key] = String(value);
+      }
+    }
 
-    // 构建完整 URL
-    const queryString = Object.keys(params)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
-      .join('&');
-    const url = `https://${endpoint}${uri}?${queryString}`;
+    const requestOptions: any = {
+      params: stringParams,
+      config: {},
+      headers,
+    };
 
-    logger.debug({ url, method, action }, 'Sending request to backend');
+    if (method === 'POST' || method === 'PUT') {
+      requestOptions.body = JSON.stringify(body || {});
+    } else if (body) {
+      requestOptions.body = body;
+    }
+
+    logger.info({ 
+      endpoint, 
+      method, 
+      path,
+      action,
+      url: `https://${endpoint}${path}`,
+      requestHeaders: headers,
+      requestParams: stringParams,
+      requestBody: body
+    }, 'Sending request to backend via BceBaseClient');
 
     try {
-      const response = await request(url, {
-        method,
-        headers: headers as Record<string, string>,
-        body: body ? JSON.stringify(body) : undefined,
-        throwOnError: true,
-      });
-
-      const responseBody = await response.body.json() as T;
-
-      logger.debug({ action, status: response.statusCode }, 'Received response from backend');
-
+      const response = await client.sendRequest(method as HttpMethod, path, requestOptions);
+      const responseBody = (response.body || response) as T;
+      
+      logger.info({ 
+        action,
+        status: response.status || 200,
+        responseBody 
+      }, 'Received response from backend');
       return responseBody;
-    } catch (error) {
-      logger.error({ action, error }, 'Request to backend failed');
-      throw error;
+    } catch (error: any) {
+      logger.error({ 
+        action, 
+        status: error.status || error.response?.status, 
+        error: error.body || error.message,
+        requestParams: stringParams,
+        requestBody: body 
+      }, 'Request to backend failed');
+      
+      const status = error.status || error.response?.status || 500;
+      let message = error.message;
+      
+      if (error.body) {
+        if (typeof error.body === 'string') {
+          message = error.body;
+        } else if (typeof error.body === 'object') {
+          message = error.body.message || error.body.errorMessage || JSON.stringify(error.body);
+        }
+      }
+      
+      if (message === '[object Object]') {
+        message = 'Backend API Error (Original message lost in SDK)';
+      }
+      
+      const newError = new Error(message) as any;
+      newError.statusCode = status;
+      newError.code = error.code || 'BackendError';
+      newError.body = error.body;
+      throw newError;
     }
   }
 

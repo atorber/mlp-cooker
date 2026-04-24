@@ -45,6 +45,17 @@ const describeDatasetVersionsSchema = z.object({
 });
 
 /**
+ * 查询数据集版本详情
+ * GET /api/v1/datasets?action=DescribeDatasetVersion&datasetId=xxx&versionId=xxx
+ */
+const describeDatasetVersionSchema = z.object({
+  action: z.literal('DescribeDatasetVersion'),
+  region: z.string().default('bd'),
+  datasetId: z.string().min(1),
+  versionId: z.string().min(1),
+});
+
+/**
  * 创建数据集请求体
  */
 const createDatasetBodySchema = z.object({
@@ -98,6 +109,26 @@ const deleteDatasetVersionBodySchema = z.object({
 });
 
 /**
+ * 修改数据集请求体
+ */
+const modifyDatasetBodySchema = z.object({
+  datasetId: z.string().min(1),
+  name: z.string().min(1).max(128).optional(),
+  description: z.string().max(1024).optional(),
+  visibilityScope: z.enum(['all', 'owner', 'group']).optional(),
+  visibilityUser: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    permission: z.enum(['read', 'write']),
+  })).optional(),
+  visibilityGroup: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    permission: z.enum(['read', 'write']),
+  })).optional(),
+});
+
+/**
  * 数据集路由 - RPC风格
  * 所有请求通过 ?action=XXX 参数区分操作
  */
@@ -123,19 +154,15 @@ export async function datasetsRoutes(fastify: FastifyInstance): Promise<void> {
           pageNumber: params.pageNumber,
           pageSize: params.pageSize,
         }) as {
-          datasetList: BackendDataset[];
-          pageNumber: number;
-          pageSize: number;
+          requestId?: string;
+          datasets: BackendDataset[];
           totalCount: number;
         };
 
         return {
-          datasets: response.datasetList?.map(d => datasetTransformer.fromBackend(d)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.datasets || []).map(d => datasetTransformer.fromBackend(d)),
         };
       }
 
@@ -156,29 +183,41 @@ export async function datasetsRoutes(fastify: FastifyInstance): Promise<void> {
         const params = describeDatasetVersionsSchema.parse(request.query);
         logger.debug({ params }, 'Listing dataset versions');
 
-        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'ListDatasetVersions' as never, 'GET', {
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeDatasetVersions' as never, 'GET', {
           datasetId: params.datasetId,
           pageNumber: String(params.pageNumber),
           pageSize: String(params.pageSize),
         }) as {
+          requestId?: string;
           versionList: BackendDatasetVersionEntry[];
-          pageNumber: number;
-          pageSize: number;
           totalCount: number;
         };
 
         return {
-          versions: response.versionList?.map(v => datasetTransformer.versionFromBackend(v)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.versionList || []).map(v => datasetTransformer.versionFromBackend(v)),
+        };
+      }
+
+      case 'DescribeDatasetVersion': {
+        const params = describeDatasetVersionSchema.parse(request.query);
+        logger.debug({ params }, 'Getting dataset version detail');
+
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeDatasetVersion' as never, 'GET', {
+          datasetId: params.datasetId,
+          versionId: params.versionId,
+        }) as {
+          version: BackendDatasetVersionEntry;
+        };
+
+        return {
+          version: datasetTransformer.versionFromBackend(response.version),
         };
       }
 
       default:
-        return { error: 'Invalid action', validActions: ['DescribeDatasets', 'DescribeDataset', 'DescribeDatasetVersions'] };
+        return { error: 'Invalid action', validActions: ['DescribeDatasets', 'DescribeDataset', 'DescribeDatasetVersions', 'DescribeDatasetVersion'] };
     }
   });
 
@@ -264,9 +303,30 @@ export async function datasetsRoutes(fastify: FastifyInstance): Promise<void> {
         };
       }
 
+      case 'ModifyDataset': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = modifyDatasetBodySchema.parse(request.body);
+        logger.debug({ region, datasetId: body.datasetId }, 'Modifying dataset');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'ModifyDataset' as never, 'POST', { datasetId: body.datasetId }, {
+          name: body.name,
+          description: body.description,
+          visibilityScope: body.visibilityScope,
+          visibilityUser: body.visibilityUser,
+          visibilityGroup: body.visibilityGroup,
+        }) as {
+          requestId: string;
+        };
+
+        return {
+          requestId: response.requestId,
+          datasetId: body.datasetId,
+        };
+      }
+
       default:
         reply.code(400);
-        return { error: 'Invalid action', validActions: ['CreateDataset', 'CreateDatasetVersion', 'DeleteDataset', 'DeleteDatasetVersion'] };
+        return { error: 'Invalid action', validActions: ['CreateDataset', 'CreateDatasetVersion', 'DeleteDataset', 'DeleteDatasetVersion', 'ModifyDataset'] };
     }
   });
 }

@@ -34,7 +34,7 @@ export class ResourcePoolRefTransformer {
       queue: conf.queueName,
       poolType: conf.resourcePoolType
         ? RESOURCE_POOL_TYPE_MAPPING[conf.resourcePoolType]
-        : 'self-managed',
+        : 'common',
     };
   }
 
@@ -60,7 +60,7 @@ export class ResourcePoolRefTransformer {
       queue: conf.queueName,
       poolType: conf.resourcePoolType
         ? RESOURCE_POOL_TYPE_MAPPING[conf.resourcePoolType]
-        : 'self-managed',
+        : 'common',
     };
   }
 

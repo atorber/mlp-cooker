@@ -12,13 +12,13 @@ export interface StorageMount {
   /** 存储类型 */
   storageType: StorageType;
   /** 存储配置 */
-  config: PFSStorage | BOSStorage | CFSStorage | DatasetStorage | HostPathStorage | EmptyDirStorage | CDSStorage;
+  config: PFSStorage | BOSStorage | CFSStorage | DatasetStorage | HostPathStorage | EmptyDirStorage | CDSStorage | RapidFSStorage;
 }
 
 /**
  * 存储类型枚举
  */
-export type StorageType = 'pfs' | 'bos' | 'cfs' | 'dataset' | 'hostPath' | 'emptyDir' | 'cds';
+export type StorageType = 'pfs' | 'bos' | 'cfs' | 'dataset' | 'hostPath' | 'emptyDir' | 'cds' | 'rapidfs';
 
 /**
  * PFS存储配置
@@ -117,4 +117,15 @@ export interface CDSStorage {
   type: 'cds';
   /** 容量(GB)，需大于100 */
   capacity: number;
+}
+
+/**
+ * RapidFS存储配置（训练任务专用）
+ */
+export interface RapidFSStorage {
+  type: 'rapidfs';
+  /** RapidFS实例ID */
+  instanceId?: string;
+  /** 源路径 */
+  sourcePath?: string;
 }

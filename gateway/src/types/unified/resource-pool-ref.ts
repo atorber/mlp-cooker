@@ -16,15 +16,15 @@ export interface ResourcePoolRef {
 /**
  * 资源池类型
  */
-export type ResourcePoolType = 'self-managed' | 'managed' | 'serverless';
+export type ResourcePoolType = 'common' | 'dedicatedV2' | 'serverless';
 
 /**
  * 资源池类型映射
  */
 export const RESOURCE_POOL_TYPE_MAPPING: Record<string, ResourcePoolType> = {
-  '': 'self-managed',
-  'common': 'self-managed',
-  'dedicatedV2': 'managed',
+  '': 'common',
+  'common': 'common',
+  'dedicatedV2': 'dedicatedV2',
   'serverless': 'serverless',
 };
 
@@ -32,7 +32,7 @@ export const RESOURCE_POOL_TYPE_MAPPING: Record<string, ResourcePoolType> = {
  * 统一枚举 -> 后端值映射
  */
 export const POOL_TYPE_TO_BACKEND: Record<ResourcePoolType, string> = {
-  'self-managed': '',
-  'managed': 'dedicatedV2',
+  'common': 'common',
+  'dedicatedV2': 'dedicatedV2',
   'serverless': 'serverless',
 };

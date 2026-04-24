@@ -220,27 +220,42 @@ export async function errorHandler(
   await reply.status(httpStatus).send(errorResponse);
 }
 
+function extractMessage(msg: any): string {
+  if (typeof msg === 'string') return msg;
+  if (!msg) return '';
+  if (msg.message) return extractMessage(msg.message);
+  if (msg.errorMessage) return extractMessage(msg.errorMessage);
+  try {
+    return JSON.stringify(msg);
+  } catch {
+    return String(msg);
+  }
+}
+
 /**
  * 解析后端错误
  */
 function parseBackendError(error: FastifyError): { code: string; message: string } {
+  let message = extractMessage(error.message);
+  let code = '';
+  
   // 尝试解析后端错误响应
   try {
-    const body = (error as unknown as { body?: string }).body;
+    const body = (error as unknown as { body?: any }).body;
     if (body) {
-      const parsed = JSON.parse(body);
+      const parsed = typeof body === 'string' ? JSON.parse(body) : body;
       if (parsed.code || parsed.errorCode) {
-        return {
-          code: parsed.code || parsed.errorCode,
-          message: parsed.message || parsed.errorMessage || error.message,
-        };
+        code = parsed.code || parsed.errorCode;
+        message = extractMessage(parsed.message || parsed.errorMessage || message);
+      } else if (parsed.message || parsed.errorMessage) {
+        message = extractMessage(parsed.message || parsed.errorMessage);
       }
     }
   } catch {
     // 忽略解析错误
   }
 
-  return { code: '', message: error.message };
+  return { code, message };
 }
 
 /**

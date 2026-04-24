@@ -16,6 +16,8 @@ const __dirname = path.dirname(__filename);
 
 const appLogger = createLogger('app');
 
+import { rewriteAihcUrl } from './utils/url-rewrite.js';
+
 /**
  * 创建 Fastify 应用实例
  */
@@ -25,6 +27,9 @@ export async function createApp() {
     requestIdHeader: 'x-request-id',
     requestIdLogLabel: 'requestId',
     trustProxy: true,
+    rewriteUrl: (req) => {
+      return rewriteAihcUrl(req.url);
+    },
   });
 
   // 注册 Swagger 文档

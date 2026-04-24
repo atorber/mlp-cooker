@@ -1,4 +1,4 @@
-# 百舸API网关
+# 百度云API网关
 
 统一百舸各模块API规范和数据结构的中间层网关服务。
 
@@ -209,7 +209,7 @@ interface ImageConfig {
 interface ResourcePoolRef {
   poolId: string;                 // 资源池ID
   poolName?: string;              // 资源池名称（只读）
-  poolType?: 'self-managed' | 'managed';  // 资源池类型
+  poolType?: 'common' | 'dedicatedV2';  // 资源池类型
   queue: string;                  // 队列名称
 }
 ```

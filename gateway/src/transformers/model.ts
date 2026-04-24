@@ -35,8 +35,8 @@ export class ModelTransformer {
       ownerName: model.ownerName,
       visibilityScope: model.visibilityScope || '',
       tags: model.tags,
-      createdAt: model.createdAt ? String(model.createdAt) : undefined,
-      updatedAt: model.updatedAt ? String(model.updatedAt) : undefined,
+      createdAt: model.createdAt ? String(model.createdAt) : ((model as any).createTime ? String((model as any).createTime) : undefined),
+      updatedAt: model.updatedAt ? String(model.updatedAt) : ((model as any).updateTime ? String((model as any).updateTime) : undefined),
     };
   }
 
@@ -55,7 +55,7 @@ export class ModelTransformer {
       taskId: version.taskId,
       createUser: version.createUser,
       createUserName: version.createUserName,
-      createdAt: version.createdAt ? String(version.createdAt) : undefined,
+      createdAt: version.createdAt ? String(version.createdAt) : ((version as any).createTime ? String((version as any).createTime) : undefined),
     };
   }
 }

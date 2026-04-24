@@ -84,8 +84,8 @@ export class DatasetTransformer {
       permission: dataset.permission ? PERMISSION_FROM_BACKEND[dataset.permission] as 'read' | 'write' : undefined,
       latestVersionId: dataset.latestVersionId,
       latestVersion: dataset.latestVersion,
-      createdAt: dataset.createdAt,
-      updatedAt: dataset.updatedAt,
+      createdAt: dataset.createdAt || (dataset as any).createTime,
+      updatedAt: dataset.updatedAt || (dataset as any).updateTime,
     };
   }
 
@@ -100,9 +100,8 @@ export class DatasetTransformer {
       storagePath: version.storagePath,
       mountPath: version.mountPath,
       createUser: version.createUser,
-      createUserName: version.createUserName,
-      createdAt: version.createdAt,
-      updatedAt: version.updatedAt,
+      createdAt: version.createdAt || (version as any).createTime,
+      updatedAt: version.updatedAt || (version as any).updateTime,
     };
   }
 

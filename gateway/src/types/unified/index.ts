@@ -7,3 +7,4 @@ export * from './common.js';
 export * from './dataset.js';
 export * from './model.js';
 export * from './resource-pool.js';
+export * from './schedule-config.js';

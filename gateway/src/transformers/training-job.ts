@@ -50,6 +50,7 @@ export interface TrainingJobDetail {
   enableRDMA?: boolean;
   enableBccl?: boolean;
   createdAt?: string;
+  updatedAt?: string;
   finishedAt?: string;
   pods?: unknown[];
 }
@@ -174,7 +175,8 @@ export class TrainingJobTransformer {
         poolId: item.resourcePoolId,
         queue: item.queue || item.queueId,
       },
-      createdAt: item.createdAt,
+      createdAt: item.createdAt || (item as any).createTime || (item as any).creationTimestamp,
+      updatedAt: (item as any).updatedAt || (item as any).updateTime,
       finishedAt: item.finishedAt,
     };
 

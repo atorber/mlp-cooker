@@ -14,7 +14,7 @@ const createJobBodySchema = z.object({
   resourcePool: z.object({
     poolId: z.string(),
     queue: z.string(),
-    poolType: z.enum(['self-managed', 'managed', 'serverless']).optional(),
+    poolType: z.enum(['common', 'dedicatedV2', 'serverless']).optional(),
   }),
   framework: z.enum(['PyTorchJob', 'TFJob', 'MPIJob']).optional(),
   command: z.string(),
@@ -114,19 +114,16 @@ export async function trainingJobsRoutes(fastify: FastifyInstance): Promise<void
           params.resourcePoolId,
           params.queue,
           requestBody
-        ) as { totalCount: number; jobs: unknown[] };
+        ) as { requestId?: string; totalCount: number; jobs: unknown[] };
 
-        const jobs = result.jobs?.map((job: unknown) =>
+        const items = (result.jobs || []).map((job: unknown) =>
           trainingJobTransformer.fromBackendResponse(job as Parameters<typeof trainingJobTransformer.fromBackendResponse>[0])
         );
 
         return {
-          jobs,
-          pagination: {
-            pageNumber: params.pageNumber,
-            pageSize: params.pageSize,
-            totalCount: result.totalCount,
-          },
+          requestId: result.requestId,
+          totalCount: result.totalCount || 0,
+          items,
         };
       }
 

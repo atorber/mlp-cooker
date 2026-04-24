@@ -9,7 +9,7 @@ export interface ResourcePool {
   /** 区域 */
   region?: string;
   /** 资源池类型 */
-  type: 'selfManaged' | 'managed';
+  type: 'common' | 'dedicatedV2';
   /** 描述 */
   description?: string;
   /** 状态 */
@@ -117,7 +117,7 @@ export interface Node {
  */
 export interface ListResourcePoolsParams {
   /** 资源池类型 */
-  type: 'selfManaged' | 'managed';
+  type: 'common' | 'dedicatedV2';
   /** 关键字类型 */
   keywordType?: 'name' | 'id';
   /** 关键字 */

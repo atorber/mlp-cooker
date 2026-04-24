@@ -14,7 +14,7 @@ const logger = createLogger('resource-pools-routes');
 const describeResourcePoolsSchema = z.object({
   action: z.literal('DescribeResourcePools'),
   region: z.string().default('bd'),
-  type: z.enum(['selfManaged', 'managed']).default('selfManaged'),
+  type: z.enum(['common', 'dedicatedV2']).default('common'),
   keywordType: z.enum(['name', 'id']).optional(),
   keyword: z.string().optional(),
   orderBy: z.enum(['name', 'id', 'createdAt']).optional(),
@@ -92,6 +92,110 @@ const describeResourcePoolUsageSchema = z.object({
 });
 
 /**
+ * 查询资源池配置
+ * GET /api/v1/resource-pools?action=DescribeResourcePoolConfiguration&resourcePoolId=xxx
+ */
+const describeResourcePoolConfigurationSchema = z.object({
+  action: z.literal('DescribeResourcePoolConfiguration'),
+  region: z.string().default('bd'),
+  resourcePoolId: z.string().min(1),
+});
+
+/**
+ * 查询资源池概览
+ * GET /api/v1/resource-pools?action=DescribeResourcePoolsStatistic
+ */
+const describeResourcePoolsStatisticSchema = z.object({
+  action: z.literal('DescribeResourcePoolsStatistic'),
+  region: z.string().default('bd'),
+  resourcePoolType: z.enum(['common', 'dedicatedV2']).optional(),
+});
+
+/**
+ * 创建资源池请求体
+ */
+const createResourcePoolBodySchema = z.object({
+  name: z.string().min(1).max(65),
+  description: z.string().max(300).optional(),
+  type: z.enum(['dedicatedV2']),
+  network: z.object({
+    nodes: z.array(z.object({
+      vpcId: z.string(),
+      subnetIds: z.array(z.string()),
+    })),
+  }),
+  bindingStorages: z.array(z.object({
+    provider: z.string(),
+    type: z.string().optional(),
+    id: z.string().optional(),
+  })).optional(),
+  bindingMonitors: z.array(z.object({
+    provider: z.string(),
+    id: z.string().optional(),
+  })).optional(),
+});
+
+/**
+ * 删除资源池请求体
+ */
+const deleteResourcePoolBodySchema = z.object({
+  resourcePoolId: z.string().min(1),
+});
+
+/**
+ * 创建队列请求体
+ */
+const createQueueBodySchema = z.object({
+  resourcePoolId: z.string().min(1),
+  resourceQueueName: z.string().min(1),
+  description: z.string().optional(),
+  resourceQueueType: z.enum(['regular', 'elastic', 'physical']).optional(),
+  parentQueue: z.string().optional(),
+  capability: z.record(z.string(), z.unknown()).optional(),
+  deserved: z.record(z.string(), z.unknown()).optional(),
+  guarantee: z.record(z.string(), z.unknown()).optional(),
+});
+
+/**
+ * 删除队列请求体
+ */
+const deleteQueueBodySchema = z.object({
+  resourcePoolId: z.string().min(1),
+  queueId: z.string().min(1),
+});
+
+/**
+ * 创建节点请求体
+ */
+const createNodesBodySchema = z.object({
+  resourcePoolId: z.string().min(1),
+  nodeSet: z.array(z.object({
+    count: z.number().int().min(1).max(50),
+    addNodeSpec: z.object({
+      machineSpec: z.string(),
+      zoneName: z.string(),
+      resourceChargingOption: z.object({
+        chargingType: z.enum(['Prepaid', 'Postpaid']),
+        purchaseTime: z.number().optional(),
+        purchaseTimeUnit: z.enum(['MONTH']).optional(),
+        autoRenew: z.boolean().optional(),
+        autoRenewTime: z.number().optional(),
+        autoRenewTimeUnit: z.enum(['MONTH']).optional(),
+      }),
+      ehcClusterId: z.string().optional(),
+    }),
+  })),
+});
+
+/**
+ * 删除节点请求体
+ */
+const deleteNodesBodySchema = z.object({
+  resourcePoolId: z.string().min(1),
+  nodeNameList: z.array(z.string()),
+});
+
+/**
  * 资源池路由 - RPC风格
  * 所有请求通过 ?action=XXX 参数区分操作
  */
@@ -121,19 +225,15 @@ export async function resourcePoolsRoutes(fastify: FastifyInstance): Promise<voi
           pageNumber: params.pageNumber,
           pageSize: params.pageSize,
         }) as {
+          requestId?: string;
           resourcePoolList: BackendResourcePoolSpec[];
-          pageNumber: number;
-          pageSize: number;
           totalCount: number;
         };
 
         return {
-          resourcePools: response.resourcePoolList?.map(p => resourcePoolTransformer.fromBackend(p)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.resourcePoolList || []).map(p => resourcePoolTransformer.fromBackend(p)),
         };
       }
 
@@ -160,19 +260,15 @@ export async function resourcePoolsRoutes(fastify: FastifyInstance): Promise<voi
           pageNumber: params.pageNumber,
           pageSize: params.pageSize,
         }) as {
+          requestId?: string;
           resourceQueueList: BackendQueueItem[];
-          pageNumber: number;
-          pageSize: number;
           totalCount: number;
         };
 
         return {
-          queues: response.resourceQueueList?.map(q => resourcePoolTransformer.queueFromBackend(q)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.resourceQueueList || []).map(q => resourcePoolTransformer.queueFromBackend(q)),
         };
       }
 
@@ -193,24 +289,20 @@ export async function resourcePoolsRoutes(fastify: FastifyInstance): Promise<voi
         const params = describeNodesSchema.parse(request.query);
         logger.debug({ params }, 'Listing nodes');
 
-        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'ListNodes' as never, 'GET', {
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeNodes' as never, 'GET', {
           resourcePoolId: params.resourcePoolId,
           pageNumber: String(params.pageNumber),
           pageSize: String(params.pageSize),
         }) as {
+          requestId?: string;
           nodeList: BackendNode[];
-          pageNumber: number;
-          pageSize: number;
           totalCount: number;
         };
 
         return {
-          nodes: response.nodeList?.map(n => resourcePoolTransformer.nodeFromBackend(n)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.nodeList || []).map(n => resourcePoolTransformer.nodeFromBackend(n)),
         };
       }
 
@@ -248,11 +340,148 @@ export async function resourcePoolsRoutes(fastify: FastifyInstance): Promise<voi
         };
       }
 
+      case 'DescribeResourcePoolConfiguration': {
+        const params = describeResourcePoolConfigurationSchema.parse(request.query);
+        logger.debug({ params }, 'Getting resource pool configuration');
+
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeResourcePoolConfiguration' as never, 'GET', { resourcePoolId: params.resourcePoolId });
+
+        return response;
+      }
+
+      case 'DescribeResourcePoolsStatistic': {
+        const params = describeResourcePoolsStatisticSchema.parse(request.query);
+        logger.debug({ params }, 'Getting resource pools statistic');
+
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeResourcePoolsStatistic' as never, 'GET', params.resourcePoolType ? { resourcePoolType: params.resourcePoolType } : {});
+
+        return response;
+      }
+
       default:
         return {
           error: 'Invalid action',
-          validActions: ['DescribeResourcePools', 'DescribeResourcePool', 'DescribeQueues', 'DescribeQueue', 'DescribeNodes', 'DescribeNode', 'DescribeResourcePoolUsage'],
+          validActions: ['DescribeResourcePools', 'DescribeResourcePool', 'DescribeQueues', 'DescribeQueue', 'DescribeNodes', 'DescribeNode', 'DescribeResourcePoolUsage', 'DescribeResourcePoolConfiguration', 'DescribeResourcePoolsStatistic'],
         };
+    }
+  });
+
+  /**
+   * POST /api/v1/resource-pools?action=XXX
+   * 支持: CreateResourcePool, DeleteResourcePool, CreateQueue, DeleteQueue, CreateNodes, DeleteNodes
+   */
+  fastify.post('/api/v1/resource-pools', async (request: FastifyRequest<{ Querystring: { action?: string } }>, reply) => {
+    const { action } = request.query;
+
+    switch (action) {
+      case 'CreateResourcePool': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = createResourcePoolBodySchema.parse(request.body);
+        logger.debug({ region, name: body.name }, 'Creating resource pool');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'CreateResourcePool' as never, 'POST', {}, body) as {
+          requestId: string;
+          resourcePoolId: string;
+        };
+
+        reply.code(201);
+        return {
+          requestId: response.requestId,
+          resourcePoolId: response.resourcePoolId,
+        };
+      }
+
+      case 'DeleteResourcePool': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = deleteResourcePoolBodySchema.parse(request.body);
+        logger.debug({ region, resourcePoolId: body.resourcePoolId }, 'Deleting resource pool');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'DeleteResourcePool' as never, 'POST', { resourcePoolId: body.resourcePoolId }) as {
+          requestId: string;
+        };
+
+        return {
+          requestId: response.requestId,
+          resourcePoolId: body.resourcePoolId,
+        };
+      }
+
+      case 'CreateQueue': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = createQueueBodySchema.parse(request.body);
+        logger.debug({ region, resourcePoolId: body.resourcePoolId, name: body.resourceQueueName }, 'Creating queue');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'CreateQueue' as never, 'POST', { resourcePoolId: body.resourcePoolId }, {
+          resourceQueueName: body.resourceQueueName,
+          description: body.description,
+          resourceQueueType: body.resourceQueueType,
+          parentQueue: body.parentQueue,
+          capability: body.capability,
+          deserved: body.deserved,
+          guarantee: body.guarantee,
+        }) as {
+          requestId: string;
+          resourceQueueId: string;
+        };
+
+        reply.code(201);
+        return {
+          requestId: response.requestId,
+          queueId: response.resourceQueueId,
+        };
+      }
+
+      case 'DeleteQueue': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = deleteQueueBodySchema.parse(request.body);
+        logger.debug({ region, resourcePoolId: body.resourcePoolId, queueId: body.queueId }, 'Deleting queue');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'DeleteQueue' as never, 'POST', { resourcePoolId: body.resourcePoolId, queueId: body.queueId }) as {
+          requestId: string;
+        };
+
+        return {
+          requestId: response.requestId,
+          queueId: body.queueId,
+        };
+      }
+
+      case 'CreateNodes': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = createNodesBodySchema.parse(request.body);
+        logger.debug({ region, resourcePoolId: body.resourcePoolId }, 'Creating nodes');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'CreateNodes' as never, 'POST', { resourcePoolId: body.resourcePoolId }, {
+          nodeSet: body.nodeSet,
+        }) as {
+          requestId: string;
+        };
+
+        reply.code(201);
+        return {
+          requestId: response.requestId,
+        };
+      }
+
+      case 'DeleteNodes': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = deleteNodesBodySchema.parse(request.body);
+        logger.debug({ region, resourcePoolId: body.resourcePoolId }, 'Deleting nodes');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'DeleteNodes' as never, 'POST', { resourcePoolId: body.resourcePoolId }, {
+          nodeNameList: body.nodeNameList,
+        }) as {
+          requestId: string;
+        };
+
+        return {
+          requestId: response.requestId,
+        };
+      }
+
+      default:
+        reply.code(400);
+        return { error: 'Invalid action', validActions: ['CreateResourcePool', 'DeleteResourcePool', 'CreateQueue', 'DeleteQueue', 'CreateNodes', 'DeleteNodes'] };
     }
   });
 }

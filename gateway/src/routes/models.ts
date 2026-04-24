@@ -80,6 +80,16 @@ const deleteModelVersionBodySchema = z.object({
 });
 
 /**
+ * 修改模型请求体
+ */
+const modifyModelBodySchema = z.object({
+  modelId: z.string().min(1),
+  name: z.string().min(1).max(128).optional(),
+  description: z.string().max(1024).optional(),
+  visibilityScope: z.enum(['all', 'owner', 'group']).optional(),
+});
+
+/**
  * 模型路由 - RPC风格
  * 所有请求通过 ?action=XXX 参数区分操作
  */
@@ -102,19 +112,15 @@ export async function modelsRoutes(fastify: FastifyInstance): Promise<void> {
           pageNumber: params.pageNumber,
           pageSize: params.pageSize,
         }) as {
-          modelList: BackendModel[];
-          pageNumber: number;
-          pageSize: number;
+          requestId?: string;
+          models: BackendModel[];
           totalCount: number;
         };
 
         return {
-          models: response.modelList?.map(m => modelTransformer.fromBackend(m)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.models || []).map(m => modelTransformer.fromBackend(m)),
         };
       }
 
@@ -135,24 +141,20 @@ export async function modelsRoutes(fastify: FastifyInstance): Promise<void> {
         const params = describeModelVersionsSchema.parse(request.query);
         logger.debug({ params }, 'Listing model versions');
 
-        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'ListModelVersions' as never, 'GET', {
+        const response = await getBackendClient(request).sendRequest('aihc', params.region, 'DescribeModelVersions' as never, 'GET', {
           modelId: params.modelId,
           pageNumber: String(params.pageNumber),
           pageSize: String(params.pageSize),
         }) as {
+          requestId?: string;
           versionList: BackendModelVersionEntry[];
-          pageNumber: number;
-          pageSize: number;
           totalCount: number;
         };
 
         return {
-          versions: response.versionList?.map(v => modelTransformer.versionFromBackend(v)),
-          pagination: {
-            pageNumber: response.pageNumber,
-            pageSize: response.pageSize,
-            totalCount: response.totalCount,
-          },
+          requestId: response.requestId,
+          totalCount: response.totalCount || 0,
+          items: (response.versionList || []).map(v => modelTransformer.versionFromBackend(v)),
         };
       }
 
@@ -242,9 +244,28 @@ export async function modelsRoutes(fastify: FastifyInstance): Promise<void> {
         };
       }
 
+      case 'ModifyModel': {
+        const region = (request.query as { region?: string }).region || 'bd';
+        const body = modifyModelBodySchema.parse(request.body);
+        logger.debug({ region, modelId: body.modelId }, 'Modifying model');
+
+        const response = await getBackendClient(request).sendRequest('aihc', region, 'ModifyModel' as never, 'POST', { modelId: body.modelId }, {
+          name: body.name,
+          description: body.description,
+          visibilityScope: body.visibilityScope,
+        }) as {
+          requestId: string;
+        };
+
+        return {
+          requestId: response.requestId,
+          modelId: body.modelId,
+        };
+      }
+
       default:
         reply.code(400);
-        return { error: 'Invalid action', validActions: ['CreateModel', 'CreateModelVersion', 'DeleteModel', 'DeleteModelVersion'] };
+        return { error: 'Invalid action', validActions: ['CreateModel', 'CreateModelVersion', 'DeleteModel', 'DeleteModelVersion', 'ModifyModel'] };
     }
   });
 }

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: 百舸API网关
+  title: 百度云API网关
   description: |
     统一百舸各模块API规范和数据结构的中间层网关服务。
 
@@ -188,11 +188,6 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
-        - name: serviceId
-          in: query
-          schema:
-            type: string
-          description: 服务ID（DescribeService时必填）
         - name: pageNumber
           in: query
           schema:
@@ -245,6 +240,12 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
+        - name: clientToken
+          in: query
+          schema:
+            type: string
+          required: false
+          description: clientToken保证请求的幂等性
       requestBody:
         required: true
         content:
@@ -287,11 +288,6 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
-        - name: devInstanceId
-          in: query
-          schema:
-            type: string
-          description: 开发机ID（DescribeDevInstance时必填）
         - name: resourcePoolId
           in: query
           schema:
@@ -410,11 +406,6 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
-        - name: datasetId
-          in: query
-          schema:
-            type: string
-          description: 数据集ID
         - name: keyword
           in: query
           schema:
@@ -619,11 +610,6 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
-        - name: modelId
-          in: query
-          schema:
-            type: string
-          description: 模型ID
         - name: keyword
           in: query
           schema:
@@ -807,33 +793,40 @@ paths:
         - $ref: "#/components/parameters/RegionParam"
         - $ref: "#/components/parameters/AkParam"
         - $ref: "#/components/parameters/SkParam"
-        - name: resourcePoolId
-          in: query
-          schema:
-            type: string
-          description: 资源池ID
-        - name: queueId
-          in: query
-          schema:
-            type: string
-          description: 队列ID
-        - name: nodeName
-          in: query
-          schema:
-            type: string
-          description: 节点名称
         - name: type
           in: query
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
+        - name: keywordType
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - id
         - name: keyword
           in: query
           schema:
             type: string
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - id
+              - createdAt
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
         - name: pageNumber
           in: query
           schema:
@@ -884,9 +877,9 @@ paths:
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
         - name: keyword
           in: query
           schema:
@@ -913,24 +906,14 @@ paths:
           schema:
             type: string
           description: 资源池ID
-        - name: queueId
-          in: query
-          schema:
-            type: string
-          description: 队列ID
-        - name: nodeName
-          in: query
-          schema:
-            type: string
-          description: 节点名称
         - name: type
           in: query
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
         - name: keyword
           in: query
           schema:
@@ -985,9 +968,9 @@ paths:
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
         - name: keyword
           in: query
           schema:
@@ -1014,24 +997,14 @@ paths:
           schema:
             type: string
           description: 资源池ID
-        - name: queueId
-          in: query
-          schema:
-            type: string
-          description: 队列ID
-        - name: nodeName
-          in: query
-          schema:
-            type: string
-          description: 节点名称
         - name: type
           in: query
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
         - name: keyword
           in: query
           schema:
@@ -1086,9 +1059,9 @@ paths:
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
+              - common
+              - dedicatedV2
+            default: common
         - name: keyword
           in: query
           schema:
@@ -1115,41 +1088,14 @@ paths:
           schema:
             type: string
           description: 资源池ID
-        - name: queueId
-          in: query
-          schema:
-            type: string
-          description: 队列ID
-        - name: nodeName
-          in: query
-          schema:
-            type: string
-          description: 节点名称
         - name: type
           in: query
           schema:
             type: string
             enum:
-              - selfManaged
-              - managed
-            default: selfManaged
-        - name: keyword
-          in: query
-          schema:
-            type: string
-        - name: pageNumber
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: pageSize
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
+              - common
+              - dedicatedV2
+            default: common
       responses:
         "200":
           description: 成功
@@ -1502,8 +1448,8 @@ components:
         poolType:
           type: string
           enum:
-            - self-managed
-            - managed
+            - common
+            - dedicatedV2
         queue:
           type: string
           description: 队列名称
@@ -1678,14 +1624,74 @@ components:
       properties:
         name:
           type: string
+          description: 服务名称
         resourcePool:
           $ref: "#/components/schemas/ResourcePoolRef"
+          description: 资源池引用
         instanceCount:
           type: integer
+          description: 实例数量
+        workloadType:
+          type: string
+          description: 工作负载类型 (e.g., job, deployment)
+        acceleratorType:
+          type: string
+          description: 加速卡类型 (e.g., nvidia-a100)
         containers:
           type: array
+          description: 容器信息集合
           items:
             type: object
+            properties:
+              name:
+                type: string
+                description: 容器名称
+              resources:
+                $ref: "#/components/schemas/ComputeResources"
+                description: 计算资源
+              image:
+                $ref: "#/components/schemas/ImageConfig"
+                description: 镜像配置
+              command:
+                type: array
+                items:
+                  type: string
+                description: 启动命令
+              ports:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    port:
+                      type: integer
+              envs:
+                type: object
+                additionalProperties:
+                  type: string
+                description: 环境变量KV字典
+        storageMounts:
+          type: array
+          description: 存储挂载
+          items:
+            $ref: "#/components/schemas/StorageMount"
+        access:
+          type: object
+          additionalProperties: true
+          description: 访问权限与网络配置（直通透传）
+        deploy:
+          type: object
+          additionalProperties: true
+          description: 部署策略配置（直通透传）
+        log:
+          type: object
+          additionalProperties: true
+          description: 日志配置（直通透传）
+        misc:
+          type: object
+          additionalProperties: true
+          description: 杂项配置(podAnnotations等)（直通透传）
     DeleteServiceRequest:
       type: object
       required:
@@ -1961,8 +1967,8 @@ components:
         type:
           type: string
           enum:
-            - selfManaged
-            - managed
+            - common
+            - dedicatedV2
         status:
           type: string
         nodeCount:
