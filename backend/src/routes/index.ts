@@ -11,6 +11,7 @@ import { StorageController } from '@/controllers/storage.controller';
 import { TaskController } from '@/controllers/task.controller';
 import { ImageController } from '@/controllers/image.controller';
 import { WorkflowController } from '@/controllers/workflow.controller';
+import { TemplateController } from '@/controllers/template.controller';
 import { LakeFSController } from '@/controllers/lakefs.controller';
 import { DevInstanceController } from '@/controllers/dev-instance.controller';
 import { authMiddleware } from '@/middleware/auth.middleware';
@@ -256,6 +257,17 @@ router.put('/api/workflows/:workflowId', WorkflowController.update);
 
 // 删除工作流
 router.delete('/api/workflows/:workflowId', WorkflowController.delete);
+
+/**
+ * 模板管理相关路由
+ */
+router.get('/api/templates/metadata', authMiddleware, TemplateController.metadata);
+router.get('/api/templates/doc-preview', authMiddleware, TemplateController.previewDoc);
+router.get('/api/templates', authMiddleware, TemplateController.list);
+router.get('/api/templates/:id', authMiddleware, TemplateController.get);
+router.post('/api/templates', authMiddleware, TemplateController.create);
+router.put('/api/templates/:id', authMiddleware, TemplateController.update);
+router.delete('/api/templates/:id', authMiddleware, TemplateController.delete);
 
 /**
  * LakeFS 相关路由 - 需要认证

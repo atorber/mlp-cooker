@@ -10,7 +10,8 @@
     {
       "type": "train",
       "label": "创建训练任务",
-      "templateKey": "train"
+      "templateKey": "train",
+      "templateId": 117
     }
   ]
 }

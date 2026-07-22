@@ -329,10 +329,18 @@ export class AihcSDK extends BaseService {
   /**
    * 停止训练任务
    */
-  async stopJob(jobId: string, resourcePoolId?: string): Promise<any> {
+  async stopJob(jobId: string, resourcePoolId?: string, queueID?: string): Promise<any> {
     return this.withRetry(async () => {
+      const finalResourcePoolId = resourcePoolId || this.config.defaultResourcePoolId;
+      const finalQueueID = queueID || this.config.defaultQueue || '';
+
+      if (finalResourcePoolId === 'aihc-serverless' && !finalQueueID) {
+        throw new Error('serverless 资源池下 queueID 不能为空，请配置 ML_PLATFORM_RESOURCE_QUEUE_ID');
+      }
+
       return this.sendRequest('POST', 'StopJob', {
-        resourcePoolId: resourcePoolId || this.config.defaultResourcePoolId,
+        resourcePoolId: finalResourcePoolId,
+        queueID: finalQueueID,
       }, {
         jobId,
       });
@@ -342,10 +350,18 @@ export class AihcSDK extends BaseService {
   /**
    * 删除训练任务
    */
-  async deleteJob(jobId: string, resourcePoolId?: string): Promise<any> {
+  async deleteJob(jobId: string, resourcePoolId?: string, queueID?: string): Promise<any> {
     return this.withRetry(async () => {
+      const finalResourcePoolId = resourcePoolId || this.config.defaultResourcePoolId;
+      const finalQueueID = queueID || this.config.defaultQueue || '';
+
+      if (finalResourcePoolId === 'aihc-serverless' && !finalQueueID) {
+        throw new Error('serverless 资源池下 queueID 不能为空，请配置 ML_PLATFORM_RESOURCE_QUEUE_ID');
+      }
+
       return this.sendRequest('POST', 'DeleteJob', {
-        resourcePoolId: resourcePoolId || this.config.defaultResourcePoolId,
+        resourcePoolId: finalResourcePoolId,
+        queueID: finalQueueID,
       }, {
         jobId,
       });

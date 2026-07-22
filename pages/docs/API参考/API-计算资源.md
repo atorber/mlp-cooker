@@ -125,3 +125,13 @@ sidebar_position: 5
 }
 ```
 
+## 存储浏览
+
+以下接口用于「资源 → 存储」页面，均需认证。
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/storage/buckets` | 列出可用存储桶 |
+| GET | `/api/storage/bucket/files` | 浏览对象存储文件 |
+| GET | `/api/storage/pfs/files` | 浏览 PFS 文件（依赖 mlp-cooker 组件） |
+

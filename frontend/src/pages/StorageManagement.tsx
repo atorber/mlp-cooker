@@ -12,6 +12,7 @@ import {
   Breadcrumb,
   Button,
   Card,
+  Modal,
   Space,
   Spin,
   Table,
@@ -22,6 +23,37 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 const { Text } = Typography;
+
+function getMlpCookerJobStatusInfo(status: unknown): {
+  text: string;
+  color: string;
+  failed: boolean;
+} {
+  const normalized = status != null ? String(status).toLowerCase() : '';
+  const statusTextMap: Record<string, string> = {
+    running: '运行中',
+    pending: '等待中',
+    stopped: '已停止',
+    completed: '已完成',
+    manualtermination: '手动终止',
+    error: '错误',
+    failed: '失败',
+  };
+  const failed = normalized === 'failed' || normalized === 'error';
+  const color =
+    normalized === 'running'
+      ? 'success'
+      : normalized === 'pending'
+        ? 'warning'
+        : failed
+          ? 'error'
+          : 'default';
+  return {
+    text: statusTextMap[normalized] || (status != null ? String(status) : '未知'),
+    color,
+    failed,
+  };
+}
 
 interface FileRow {
   key: string;
@@ -368,6 +400,36 @@ const StorageManagement: React.FC = () => {
     }
   }, [fetchDefaultQueueContext, loadPfsTab, messageApi]);
 
+  const mlpCookerJobStatus = useMemo(
+    () => getMlpCookerJobStatusInfo(mlpCookerJob?.status),
+    [mlpCookerJob?.status],
+  );
+
+  const handleRestartMlpCooker = useCallback(() => {
+    const jobId = String(mlpCookerJob?.jobId ?? mlpCookerJob?.id ?? '').trim();
+    if (!jobId) {
+      messageApi.error('无法获取任务 ID');
+      return;
+    }
+    Modal.confirm({
+      title: '确认重启 mlp-cooker 组件？',
+      content:
+        '将删除当前失败的任务并重新创建组件，完成后可恢复 PFS 文件浏览能力。',
+      okText: '重启',
+      cancelText: '取消',
+      onOk: async () => {
+        const delRes = await request(`/api/jobs/${encodeURIComponent(jobId)}`, {
+          method: 'DELETE',
+        });
+        if (!delRes.success) {
+          messageApi.error(delRes.message || '删除失败任务失败');
+          throw new Error('delete failed');
+        }
+        await handleInitializeMlpCooker();
+      },
+    });
+  }, [handleInitializeMlpCooker, messageApi, mlpCookerJob]);
+
   useEffect(() => {
     if (activeTab === 'pfs') {
       loadPfsTab();
@@ -587,20 +649,42 @@ const StorageManagement: React.FC = () => {
                     {!pfsTabLoading && mlpCookerJob ? (
                       <>
                         <Alert
-                          type="success"
+                          type={mlpCookerJobStatus.failed ? 'error' : 'success'}
                           showIcon
                           message={
                             <Space wrap>
-                              <span>已检测到组件</span>
+                              <span>
+                                {mlpCookerJobStatus.failed
+                                  ? '组件任务已失败'
+                                  : '已检测到组件'}
+                              </span>
                               <Tag color="processing">
                                 {mlpCookerJob.jobId || mlpCookerJob.id || '-'}
                               </Tag>
                               {mlpCookerJob.status != null ? (
-                                <Tag>{String(mlpCookerJob.status)}</Tag>
+                                <Tag color={mlpCookerJobStatus.color}>
+                                  {mlpCookerJobStatus.text}
+                                </Tag>
                               ) : null}
                             </Space>
                           }
-                          description="组件存在时可继续查看下方 PFS 实例与文件列表。"
+                          description={
+                            mlpCookerJobStatus.failed
+                              ? '组件处于失败状态，PFS 文件浏览可能不可用。请点击「重启组件」或前往全局配置 / 队列管理重新初始化。'
+                              : '组件运行正常，可继续查看下方 PFS 实例与文件列表。'
+                          }
+                          action={
+                            mlpCookerJobStatus.failed ? (
+                              <Button
+                                type="primary"
+                                icon={<ReloadOutlined />}
+                                onClick={handleRestartMlpCooker}
+                                loading={initializingMlpCooker}
+                              >
+                                重启组件
+                              </Button>
+                            ) : undefined
+                          }
                         />
                         {pfsInstanceId ? (
                           <Text type="secondary">

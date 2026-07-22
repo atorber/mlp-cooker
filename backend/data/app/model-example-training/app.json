@@ -4,13 +4,18 @@
   "type": "training",
   "categoryType": "model",
   "category": "模型训练",
-  "tags": ["训练", "PyTorch", "示例"],
+  "tags": [
+    "训练",
+    "PyTorch",
+    "示例"
+  ],
   "actions": [
     {
       "type": "train",
       "label": "创建训练任务",
       "description": "创建训练任务",
-      "templateKey": "train"
+      "templateKey": "train",
+      "templateId": 109
     }
   ]
 }

@@ -200,15 +200,20 @@ export class JobController {
   public static async stop(req: Request, res: Response): Promise<void> {
     try {
       const { jobId } = req.params;
-      const { resourcePoolId } = req.query;
+      const { queueID, queueId } = req.query;
 
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
       }
 
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
+      const finalQueueID =
+        (queueID as string) || (queueId as string) || mlResourceConfig.queueId || '';
+
       const sdk = JobController.getJobSDK(req.user!.ak!);
-      const result = await sdk.stopJob(jobId, 'aihc-serverless');
+      const result = await sdk.stopJob(jobId, 'aihc-serverless', finalQueueID);
 
       ResponseUtils.success(res, result, '训练任务停止成功');
     } catch (error) {
@@ -225,15 +230,20 @@ export class JobController {
   public static async delete(req: Request, res: Response): Promise<void> {
     try {
       const { jobId } = req.params;
-      const { resourcePoolId } = req.query;
+      const { queueID, queueId } = req.query;
 
       if (!jobId) {
         ResponseUtils.error(res, '训练任务ID不能为空');
         return;
       }
 
+      const yamlConfig = YamlConfigManager.getInstance(req.user!.ak!);
+      const mlResourceConfig = yamlConfig.getMLResourceConfig();
+      const finalQueueID =
+        (queueID as string) || (queueId as string) || mlResourceConfig.queueId || '';
+
       const sdk = JobController.getJobSDK(req.user!.ak!);
-      const result = await sdk.deleteJob(jobId, 'aihc-serverless');
+      const result = await sdk.deleteJob(jobId, 'aihc-serverless', finalQueueID);
 
       ResponseUtils.success(res, result, '训练任务删除成功');
     } catch (error) {

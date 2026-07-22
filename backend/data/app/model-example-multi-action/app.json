@@ -4,19 +4,25 @@
   "type": "deployment",
   "categoryType": "model",
   "category": "模型",
-  "tags": ["部署", "训练", "示例"],
+  "tags": [
+    "部署",
+    "训练",
+    "示例"
+  ],
   "actions": [
     {
       "type": "deploy",
       "label": "部署推理服务",
       "description": "部署推理在线服务",
-      "templateKey": "deploy"
+      "templateKey": "deploy",
+      "templateId": 107
     },
     {
       "type": "train",
       "label": "创建训练任务",
       "description": "创建训练任务",
-      "templateKey": "train"
+      "templateKey": "train",
+      "templateId": 108
     }
   ]
 }

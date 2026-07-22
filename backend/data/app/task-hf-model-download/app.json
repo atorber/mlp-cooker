@@ -14,7 +14,8 @@
       "type": "create-job",
       "label": "创建任务",
       "description": "创建模型下载任务",
-      "templateKey": "create-job"
+      "templateKey": "create-job",
+      "templateId": 114
     }
   ]
 }
