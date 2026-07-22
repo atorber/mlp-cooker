@@ -1,0 +1,2048 @@
+openapi: 3.0.3
+info:
+  title: 百度云API网关
+  description: |
+    统一百舸各模块API规范和数据结构的中间层网关服务。
+
+    所有接口采用RPC风格，通过 `?action=XXX` 参数区分操作。
+  version: 1.0.0
+  contact:
+    name: API Support
+servers:
+  - url: http://localhost:3000/v1
+    description: 本地开发服务器
+tags:
+  - name: BOS
+    description: BOS 对象存储接口
+  - name: Jobs
+    description: 训练任务接口
+  - name: Services
+    description: 服务部署接口
+  - name: DevInstances
+    description: 开发机接口
+  - name: Datasets
+    description: 数据集接口
+  - name: Models
+    description: 模型管理接口
+  - name: ResourcePools
+    description: 资源池接口
+paths:
+  /aihc/jobs/DescribeJobs:
+    get:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobs
+      description: 查询指定资源池和队列下的训练任务列表
+      operationId: describeJobs
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 资源池ID
+        - name: queue
+          in: query
+          schema:
+            type: string
+          description: 队列名称
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: 任务状态过滤
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 搜索关键字
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobListResponse"
+  /aihc/jobs/DescribeJob:
+    get:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJob
+      description: 查询指定资源池和队列下的训练任务列表
+      operationId: describeJob
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: 资源池ID
+        - name: queue
+          in: query
+          schema:
+            type: string
+          description: 队列名称
+        - name: jobId
+          in: query
+          schema:
+            type: string
+          description: 任务ID（DescribeJob时必填）
+        - name: needDetail
+          in: query
+          schema:
+            type: boolean
+          description: 是否需要详情（DescribeJob时可选）
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobDetail"
+  /aihc/jobs/CreateJob:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - CreateJob
+      description: 创建或删除训练任务
+      operationId: createJob
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJobRequest"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateJobResponse"
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateJobResponse"
+  /aihc/jobs/DeleteJob:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DeleteJob
+      description: 创建或删除训练任务
+      operationId: deleteJob
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteJobRequest"
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteJobResponse"
+        "201":
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateJobResponse"
+  /aihc/services/DescribeServices:
+    get:
+      tags:
+        - Services
+      summary: Services - DescribeServices
+      operationId: describeServices
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceListResponse"
+  /aihc/services/DescribeService:
+    get:
+      tags:
+        - Services
+      summary: Services - DescribeService
+      operationId: describeService
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: serviceId
+          in: query
+          schema:
+            type: string
+          description: 服务ID（DescribeService时必填）
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceDetail"
+  /aihc/services/CreateService:
+    post:
+      tags:
+        - Services
+      summary: Services - CreateService
+      operationId: createService
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: clientToken
+          in: query
+          schema:
+            type: string
+          required: false
+          description: clientToken保证请求的幂等性
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateServiceRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/services/DeleteService:
+    post:
+      tags:
+        - Services
+      summary: Services - DeleteService
+      operationId: deleteService
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteServiceRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/dev-instances/DescribeDevInstances:
+    get:
+      tags:
+        - DevInstances
+      summary: DevInstances - DescribeDevInstances
+      operationId: describeDevInstances
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+        - name: queueName
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevInstanceListResponse"
+  /aihc/dev-instances/DescribeDevInstance:
+    get:
+      tags:
+        - DevInstances
+      summary: DevInstances - DescribeDevInstance
+      operationId: describeDevInstance
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: devInstanceId
+          in: query
+          schema:
+            type: string
+          description: 开发机ID（DescribeDevInstance时必填）
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+        - name: queueName
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevInstanceDetail"
+  /aihc/dev-instances/CreateDevInstance:
+    post:
+      tags:
+        - DevInstances
+      summary: DevInstances - CreateDevInstance
+      operationId: createDevInstance
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDevInstanceRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/dev-instances/DeleteDevInstance:
+    post:
+      tags:
+        - DevInstances
+      summary: DevInstances - DeleteDevInstance
+      operationId: deleteDevInstance
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteDevInstanceRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/datasets/DescribeDatasets:
+    get:
+      tags:
+        - Datasets
+      summary: Datasets - DescribeDatasets
+      operationId: describeDatasets
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: storageType
+          in: query
+          schema:
+            type: string
+            enum:
+              - pfs
+              - bos
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetListResponse"
+  /aihc/datasets/DescribeDataset:
+    get:
+      tags:
+        - Datasets
+      summary: Datasets - DescribeDataset
+      operationId: describeDataset
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: datasetId
+          in: query
+          schema:
+            type: string
+          description: 数据集ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: storageType
+          in: query
+          schema:
+            type: string
+            enum:
+              - pfs
+              - bos
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetDetail"
+  /aihc/datasets/DescribeDatasetVersions:
+    get:
+      tags:
+        - Datasets
+      summary: Datasets - DescribeDatasetVersions
+      operationId: describeDatasetVersions
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: datasetId
+          in: query
+          schema:
+            type: string
+          description: 数据集ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: storageType
+          in: query
+          schema:
+            type: string
+            enum:
+              - pfs
+              - bos
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DatasetVersionListResponse"
+  /aihc/datasets/CreateDataset:
+    post:
+      tags:
+        - Datasets
+      summary: Datasets - CreateDataset
+      operationId: createDataset
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDatasetRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/datasets/CreateDatasetVersion:
+    post:
+      tags:
+        - Datasets
+      summary: Datasets - CreateDatasetVersion
+      operationId: createDatasetVersion
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDatasetVersionRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/datasets/DeleteDataset:
+    post:
+      tags:
+        - Datasets
+      summary: Datasets - DeleteDataset
+      operationId: deleteDataset
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteDatasetRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/datasets/DeleteDatasetVersion:
+    post:
+      tags:
+        - Datasets
+      summary: Datasets - DeleteDatasetVersion
+      operationId: deleteDatasetVersion
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteDatasetVersionRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/models/DescribeModels:
+    get:
+      tags:
+        - Models
+      summary: Models - DescribeModels
+      operationId: describeModels
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelListResponse"
+  /aihc/models/DescribeModel:
+    get:
+      tags:
+        - Models
+      summary: Models - DescribeModel
+      operationId: describeModel
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: modelId
+          in: query
+          schema:
+            type: string
+          description: 模型ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelDetail"
+  /aihc/models/DescribeModelVersions:
+    get:
+      tags:
+        - Models
+      summary: Models - DescribeModelVersions
+      operationId: describeModelVersions
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: modelId
+          in: query
+          schema:
+            type: string
+          description: 模型ID
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModelVersionListResponse"
+  /aihc/models/CreateModel:
+    post:
+      tags:
+        - Models
+      summary: Models - CreateModel
+      operationId: createModel
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateModelRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/models/CreateModelVersion:
+    post:
+      tags:
+        - Models
+      summary: Models - CreateModelVersion
+      operationId: createModelVersion
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateModelVersionRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/models/DeleteModel:
+    post:
+      tags:
+        - Models
+      summary: Models - DeleteModel
+      operationId: deleteModel
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteModelRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/models/DeleteModelVersion:
+    post:
+      tags:
+        - Models
+      summary: Models - DeleteModelVersion
+      operationId: deleteModelVersion
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteModelVersionRequest"
+      responses:
+        "200":
+          description: 成功
+        "201":
+          description: 创建成功
+  /aihc/resource-pools/DescribeResourcePools:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeResourcePools
+      operationId: describeResourcePools
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keywordType
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - id
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - id
+              - createdAt
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePoolListResponse"
+  /aihc/resource-pools/DescribeResourcePool:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeResourcePool
+      operationId: describeResourcePool
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: queueId
+          in: query
+          schema:
+            type: string
+          description: 队列ID
+        - name: nodeName
+          in: query
+          schema:
+            type: string
+          description: 节点名称
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePoolDetail"
+  /aihc/resource-pools/DescribeQueues:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeQueues
+      operationId: describeQueues
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueListResponse"
+  /aihc/resource-pools/DescribeQueue:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeQueue
+      operationId: describeQueue
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: queueId
+          in: query
+          schema:
+            type: string
+          description: 队列ID
+        - name: nodeName
+          in: query
+          schema:
+            type: string
+          description: 节点名称
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueueDetail"
+  /aihc/resource-pools/DescribeNodes:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeNodes
+      operationId: describeNodes
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeListResponse"
+  /aihc/resource-pools/DescribeNode:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeNode
+      operationId: describeNode
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: queueId
+          in: query
+          schema:
+            type: string
+          description: 队列ID
+        - name: nodeName
+          in: query
+          schema:
+            type: string
+          description: 节点名称
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NodeDetail"
+  /aihc/resource-pools/DescribeResourcePoolUsage:
+    get:
+      tags:
+        - ResourcePools
+      summary: ResourcePools - DescribeResourcePoolUsage
+      operationId: describeResourcePoolUsage
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+        - name: resourcePoolId
+          in: query
+          schema:
+            type: string
+          description: 资源池ID
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum:
+              - common
+              - dedicatedV2
+            default: common
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePoolUsage"
+  /bos/DescribeBuckets:
+    get:
+      tags:
+        - BOS
+      summary: BOS - DescribeBuckets
+      operationId: describeBuckets
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      responses:
+        "200":
+          description: 成功
+  /bos:
+    post:
+      tags:
+        - BOS
+      summary: 存储桶基本操作代理
+      operationId: bosActions
+      parameters:
+        - name: action
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      responses:
+        "200":
+          description: 成功
+  /aihc/jobs/StopJob:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - StopJob
+      operationId: stopJob
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/BatchStopJobs:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - BatchStopJobs
+      operationId: batchStopJobs
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/ModifyJob:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - ModifyJob
+      operationId: modifyJob
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribePodEvents:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribePodEvents
+      operationId: describePodEvents
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribeJobEvents:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobEvents
+      operationId: describeJobEvents
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribeJobNodes:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobNodes
+      operationId: describeJobNodes
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribeJobLogs:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobLogs
+      operationId: describeJobLogs
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribeJobMetrics:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobMetrics
+      operationId: describeJobMetrics
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /aihc/jobs/DescribeJobWebterminal:
+    post:
+      tags:
+        - Jobs
+      summary: Jobs - DescribeJobWebterminal
+      operationId: describeJobWebterminal
+      parameters:
+        - $ref: "#/components/parameters/RegionParam"
+        - $ref: "#/components/parameters/AkParam"
+        - $ref: "#/components/parameters/SkParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: 动态透传参数
+      responses:
+        "200":
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+components:
+  parameters:
+    RegionParam:
+      name: region
+      in: header
+      required: true
+      description: 区域代码
+      schema:
+        type: string
+        enum:
+          - bj
+          - gz
+          - su
+          - bd
+          - fwh
+          - yq
+        default: bd
+    AkParam:
+      name: ak
+      in: header
+      required: true
+      description: 百度云 Access Key
+      schema:
+        type: string
+    SkParam:
+      name: sk
+      in: header
+      required: true
+      description: 百度云 Secret Key
+      schema:
+        type: string
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+        pageSize:
+          type: integer
+        totalCount:
+          type: integer
+    ComputeResources:
+      type: object
+      required:
+        - cpu
+        - memory
+      properties:
+        cpu:
+          type: number
+          description: CPU核数
+        memory:
+          type: number
+          description: 内存(GB)
+        accelerator:
+          type: object
+          properties:
+            type:
+              type: string
+              description: 加速卡类型
+            count:
+              type: integer
+              description: 加速卡数量
+        sharedMemory:
+          type: number
+          description: 共享内存(GB)
+    ResourcePoolRef:
+      type: object
+      required:
+        - poolId
+        - queue
+      properties:
+        poolId:
+          type: string
+          description: 资源池ID
+        poolName:
+          type: string
+          description: 资源池名称
+        poolType:
+          type: string
+          enum:
+            - common
+            - dedicatedV2
+        queue:
+          type: string
+          description: 队列名称
+    ImageConfig:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: 镜像地址
+        source:
+          type: string
+          enum:
+            - preset
+            - custom
+            - ccr
+        auth:
+          type: object
+          properties:
+            username:
+              type: string
+            password:
+              type: string
+    StorageMount:
+      type: object
+      required:
+        - name
+        - mountPath
+        - storageType
+        - config
+      properties:
+        name:
+          type: string
+        mountPath:
+          type: string
+        readOnly:
+          type: boolean
+        storageType:
+          type: string
+          enum:
+            - pfs
+            - bos
+            - cfs
+            - dataset
+            - hostPath
+            - emptyDir
+            - cds
+        config:
+          type: object
+    CreateJobRequest:
+      type: object
+      required:
+        - name
+        - resourcePool
+        - command
+        - resources
+        - replicas
+        - image
+      properties:
+        name:
+          type: string
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+        framework:
+          type: string
+          enum:
+            - PyTorchJob
+            - TFJob
+            - MPIJob
+        command:
+          type: string
+        resources:
+          $ref: "#/components/schemas/ComputeResources"
+        replicas:
+          type: integer
+        image:
+          $ref: "#/components/schemas/ImageConfig"
+        storageMounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageMount"
+        envs:
+          type: object
+          additionalProperties:
+            type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        priority:
+          type: string
+          enum:
+            - high
+            - normal
+            - low
+        enableRDMA:
+          type: boolean
+    DeleteJobRequest:
+      type: object
+      required:
+        - resourcePoolId
+        - queue
+        - jobId
+      properties:
+        resourcePoolId:
+          type: string
+        queue:
+          type: string
+        jobId:
+          type: string
+    CreateJobResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        jobId:
+          type: string
+        jobName:
+          type: string
+    DeleteJobResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        jobId:
+          type: string
+    JobListResponse:
+      type: object
+      properties:
+        jobs:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    JobDetail:
+      type: object
+      properties:
+        jobId:
+          type: string
+        jobName:
+          type: string
+        status:
+          type: string
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+        framework:
+          type: string
+        command:
+          type: string
+        resources:
+          $ref: "#/components/schemas/ComputeResources"
+        replicas:
+          type: integer
+        image:
+          $ref: "#/components/schemas/ImageConfig"
+        envs:
+          type: object
+          additionalProperties:
+            type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        priority:
+          type: string
+        enableRDMA:
+          type: boolean
+    CreateServiceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 服务名称
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+          description: 资源池引用
+        instanceCount:
+          type: integer
+          description: 实例数量
+        workloadType:
+          type: string
+          description: 工作负载类型 (e.g., job, deployment)
+        acceleratorType:
+          type: string
+          description: 加速卡类型 (e.g., nvidia-a100)
+        containers:
+          type: array
+          description: 容器信息集合
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 容器名称
+              resources:
+                $ref: "#/components/schemas/ComputeResources"
+                description: 计算资源
+              image:
+                $ref: "#/components/schemas/ImageConfig"
+                description: 镜像配置
+              command:
+                type: array
+                items:
+                  type: string
+                description: 启动命令
+              ports:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    port:
+                      type: integer
+              envs:
+                type: object
+                additionalProperties:
+                  type: string
+                description: 环境变量KV字典
+        storageMounts:
+          type: array
+          description: 存储挂载
+          items:
+            $ref: "#/components/schemas/StorageMount"
+        access:
+          type: object
+          additionalProperties: true
+          description: 访问权限与网络配置（直通透传）
+        deploy:
+          type: object
+          additionalProperties: true
+          description: 部署策略配置（直通透传）
+        log:
+          type: object
+          additionalProperties: true
+          description: 日志配置（直通透传）
+        misc:
+          type: object
+          additionalProperties: true
+          description: 杂项配置(podAnnotations等)（直通透传）
+    DeleteServiceRequest:
+      type: object
+      required:
+        - serviceId
+      properties:
+        serviceId:
+          type: string
+    ServiceListResponse:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    ServiceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+        instanceCount:
+          type: integer
+        containers:
+          type: array
+          items:
+            type: object
+    CreateDevInstanceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+        resources:
+          $ref: "#/components/schemas/ComputeResources"
+        image:
+          $ref: "#/components/schemas/ImageConfig"
+    DeleteDevInstanceRequest:
+      type: object
+      required:
+        - devInstanceId
+      properties:
+        devInstanceId:
+          type: string
+    DevInstanceListResponse:
+      type: object
+      properties:
+        devInstances:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    DevInstanceDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        resourcePool:
+          $ref: "#/components/schemas/ResourcePoolRef"
+        resources:
+          $ref: "#/components/schemas/ComputeResources"
+        status:
+          type: integer
+    CreateDatasetRequest:
+      type: object
+      required:
+        - name
+        - storageType
+        - storageInstance
+        - importFormat
+        - initialVersion
+      properties:
+        name:
+          type: string
+        storageType:
+          type: string
+          enum:
+            - pfs
+            - bos
+        storageInstance:
+          type: string
+        importFormat:
+          type: string
+          enum:
+            - file
+            - folder
+        description:
+          type: string
+        owner:
+          type: string
+        visibilityScope:
+          type: string
+          enum:
+            - all
+            - owner
+            - group
+        initialVersion:
+          type: object
+          properties:
+            storagePath:
+              type: string
+            mountPath:
+              type: string
+            description:
+              type: string
+    DeleteDatasetRequest:
+      type: object
+      required:
+        - datasetId
+      properties:
+        datasetId:
+          type: string
+    DatasetListResponse:
+      type: object
+      properties:
+        datasets:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    DatasetDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        storageType:
+          type: string
+        storageInstance:
+          type: string
+    DatasetVersionListResponse:
+      type: object
+      properties:
+        versions:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    CreateDatasetVersionRequest:
+      type: object
+      required:
+        - datasetId
+        - storagePath
+        - mountPath
+      properties:
+        datasetId:
+          type: string
+        storagePath:
+          type: string
+        mountPath:
+          type: string
+        description:
+          type: string
+    DeleteDatasetVersionRequest:
+      type: object
+      required:
+        - datasetId
+        - versionId
+      properties:
+        datasetId:
+          type: string
+        versionId:
+          type: string
+    CreateModelRequest:
+      type: object
+      required:
+        - name
+        - modelFormat
+      properties:
+        name:
+          type: string
+        modelFormat:
+          type: string
+        description:
+          type: string
+        owner:
+          type: string
+        visibilityScope:
+          type: string
+          enum:
+            - all
+            - owner
+            - group
+    DeleteModelRequest:
+      type: object
+      required:
+        - modelId
+      properties:
+        modelId:
+          type: string
+    ModelListResponse:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    ModelDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        modelFormat:
+          type: string
+    ModelVersionListResponse:
+      type: object
+      properties:
+        versions:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    CreateModelVersionRequest:
+      type: object
+      required:
+        - modelId
+        - version
+        - storageBucket
+        - storagePath
+      properties:
+        modelId:
+          type: string
+        version:
+          type: string
+        storageBucket:
+          type: string
+        storagePath:
+          type: string
+        description:
+          type: string
+    DeleteModelVersionRequest:
+      type: object
+      required:
+        - modelId
+        - versionId
+      properties:
+        modelId:
+          type: string
+        versionId:
+          type: string
+    ResourcePoolListResponse:
+      type: object
+      properties:
+        resourcePools:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    ResourcePoolDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - common
+            - dedicatedV2
+        status:
+          type: string
+        nodeCount:
+          type: integer
+    QueueListResponse:
+      type: object
+      properties:
+        queues:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    QueueDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        resourcePoolId:
+          type: string
+    NodeListResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    NodeDetail:
+      type: object
+      properties:
+        name:
+          type: string
+        instanceId:
+          type: string
+        status:
+          type: string
+        resources:
+          type: object
+    ResourcePoolUsage:
+      type: object
+      properties:
+        usage:
+          type: object
+          properties:
+            total:
+              type: object
+            used:
+              type: object
+            available:
+              type: object
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 错误码
+        message:
+          type: string
+          description: 错误信息
+        requestId:
+          type: string
+          description: 请求ID
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string

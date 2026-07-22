@@ -4,13 +4,17 @@
   "type": "deployment",
   "categoryType": "tool",
   "category": "工具应用",
-  "tags": ["工具", "示例"],
+  "tags": [
+    "工具",
+    "示例"
+  ],
   "actions": [
     {
       "type": "deploy-tool",
       "label": "部署工具",
       "description": "部署工具服务",
-      "templateKey": "deploy-tool"
+      "templateKey": "deploy-tool",
+      "templateId": 116
     }
   ]
 }

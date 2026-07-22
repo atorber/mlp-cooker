@@ -62,10 +62,11 @@ interface Application {
   };
   actions?: Array<{
     // 支持的操作
-    type: 'deploy' | 'train' | 'create-job'; // 部署、训练、创建任务
+    type: 'deploy' | 'train' | 'create-job' | 'deploy-tool';
     label: string;
     description?: string;
-    templateKey?: string; // 指向 templates 中的某个模板，如果不指定则使用操作类型作为 key
+    templateKey?: string;
+    templateId?: number;
   }>;
   [key: string]: any;
 }
@@ -552,8 +553,8 @@ const Application: React.FC = () => {
 
   return (
     <PageContainer
-      title="应用模板"
-      subTitle="服务部署、训练、批量任务等应用模板"
+      title="应用"
+      subTitle="应用通过引用模板库获取配置参数，配置内容保存在模板的 template_content 中"
       extra={
         <Space>
           <Button
@@ -734,11 +735,39 @@ const Application: React.FC = () => {
                 </Space>
               </Descriptions.Item>
             )}
+            {selectedApp.actions && selectedApp.actions.length > 0 && (
+              <Descriptions.Item label="关联模板">
+                <Space direction="vertical" size="small">
+                  {selectedApp.actions.map((action) => {
+                    const templateKey = action.templateKey || action.type;
+                    const template = selectedApp.templates?.[templateKey];
+                    return (
+                      <div key={`${action.type}-${action.templateId || templateKey}`}>
+                        <Text strong>{action.label}：</Text>
+                        {action.templateId ? (
+                          <Space wrap>
+                            <Tag color="blue">模板 ID {action.templateId}</Tag>
+                            {template?.templateName ? (
+                              <Text type="secondary">{template.templateName}</Text>
+                            ) : null}
+                          </Space>
+                        ) : (
+                          <Text type="secondary">未关联模板</Text>
+                        )}
+                      </div>
+                    );
+                  })}
+                </Space>
+              </Descriptions.Item>
+            )}
             {selectedApp.templates && Object.keys(selectedApp.templates).length > 0 && (
-              <Descriptions.Item label="模板配置">
+              <Descriptions.Item label="配置参数">
                 {Object.entries(selectedApp.templates).map(([key, template]: [string, any]) => (
                   <div key={key} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f0f0f0' }}>
-                    <div style={{ fontWeight: 500, marginBottom: 8 }}>模板: {key}</div>
+                    <div style={{ fontWeight: 500, marginBottom: 8 }}>
+                      {template.templateName || key}
+                      {template.templateId ? `（模板 ID ${template.templateId}）` : ''}
+                    </div>
                     {template.accelerators && Object.keys(template.accelerators).length > 0 && (
                       <div style={{ marginBottom: 8 }}>
                         <span style={{ fontWeight: 500 }}>支持的加速卡: </span>

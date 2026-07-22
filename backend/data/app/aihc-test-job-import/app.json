@@ -3,12 +3,17 @@
   "description": "测试从任务中导入模板",
   "type": "training",
   "categoryType": "model",
-  "tags": ["部署", "训练", "示例"],
+  "tags": [
+    "部署",
+    "训练",
+    "示例"
+  ],
   "actions": [
     {
       "type": "train",
       "label": "创建训练任务",
-      "templateKey": "train"
+      "templateKey": "train",
+      "templateId": 106
     }
   ]
 }

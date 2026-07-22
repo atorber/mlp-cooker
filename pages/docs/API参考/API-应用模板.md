@@ -2,83 +2,87 @@
 sidebar_position: 6
 ---
 
-# 应用模板
+# 应用
 
-所有应用模板接口都需要认证。
+应用接口用于查询与创建「可执行应用」。应用通过 `actions[].templateId` 引用模板库中的配置。
+
+所有接口需要认证。
 
 ## 接口列表
 
-- <code>GET /api/apps</code>：查询应用模板列表
-- <code>GET /api/apps/:appId</code>：查询应用模板详情
+- `GET /api/apps`：查询应用列表
+- `GET /api/apps/:appId`：查询应用详情
+- `POST /api/apps/create`：创建应用（如从训练任务导入）
 
 ## 接口详情
 
 ### GET /api/apps
 
-查询应用模板列表。
-
-**查询参数：**
-- `pageNumber`：页码（可选，底层暂不支持全量返回，仅限前端分页）
-- `pageSize`：每页数量（可选）
-- `keyword`：按名称或描述搜索（可选）
-- `categoryType`：业务分类过滤（可选，如 `model`, `task`）
-- `activeTab`：环境分类（可选，`production` 或 `grey`）
+查询应用列表。后端会解析每个 action 关联的模板，填充运行时 `templates` 字段。
 
 **响应示例：**
 
 ```json
 {
   "success": true,
+  "message": "获取应用列表成功",
   "data": [
     {
-      "id": "my-app",
-      "name": "我的应用",
-      "description": "应用描述",
+      "id": "aihc-test-job-import",
+      "name": "aihc-test-job-import",
+      "description": "测试从任务中导入模板",
+      "type": "training",
       "categoryType": "model",
-      "tags": ["LLM", "VLM"],
+      "tags": ["部署", "训练", "示例"],
       "actions": [
         {
           "type": "train",
           "label": "创建训练任务",
-          "templateKey": "train"
+          "templateKey": "train",
+          "templateId": 106
         }
       ],
       "templates": {
         "train": {
-           "taskParams": { ... }
+          "taskParams": { "jobSpec": { "...": "..." } },
+          "command": "#! /bin/bash\n...",
+          "accelerators": {},
+          "templateId": 106,
+          "templateName": "aihc-test-job-import - 创建训练任务"
         }
       }
     }
-  ],
-  "message": "获取应用模板列表成功"
+  ]
 }
 ```
 
-### GET /api/apps/&#58;appId
+### GET /api/apps/:appId
 
-根据应用模板 ID 查询详情。
+根据应用 ID 查询详情（结构与列表单项一致）。
 
 **路径参数：**
-- `appId`：应用模板 ID
 
-**响应示例：**
+- `appId`：应用目录名 / ID
+
+### POST /api/apps/create
+
+创建应用。若传入 `taskParams` / `command`，会先写入模板库，再在 `app.json` 中关联 `templateId`。
+
+**请求体示例：**
 
 ```json
 {
-  "success": true,
-  "data": {
-    "appId": "xxx",
-    "appName": "应用模板名称",
-    "description": "模板描述",
-    "category": "训练",
-    "template": {
-      "jobName": "训练任务",
-      "image": "registry/image:tag",
-      "command": ["python", "train.py"]
-    },
-    "createdAt": "2025-01-15T10:30:00Z",
-    "updatedAt": "2025-01-15T10:30:00Z"
-  }
+  "name": "我的导入应用",
+  "description": "从训练任务导入",
+  "type": "training",
+  "categoryType": "model",
+  "tags": ["训练"],
+  "taskParams": "{\"jobSpec\":{}}",
+  "command": "python train.py"
 }
 ```
 
+**说明：**
+
+- `type`：`training` | `deployment` | `batch-job`
+- 成功后返回应用元数据（含 `actions[].templateId`）
