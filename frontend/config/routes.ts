@@ -35,12 +35,6 @@ export default [
     component: './Application',
   },
   {
-    name: 'template',
-    icon: 'snippets',
-    path: '/template',
-    component: './Template',
-  },
-  {
     name: 'workflow',
     icon: 'apartment',
     path: '/workflow',
@@ -59,6 +53,12 @@ export default [
     icon: 'DatabaseOutlined',
     path: '/ai-assets',
     routes: [
+      {
+        name: 'template',
+        icon: 'snippets',
+        path: '/ai-assets/template',
+        component: './Template',
+      },
       {
         name: 'dataset',
         icon: 'database',
@@ -107,6 +107,11 @@ export default [
         hideInMenu: true,
       },
     ],
+  },
+  {
+    path: '/template',
+    redirect: '/ai-assets/template',
+    hideInMenu: true,
   },
   {
     name: 'data-warehouse',
